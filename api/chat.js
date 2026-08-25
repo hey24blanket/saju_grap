@@ -1,5 +1,5 @@
 // api/chat.js
-// 자세히 보기(1,500자) 및 실시간 AI 상담사 엔드포인트
+// 1,500자 3단계 심층 리포트 및 실시간 상담사
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -16,14 +16,18 @@ export default async function handler(req, res) {
   const { mode = 'chat', role, domain, cycle, sajuContext, userMessage, history = [] } = req.body;
 
   const systemInstruction = `
-당신은 '사주그랩(Saju Grap) 파동 역학 & 전략적 명리 지침서' 기반 수석 명리 전략 컨설턴트입니다.[cite: 2]
-1. 운은 길흉이 아니라 "지금 어떤 행동 모드가 유리한지 읽는 시간의 구조"입니다.[cite: 2]
-2. Y축 점수는 에너지 극성(+100 발산 ~ -100 수렴)을 나타냅니다.[cite: 2]
-3. 100% 품격 있는 한국어로 작성하며, 영문 소제목은 절대 사용하지 않습니다.
-4. '자세히 보기(detail)' 요청 시, 아래 3단계 프레임워크를 기반으로 **공백 포함 1,200~1,500자의 풍부하고 깊이 있는 전략 리포트**를 작성합니다[cite: 2]:
-   - 1단계: 해당 영역/에너지의 본질과 사주 원국에서의 구조적 의미[cite: 2]
-   - 2단계: 파동의 상승/하강 국면에서 얻는 구체적 기회와 리스크 관리법[cite: 2]
-   - 3단계: 내담자가 즉시 실행할 수 있는 구체적인 3개월 단계별 액션 플랜 (1개월차/2개월차/3개월차)[cite: 2]
+당신은 '사주그랩(Saju Grap) 파동 역학 & 전략적 명리 지침서' 기반 수석 컨설턴트입니다[cite: 2].
+
+[사주그랩 3단계 심층 컨설팅 프레임워크]
+자세히 보기(detail) 요청 시 아래 3단계 구조로 **공백 포함 1,200~1,500자 분량**의 깊이 있는 리포트를 작성하세요[cite: 2]:
+1. [에너지 구조와 본질]: 내담자의 사주 원국에서 해당 영역/기운이 갖는 근본적 의미와 시간축 상의 위치[cite: 2].
+2. [기회와 리스크 관리]: 파동의 극성(발산/수렴)에 따른 상단 시나리오(기회)와 하단선 방어(리스크 완충) 전략[cite: 2].
+3. [3개월 단계별 액션 플랜]:
+   - 1개월차: 즉시 착수할 핵심 행동 및 필터링 과제[cite: 2].
+   - 2개월차: 시스템 구축 및 루틴 안정화[cite: 2].
+   - 3개월차: 성과 수확 및 다음 사이클 대비[cite: 2].
+
+100% 품격 있는 한국어(해요체)로 작성하며 영문 소제목은 절대 사용하지 마세요.
 `;
 
   try {
@@ -33,8 +37,7 @@ export default async function handler(req, res) {
       contents = [{
         role: 'user',
         parts: [{
-          text: `내담자(${sajuContext?.name || '사용자'}, 일주: ${sajuContext?.pillars?.day || ''})의 [${cycle || '대운'} 주기 - ${domain || role}]에 대한 1,500자 분량의 심층 전략 리포트를 작성해 주세요. 
-사주그랩 파동역학 지침서의 3단계 프레임워크(본질 분석 -> 기회와 리스크 -> 3개월 액션 플랜)를 충실히 반영하여 다정하고 통찰력 있게 작성해 주세요.`[cite: 2]
+          text: `내담자(${sajuContext?.name || '사용자'}, 일주: ${sajuContext?.pillars?.day || ''})의 [${cycle || '대운'} 주기 - ${domain || role}]에 대한 1,500자 심층 전략 리포트를 3단계 프레임워크(본질 -> 기회/리스크 -> 3개월 액션 플랜)에 맞춰 작성해 주세요.`[cite: 2]
         }]
       }];
     } else {
@@ -64,6 +67,6 @@ export default async function handler(req, res) {
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '답변을 생성하지 못했습니다.';
     return res.status(200).json({ success: true, reply });
   } catch (error) {
-    return res.status(500).json({ success: false, message: '서버 통신 오류' });
+    return res.status(500).json({ success: false, message: '통신 오류' });
   }
 }
