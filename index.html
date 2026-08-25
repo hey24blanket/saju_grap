@@ -23,8 +23,8 @@
     .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .wheel-scroll-container { scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; overflow-x: hidden !important; touch-action: pan-y !important; }
     .wheel-item { scroll-snap-align: center; scroll-snap-stop: normal; user-select: none; }
-    .fade-in { animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-center p-2 md:p-6 select-none">
@@ -80,7 +80,7 @@
 
 
   <!-- ===================================================================== -->
-  <!-- 2. [대시보드 화면] 여백 최적화 & 포인트 제거 & 주기 연동             -->
+  <!-- 2. [대시보드 화면]                                                   -->
   <!-- ===================================================================== -->
   <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-4 fade-in pb-12">
     
@@ -111,7 +111,7 @@
 
     <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       
-      <!-- SCREEN 1: 초밀착 파동 그래프 & 여백 최소화 -->
+      <!-- SCREEN 1: 파동 그래프 (애니메이션 왜곡 완전 제거) -->
       <section class="bg-[#FAFAF8] rounded-[32px] p-4 md:p-5 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[640px]">
         <div>
           <div class="flex items-center justify-between mb-3">
@@ -123,7 +123,7 @@
             </div>
           </div>
 
-          <!-- 주기 탭 (시/일/월/연/대운 클릭 시 즉시 줌/데이터 전환) -->
+          <!-- 주기 탭 -->
           <div class="flex items-center gap-1 bg-stone-200/60 p-1 rounded-2xl mb-2.5 text-xs font-bold text-stone-500">
             <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="hour">시</button>
             <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="day">일</button>
@@ -132,7 +132,7 @@
             <button class="cycle-tab flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm font-extrabold" data-cycle="daewoon">대운(10년)</button>
           </div>
 
-          <!-- 5대 영역 필터 칩 (ALL -> 총운) -->
+          <!-- 5대 영역 필터 칩 -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-2.5 text-xs font-bold">
             <button class="domain-chip active bg-stone-800 text-white px-3 py-1.5 rounded-full shrink-0 shadow-sm" data-domain="all">총운</button>
             <button class="domain-chip bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
@@ -141,7 +141,7 @@
             <button class="domain-chip bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
           </div>
 
-          <!-- Chart.js 캔버스 (포인트 완전 삭제 & Y축 압축 & 좌우 패딩 0) -->
+          <!-- Chart.js 캔버스 (초밀착 여백 & no-animation) -->
           <div class="bg-white rounded-2xl p-2.5 shadow-sm border border-stone-100 mb-3 relative">
             <div class="w-full h-56 relative overflow-hidden">
               <canvas id="daewoonChart"></canvas>
@@ -156,13 +156,13 @@
           <div class="grid grid-cols-2 gap-2 mb-3">
             <div class="bg-white rounded-2xl p-3 border border-stone-100 shadow-sm">
               <span class="text-xs font-black text-amber-700 flex items-center gap-1 mb-1">
-                <i class="fa-solid fa-sparkles text-amber-500"></i>4대 운성 (300자)
+                <i class="fa-solid fa-sparkles text-amber-500"></i>4대 운성 (실시간 AI)
               </span>
               <div class="grid grid-cols-2 gap-1 mt-1.5">
-                <button type="button" class="ai-direct-btn text-[10px] font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-700 px-1.5 py-1.5 rounded-lg border border-rose-200 truncate text-left" data-key="yongsin" id="badgeYongsin">용신: -</button>
-                <button type="button" class="ai-direct-btn text-[10px] font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-700 px-1.5 py-1.5 rounded-lg border border-amber-200 truncate text-left" data-key="heesin" id="badgeHeesin">희신: -</button>
-                <button type="button" class="ai-direct-btn text-[10px] font-extrabold bg-stone-100 hover:bg-stone-200 text-stone-700 px-1.5 py-1.5 rounded-lg border border-stone-200 truncate text-left" data-key="gisin" id="badgeGisin">기신: -</button>
-                <button type="button" class="ai-direct-btn text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-700 px-1.5 py-1.5 rounded-lg border border-blue-200 truncate text-left" data-key="gusin" id="badgeGusin">구신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-700 px-1.5 py-1.5 rounded-lg border border-rose-200 truncate text-left" data-role="용신" id="badgeYongsin">용신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-700 px-1.5 py-1.5 rounded-lg border border-amber-200 truncate text-left" data-role="희신" id="badgeHeesin">희신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-extrabold bg-stone-100 hover:bg-stone-200 text-stone-700 px-1.5 py-1.5 rounded-lg border border-stone-200 truncate text-left" data-role="기신" id="badgeGisin">기신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-700 px-1.5 py-1.5 rounded-lg border border-blue-200 truncate text-left" data-role="구신" id="badgeGusin">구신: -</button>
               </div>
             </div>
 
@@ -174,8 +174,8 @@
                 <p id="txtStrengthStatus" class="text-[10px] text-stone-500 font-medium truncate mb-2">-</p>
               </div>
               <div class="flex items-center gap-1">
-                <button type="button" class="ai-direct-btn text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 flex-1 truncate" data-key="strength" id="badgeDeung">-</button>
-                <button type="button" class="ai-direct-btn text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-1 rounded-md border border-purple-100 flex-1 truncate" data-key="flow" id="badgeFlow">-</button>
+                <button type="button" class="ai-role-btn text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 flex-1 truncate" data-role="세력균형" id="badgeDeung">-</button>
+                <button type="button" class="ai-role-btn text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-1 rounded-md border border-purple-100 flex-1 truncate" data-role="대운흐름" id="badgeFlow">-</button>
               </div>
             </div>
           </div>
@@ -234,7 +234,7 @@
 
               <div class="tube-btn flex flex-col items-center gap-1.5 h-full justify-end w-full cursor-pointer" data-domain="love">
                 <div class="w-10 h-32 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
-                  <div id="tubeLove" class="tube-fill w-full bg-gradient-to-t from-rose-400 to-pink-500 rounded-full flex items-start justify-center pt-1" style="height: 50%;">
+                  <div id="tubeLove" class="tube-fill w-full bg-gradient-to-t from-rose-400 to-pink-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
                     <span id="valLove" class="text-[9px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                   </div>
                 </div>
@@ -246,7 +246,7 @@
           <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 mb-4">
             <div class="flex items-start gap-2.5">
               <span class="text-base">💡</span>
-              <p id="txtInsightDesc" class="text-xs text-stone-600 leading-relaxed font-medium">분석 결과를 바탕으로 최적의 행동 전략을 안내합니다.</p>
+              <p class="text-xs text-stone-600 leading-relaxed font-medium">파동의 높낮이는 성패가 아니라 현재 유리한 행동 모드를 보여줍니다. 각 지표를 터치하여 맞춤 AI 행동 가이드를 확인하세요.</p>
             </div>
           </div>
         </div>
@@ -262,12 +262,11 @@
 
 
   <!-- ===================================================================== -->
-  <!-- 3. [팝업 모달] 300자 가이드 + 좌우 이동 + 1,500자 자세히 보기       -->
+  <!-- 3. [모달] 실시간 AI 300자 가이드 + 1,500자 상세 리포트                 -->
   <!-- ===================================================================== -->
   <div id="modalAiInsight" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-3 fade-in">
     <div class="w-full max-w-md bg-white rounded-[28px] p-5 shadow-2xl border border-stone-200 relative max-h-[85vh] flex flex-col justify-between">
       <div>
-        <!-- 모달 상단 헤더 & 좌우 네비게이션 버튼 -->
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-1.5">
             <button id="btnModalPrev" class="w-7 h-7 rounded-full bg-stone-100 hover:bg-amber-500 hover:text-white flex items-center justify-center text-stone-600 text-xs transition">
@@ -283,23 +282,26 @@
           </button>
         </div>
 
-        <!-- 300자 본문 영역 (여백 축소 & 글 부각) -->
-        <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 mb-3 max-h-[50vh] overflow-y-auto no-scrollbar">
-          <p id="modalAiSubtitle" class="text-xs font-black text-amber-900 mb-1.5">행동 전략 가이드</p>
-          <div id="modalAiContent" class="text-xs text-stone-700 leading-relaxed font-medium whitespace-pre-line"></div>
+        <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 mb-3 max-h-[52vh] overflow-y-auto no-scrollbar">
+          <p id="modalAiSubtitle" class="text-xs font-black text-amber-900 mb-1.5">파동역학 맞춤 가이드</p>
           
-          <!-- 1,500자 상세 내용 펼침 컨테이너 -->
+          <div id="modalAiLoading" class="py-6 text-center text-stone-400 text-xs font-bold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-500"></i>
+            <span>지침서를 바탕으로 실시간 전략을 도출 중입니다...</span>
+          </div>
+
+          <div id="modalAiContent" class="text-xs text-stone-700 leading-relaxed font-medium whitespace-pre-line hidden"></div>
+          
           <div id="modalDetailBox" class="mt-3 pt-3 border-t border-amber-200/70 hidden">
             <div id="modalDetailLoading" class="py-4 text-center text-xs text-amber-700 font-bold flex items-center justify-center gap-1.5 hidden">
               <i class="fa-solid fa-wand-magic-sparkles animate-spin"></i>
-              <span>지침서 기반 1,500자 심층 리포트 생성 중...</span>
+              <span>지침서 기반 1,500자 심층 리포트 작성 중...</span>
             </div>
             <div id="modalDetailText" class="text-xs text-stone-800 leading-relaxed font-medium whitespace-pre-line space-y-2"></div>
           </div>
         </div>
       </div>
 
-      <!-- 모달 하단 액션 버튼 바 -->
       <div class="flex items-center justify-between text-xs pt-1">
         <button id="btnFetchDetail" class="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-book-open text-amber-400 text-xs"></i>
@@ -312,7 +314,7 @@
 
 
   <!-- ===================================================================== -->
-  <!-- 4. [챗봇 모달] 실시간 AI 상담사                                      -->
+  <!-- 4. [챗봇 드로어]                                                     -->
   <!-- ===================================================================== -->
   <div id="modalChatDrawer" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-end md:items-center justify-center p-0 md:p-4 fade-in">
     <div class="w-full max-w-lg bg-white rounded-t-[32px] md:rounded-[32px] p-5 shadow-2xl border border-stone-200 h-[80vh] flex flex-col justify-between">
@@ -349,7 +351,7 @@
 
 
   <!-- ===================================================================== -->
-  <!-- Script: 프론트엔드 파동 & 모달 인터랙션 로직                         -->
+  <!-- Script: 프론트엔드 연동 & 애니메이션 왜곡 제거                          -->
   <!-- ===================================================================== -->
   <script>
     let audioCtx = null;
@@ -388,12 +390,13 @@
     let chartInstance = null;
     let currentPayload = null;
     let currentAnalysisData = null;
-    let cachedAiPack = null;
     let currentCycle = 'daewoon';
     let currentDomainIndex = 0;
     const domainKeys = ['all', 'career', 'wealth', 'mental', 'love'];
-    const domainTitles = { all: '총운 (종합 파동)', career: '사업운 (추진·발산)', wealth: '재물운 (결실·안정)', mental: '심신운 (수렴·내실)', love: '연애운 (화합·교류)' };
+    const domainTitles = { all: '총운', career: '사업운', wealth: '재물운', mental: '심신운', love: '연애운' };
     const cycleTitles = { daewoon: '100년 대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
+    
+    const dynamicAiCache = {};
     let chatHistory = [];
 
     // 온보딩 휠
@@ -467,7 +470,7 @@
       playTickSound();
       const btn = document.getElementById('btnStart');
       btn.classList.add('opacity-70', 'pointer-events-none');
-      btn.querySelector('span').innerText = '100년 파동 및 가이드라인 계산 중...';
+      btn.querySelector('span').innerText = '파동 계산 중...';
 
       const payload = {
         name: document.getElementById('initName').value.trim() || '사용자',
@@ -489,7 +492,6 @@
         if (json.success && json.data) {
           currentPayload = payload;
           currentAnalysisData = json.data;
-          cachedAiPack = json.data.aiPack;
           chatHistory = [];
           renderDashboard(payload.name, json.data);
           document.getElementById('viewOnboarding').classList.add('hidden');
@@ -507,7 +509,7 @@
     }
 
     function renderDashboard(name, data) {
-      const { pillars, analysis, dayGanHanja, dayElemKor, aiPack } = data;
+      const { pillars, analysis, dayGanHanja, dayElemKor } = data;
       document.getElementById('dashUserName').innerText = name;
       document.getElementById('dashPillarTag').innerText = `${pillars.day}일주`;
       document.getElementById('dashGanBadge').innerText = dayGanHanja;
@@ -524,14 +526,12 @@
       document.getElementById('badgeGisin').innerText = `기신: ${p.gisin}`;
       document.getElementById('badgeGusin').innerText = `구신: ${p.gusin}`;
 
-      document.getElementById('txtInsightDesc').innerText = aiPack?.masterInsight || '파동의 리듬을 파악하고 최적의 행동 모드를 설정하세요.';
-      
       currentCycle = 'daewoon';
       currentDomainIndex = 0;
       renderWaveChart(currentCycle, 'all');
     }
 
-    // Chart.js: 포인트 완전 제거 + 비활성 선 8% 투명도 + Y축/여백 초슬림
+    // Chart.js 렌더링: animation: false로 왜곡 줌인 효과 완전 차단
     function renderWaveChart(cycleKey, highlightDomain = 'all') {
       const ctx = document.getElementById('daewoonChart').getContext('2d');
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
@@ -548,7 +548,7 @@
         }
       };
 
-      const totalStyle = (highlightDomain === 'all' || highlightDomain === 'all') ? 
+      const totalStyle = (highlightDomain === 'all') ? 
         { color: '#D97706', width: 3.5 } : { color: 'rgba(217, 119, 6, 0.08)', width: 1.2 };
 
       const careerStyle = getStyle('career', 'rgba(245, 158, 11, 1)');
@@ -571,7 +571,8 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { left: 0, right: 0, top: 2, bottom: 2 } },
+          animation: false, // 왜곡 줌인 효과 완전 제거
+          layout: { padding: { left: 4, right: 4, top: 4, bottom: 4 } },
           plugins: { legend: { display: false } },
           scales: {
             x: { grid: { display: false }, ticks: { font: { size: 9, weight: '600' }, color: '#78716C', maxRotation: 0 } },
@@ -581,7 +582,7 @@
       });
     }
 
-    // 주기(시/일/월/연/대운) 탭 클릭 인터랙션
+    // 주기 탭 전환
     document.querySelectorAll('.cycle-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         playTickSound();
@@ -596,7 +597,7 @@
       });
     });
 
-    // 5대 영역 필터 칩 클릭 인터랙션
+    // 5대 영역 전환 & 300자 실시간 생성 팝업
     function setDomain(index, showModal = false) {
       currentDomainIndex = (index + domainKeys.length) % domainKeys.length;
       const domainKey = domainKeys[currentDomainIndex];
@@ -612,8 +613,8 @@
 
       renderWaveChart(currentCycle, domainKey);
 
-      if (showModal && cachedAiPack?.scenarios?.[currentCycle]) {
-        openScenarioModal(domainKey);
+      if (showModal) {
+        fetchDynamicSummary(domainKey);
       }
     }
 
@@ -628,59 +629,138 @@
       });
     });
 
-    // 모달 300자 팝업 & 네비게이션
-    function openScenarioModal(domainKey) {
+    // 실시간 AI 300자 가이드 호출 함수
+    async function fetchDynamicSummary(domainKey) {
       playTickSound();
       const title = `${cycleTitles[currentCycle]} · ${domainTitles[domainKey]}`;
-      const content = cachedAiPack.scenarios[currentCycle][domainKey];
+      const cacheKey = `${currentCycle}_${domainKey}`;
 
       document.getElementById('modalAiTitle').innerText = title;
       document.getElementById('modalAiSubtitle').innerText = `${currentPayload?.name || '내담자'}님의 파동 행동 지침 (300자)`;
-      document.getElementById('modalAiContent').innerText = content;
-
-      // 1500자 박스 초기화
+      
+      const contentEl = document.getElementById('modalAiContent');
+      const loadingEl = document.getElementById('modalAiLoading');
+      const modal = document.getElementById('modalAiInsight');
+      
       document.getElementById('modalDetailBox').classList.add('hidden');
       document.getElementById('modalDetailText').innerText = '';
-      document.getElementById('modalDetailLoading').classList.add('hidden');
-
-      const modal = document.getElementById('modalAiInsight');
+      
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+
+      if (dynamicAiCache[cacheKey]) {
+        loadingEl.classList.add('hidden');
+        contentEl.classList.remove('hidden');
+        contentEl.innerText = dynamicAiCache[cacheKey];
+        return;
+      }
+
+      loadingEl.classList.remove('hidden');
+      contentEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'summary',
+            domain: domainTitles[domainKey],
+            cycle: cycleTitles[currentCycle],
+            score: currentAnalysisData.cyclesData[currentCycle][domainKey === 'all' ? 'total' : domainKey][3] || 0,
+            sajuContext: {
+              name: currentPayload?.name,
+              pillars: currentAnalysisData?.pillars
+            }
+          })
+        });
+
+        const json = await res.json();
+        loadingEl.classList.add('hidden');
+        contentEl.classList.remove('hidden');
+
+        if (json.success && json.reply) {
+          dynamicAiCache[cacheKey] = json.reply;
+          contentEl.innerText = json.reply;
+        } else {
+          contentEl.innerText = json.message || '가이드를 생성하지 못했습니다.';
+        }
+      } catch (err) {
+        loadingEl.classList.add('hidden');
+        contentEl.classList.remove('hidden');
+        contentEl.innerText = '서버와 통신할 수 없습니다.';
+      }
     }
 
-    document.getElementById('btnModalPrev').addEventListener('click', () => {
-      setDomain(currentDomainIndex - 1, true);
-    });
-    document.getElementById('btnModalNext').addEventListener('click', () => {
-      setDomain(currentDomainIndex + 1, true);
-    });
-
-    // 4대 운성/세력 버튼 300자 즉시 팝업
-    document.querySelectorAll('.ai-direct-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+    // 4대 운성/세력 버튼 실시간 생성
+    document.querySelectorAll('.ai-role-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
         playTickSound();
-        const key = btn.dataset.key;
-        const titles = { yongsin: '용신(用神) 심층 해설', heesin: '희신(喜神) 심층 해설', gisin: '기신(忌神) 심층 해설', gusin: '구신(仇神) 심층 해설', strength: '세력 균형 지수 분석', flow: '대운 순역행 시간축' };
-        
-        document.getElementById('modalAiTitle').innerText = titles[key];
-        document.getElementById('modalAiSubtitle').innerText = '사주그랩 명리 가이드라인 (300자)';
-        document.getElementById('modalAiContent').innerText = cachedAiPack[key];
+        const role = btn.dataset.role;
+        const cacheKey = `role_${role}`;
 
+        document.getElementById('modalAiTitle').innerText = `${role} 심층 해설`;
+        document.getElementById('modalAiSubtitle').innerText = '사주그랩 파동 지침서 기반 맞춤 분석';
+        
+        const contentEl = document.getElementById('modalAiContent');
+        const loadingEl = document.getElementById('modalAiLoading');
+        const modal = document.getElementById('modalAiInsight');
+        
         document.getElementById('modalDetailBox').classList.add('hidden');
         document.getElementById('modalDetailText').innerText = '';
 
-        const modal = document.getElementById('modalAiInsight');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+
+        if (dynamicAiCache[cacheKey]) {
+          loadingEl.classList.add('hidden');
+          contentEl.classList.remove('hidden');
+          contentEl.innerText = dynamicAiCache[cacheKey];
+          return;
+        }
+
+        loadingEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mode: 'summary',
+              role,
+              sajuContext: {
+                name: currentPayload?.name,
+                pillars: currentAnalysisData?.pillars
+              }
+            })
+          });
+
+          const json = await res.json();
+          loadingEl.classList.add('hidden');
+          contentEl.classList.remove('hidden');
+
+          if (json.success && json.reply) {
+            dynamicAiCache[cacheKey] = json.reply;
+            contentEl.innerText = json.reply;
+          } else {
+            contentEl.innerText = json.message || '해설을 불러오지 못했습니다.';
+          }
+        } catch (e) {
+          loadingEl.classList.add('hidden');
+          contentEl.classList.remove('hidden');
+          contentEl.innerText = '서버 통신 오류가 발생했습니다.';
+        }
       });
     });
 
+    document.getElementById('btnModalPrev').addEventListener('click', () => setDomain(currentDomainIndex - 1, true));
+    document.getElementById('btnModalNext').addEventListener('click', () => setDomain(currentDomainIndex + 1, true));
     document.getElementById('btnCloseAiModal').addEventListener('click', () => {
       document.getElementById('modalAiInsight').classList.add('hidden');
       document.getElementById('modalAiInsight').classList.remove('flex');
     });
 
-    // 자세히 보기 (1,500자 심층 리포트 비동기 호출)
+    // 자세히 보기 (1,500자 실시간 심층 생성)
     document.getElementById('btnFetchDetail').addEventListener('click', async () => {
       playTickSound();
       const domainKey = domainKeys[currentDomainIndex];
@@ -712,7 +792,7 @@
         if (json.success && json.reply) {
           detailText.innerText = json.reply;
         } else {
-          detailText.innerText = '1,500자 상세 리포트를 불러오지 못했습니다.';
+          detailText.innerText = json.message || '1,500자 상세 리포트를 생성하지 못했습니다.';
         }
       } catch (e) {
         detailLoading.classList.add('hidden');
@@ -720,7 +800,7 @@
       }
     });
 
-    // 챗봇 연동
+    // 챗봇
     function openChatDrawer() {
       playTickSound();
       document.getElementById('modalChatDrawer').classList.remove('hidden');
@@ -782,8 +862,13 @@
           contentBox.innerText = json.reply;
           chatHistory.push({ role: 'user', text });
           chatHistory.push({ role: 'model', text: json.reply });
+        } else {
+          contentBox.innerText = json.message || '답변을 불러오지 못했습니다.';
         }
-      } catch (err) {}
+      } catch (err) {
+        const contentBox = aiBubble.querySelector('.bg-stone-100');
+        contentBox.innerText = '서버와 통신할 수 없습니다.';
+      }
       list.scrollTop = list.scrollHeight;
     });
 
