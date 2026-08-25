@@ -165,13 +165,13 @@
     <header class="w-full liquid-glass rounded-[28px] p-3.5 px-5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-1.5">
-          <span id="dashElemBadge" class="text-xs font-black text-stone-600 liquid-pill-clear px-2.5 py-1 rounded-xl">물</span>
-          <div class="w-9 h-9 rounded-2xl liquid-pill-dark text-white font-black flex items-center justify-center text-base shadow-sm" id="dashGanBadge">壬</div>
+          <span id="dashElemBadge" class="text-xs font-black text-stone-600 liquid-pill-clear px-2.5 py-1 rounded-xl">불</span>
+          <div class="w-9 h-9 rounded-2xl liquid-pill-dark text-white font-black flex items-center justify-center text-base shadow-sm" id="dashGanBadge">丙</div>
         </div>
         <div>
           <h2 class="font-black text-stone-900 text-sm md:text-base flex items-center gap-1.5">
             <span id="dashUserName">사용자</span>님의 인생 파동
-            <span id="dashPillarTag" class="text-[11px] font-bold liquid-pill-clear text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/50">--</span>
+            <span id="dashPillarTag" class="text-[11px] font-bold liquid-pill-clear text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/50">丙申일주</span>
           </h2>
         </div>
       </div>
@@ -213,20 +213,20 @@
           <!-- 5대 영역 필터 칩 -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 text-xs font-bold">
             <button class="domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0" data-domain="all">총운</button>
-            <button class="domain-chip liquid-pill-clear text-amber-800 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
-            <button class="domain-chip liquid-pill-clear text-emerald-800 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">재물운</button>
-            <button class="domain-chip liquid-pill-clear text-purple-800 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="mental">심신운</button>
-            <button class="domain-chip liquid-pill-clear text-rose-800 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
+            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
+            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">재물운</button>
+            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="mental">심신운</button>
+            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
           </div>
 
-          <!-- Chart.js 캔버스 -->
+          <!-- Chart.js 캔버스 (선택 외 투명도 10% 완벽 분리) -->
           <div class="liquid-card-inner rounded-[28px] p-3 mb-4 relative">
             <div class="w-full h-56 relative overflow-hidden">
               <canvas id="daewoonChart"></canvas>
             </div>
             <div class="flex items-center justify-between text-[10px] text-stone-400 mt-1.5 font-semibold px-2">
               <span id="txtCycleGuide">👈 0세~100세 10대 대운 파동</span>
-              <span class="text-amber-700 font-bold">선택 파동 100% 강조</span>
+              <span class="text-amber-700 font-bold">선택 파동 100% 강조 (기타 10%)</span>
             </div>
           </div>
 
@@ -358,7 +358,6 @@
           </button>
         </div>
 
-        <!-- 본문 텍스트 영역 (자연스러운 스크롤 & 문장 완결 보장) -->
         <div class="liquid-card-inner rounded-[26px] p-4.5 mb-3 max-h-[56vh] overflow-y-auto no-scrollbar">
           <p id="modalAiSubtitle" class="text-xs font-black text-amber-900 mb-2">파동역학 맞춤 가이드</p>
           <div id="modalAiContent" class="text-xs text-stone-800 leading-relaxed font-semibold whitespace-pre-line space-y-2"></div>
@@ -420,7 +419,7 @@
   </div>
 
 
-  <!-- 5. 프론트엔드 연동 로직 -->
+  <!-- 5. 프론트엔드 연동 스크립트 -->
   <script>
     let audioCtx = null;
     function getAudioContext() {
@@ -458,7 +457,7 @@
     let chartInstance = null;
     let currentPayload = null;
     let currentAnalysisData = null;
-    let cachedAiPack = null; // 온보딩 시 단 1회 로드된 전체 가이드라인 패키지
+    let cachedAiPack = null;
     let currentCycle = 'daewoon';
     let currentDomainIndex = 0;
     const domainKeys = ['all', 'career', 'wealth', 'mental', 'love'];
@@ -533,7 +532,6 @@
     document.getElementById('btnPrevStep').addEventListener('click', () => { if (state.step > 0) { playTickSound(); renderWheel(state.step - 1); } });
     document.getElementById('btnNextStep').addEventListener('click', () => { if (state.step < steps.length - 1) { playTickSound(); renderWheel(state.step + 1); } });
 
-    // 온보딩 1회 호출로 전체 데이터 사전 수신
     async function executeAnalysis() {
       playTickSound();
       const btn = document.getElementById('btnStart');
@@ -580,10 +578,10 @@
     function renderDashboard(name, data) {
       const { pillars, analysis, dayGanHanja, dayElemKor, aiPack } = data;
       document.getElementById('dashUserName').innerText = name;
-      document.getElementById('dashPillarTag').innerText = `${pillars.day}일주`;
+      document.getElementById('dashPillarTag').innerText = `${pillars.dayHanja}일주`;
       document.getElementById('dashGanBadge').innerText = dayGanHanja;
       document.getElementById('dashElemBadge').innerText = dayElemKor;
-      document.getElementById('txtUserPillar').innerText = `${name} (${pillars.day})`;
+      document.getElementById('txtUserPillar').innerText = `${name} (${pillars.dayHanja})`;
 
       document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점)`;
       document.getElementById('badgeDeung').innerText = `득세 ${analysis.scores.deungSe}점`;
@@ -602,29 +600,29 @@
       renderWaveChart(currentCycle, 'all');
     }
 
+    // Chart.js 렌더링: 비선택 라인 10% 투명도 엄격 적용
     function renderWaveChart(cycleKey, highlightDomain = 'all') {
       const ctx = document.getElementById('daewoonChart').getContext('2d');
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
 
       if (chartInstance) chartInstance.destroy();
 
-      const getStyle = (domain, activeColor) => {
-        if (highlightDomain === 'all') {
-          return { color: activeColor.replace('1)', '0.45)'), width: 2.2 };
-        } else if (highlightDomain === domain) {
-          return { color: activeColor, width: 4 };
+      const getStyle = (domain, activeColor, inactiveColor) => {
+        if (highlightDomain === domain) {
+          return { color: activeColor, width: 3.8 };
         } else {
-          return { color: 'rgba(180, 170, 160, 0.1)', width: 1.2 };
+          return { color: inactiveColor, width: 1.2 };
         }
       };
 
+      // 선택된 것만 100% 굵게, 나머지는 정확히 10% 투명도(0.10)
       const totalStyle = (highlightDomain === 'all') ? 
-        { color: 'rgba(217, 119, 6, 1)', width: 3.8 } : { color: 'rgba(217, 119, 6, 0.12)', width: 1.2 };
+        { color: 'rgba(217, 119, 6, 1)', width: 3.8 } : { color: 'rgba(217, 119, 6, 0.10)', width: 1.2 };
 
-      const careerStyle = getStyle('career', 'rgba(245, 158, 11, 1)');
-      const wealthStyle = getStyle('wealth', 'rgba(16, 185, 129, 1)');
-      const mentalStyle = getStyle('mental', 'rgba(168, 85, 247, 1)');
-      const loveStyle = getStyle('love', 'rgba(244, 63, 94, 1)');
+      const careerStyle = getStyle('career', 'rgba(245, 158, 11, 1)', 'rgba(245, 158, 11, 0.10)');
+      const wealthStyle = getStyle('wealth', 'rgba(16, 185, 129, 1)', 'rgba(16, 185, 129, 0.10)');
+      const mentalStyle = getStyle('mental', 'rgba(168, 85, 247, 1)', 'rgba(168, 85, 247, 0.10)');
+      const loveStyle = getStyle('love', 'rgba(244, 63, 94, 1)', 'rgba(244, 63, 94, 0.10)');
 
       chartInstance = new Chart(ctx, {
         type: 'line',
@@ -652,6 +650,7 @@
       });
     }
 
+    // 주기 탭 전환
     document.querySelectorAll('.cycle-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         playTickSound();
@@ -665,6 +664,7 @@
       });
     });
 
+    // 5대 영역 전환
     function setDomain(index, showModal = false) {
       currentDomainIndex = (index + domainKeys.length) % domainKeys.length;
       const domainKey = domainKeys[currentDomainIndex];
@@ -699,7 +699,7 @@
       });
     });
 
-    // 0초 즉시 모달 출력
+    // 0초 즉시 모달 렌더링
     function openModal(title, subtitle, content) {
       playTickSound();
       document.getElementById('modalAiTitle').innerText = title;
@@ -772,7 +772,7 @@
       }
     });
 
-    // 챗봇
+    // 챗봇 드로어
     function openChatDrawer() {
       playTickSound();
       document.getElementById('modalChatDrawer').classList.remove('hidden');
