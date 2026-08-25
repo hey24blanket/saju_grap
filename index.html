@@ -1,1 +1,942 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantPulse Pro // Multi-Dimensional Stock Analytics Hub</title>
+  
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            bgDark: '#080B11',
+            cardDark: 'rgba(15, 23, 42, 0.75)',
+            borderDark: 'rgba(255, 255, 255, 0.08)',
+            mainGold: '#F59E0B',
+            assetCyan: '#06B6D4',
+            assetGreen: '#10B981',
+            assetPurple: '#A855F7',
+            assetRose: '#F43F5E',
+            assetOrange: '#FB923C'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Fira Code"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080B11;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.06) 0px, transparent 60%);
+      color: #E2E8F0;
+      min-height: 100vh;
+    }
+    
+    .glass-panel {
+      background: rgba(13, 19, 33, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .glass-panel:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Pulse Live Dot */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(1.25); }
+    }
+    .live-dot {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    /* Active Stock Selection Glow */
+    .asset-card.active-selected {
+      background: rgba(30, 41, 59, 0.9) !important;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased text-slate-200 p-3 sm:p-5 lg:p-7 flex flex-col justify-between">
+
+  <!-- ================= TOP HEADER & GLOBAL CONTROLS ================= -->
+  <header class="w-full max-w-[1760px] mx-auto mb-5">
+    <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
+      
+      <!-- Logo & Realtime Status Indicator -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i data-lucide="candlestick-chart" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              QUANT-X <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">PRO ENGINE</span>
+            </h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span>
+              REALTIME SYNC
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">다차원 주식 그래프 인터랙션 허브 (메인 1종 + 섹터 카테고리 5종 = 총 6종 동기화)</p>
+        </div>
+      </div>
+
+      <!-- Timeframe Selector (봉 단위 전환기: 시봉/일봉/주봉/월봉/연봉) -->
+      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-white/10 shadow-inner">
+        <span class="text-[11px] font-mono text-slate-400 px-3 uppercase tracking-wider hidden md:inline-block">Timeframe</span>
+        <div class="flex items-center gap-1" id="timeframe-buttons">
+          <button data-tf="1H" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">시봉 (1H)</button>
+          <button data-tf="1D" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-bold">일봉 (1D)</button>
+          <button data-tf="1W" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">주봉 (1W)</button>
+          <button data-tf="1M" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">월봉 (1M)</button>
+          <button data-tf="1Y" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">연봉 (1Y)</button>
+        </div>
+      </div>
+
+      <!-- Reset & Global Focus Switcher -->
+      <div class="flex items-center gap-2">
+        <button id="reset-focus-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white transition-all">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>전체 동시보기 (ALL)</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 6 Asset Control Badges (Main + 5 Sector Categories) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-3" id="asset-selectors">
+      <!-- Injected Dynamically by JS -->
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT: 4 GRAPH STYLES (2x2 Grid) ================= -->
+  <main class="w-full max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1">
+    
+    <!-- --------------------------------------------------------------- -->
+    <!-- GRAPH STYLE 01: Relative Performance Trend (% Normalized Stream) -->
+    <!-- --------------------------------------------------------------- -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+      <div class="flex items-center justify-between pb-3 mb-2 border-b border-white/5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-xs font-bold font-mono">01</span>
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              상대 수익률 정규화 차트
+              <span class="text-[10px] font-mono text-slate-400 font-normal">Normalized Alpha %</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">시작 시점(0%) 기준 전 종목 상대 등락률 및 메인 지수 스프레드 추적</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded-md border border-white/5">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span id="stat-s1-active" class="font-bold text-cyan-400">ALL 6 ASSETS</span>
+        </div>
+      </div>
+
+      <div class="relative w-full h-[320px] md:h-[350px]">
+        <canvas id="chartStyle1"></canvas>
+      </div>
+
+      <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span class="flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i> 비선택 종목 투명도 10% 감쇠 포커스 모드 지원</span>
+        <span class="text-slate-500">Auto Scaled Y-Axis</span>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------------- -->
+    <!-- GRAPH STYLE 02: Candlestick & Volume Combined TA Matrix         -->
+    <!-- --------------------------------------------------------------- -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+      <div class="flex items-center justify-between pb-3 mb-2 border-b border-white/5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs font-bold font-mono">02</span>
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              프로 캔들스틱 & 거래량 복합형
+              <span class="text-[10px] font-mono text-slate-400 font-normal">Candle + Volume Flow</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">선택 자산 고/저/시/종가 밴드와 하단 거래량(Volume) 가중치 히스토그램</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 bg-slate-900/60 px-2.5 py-1 rounded-md border border-white/5 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full" id="s2-target-dot" style="background-color: #F59E0B;"></span>
+          <span id="s2-target-name" class="font-bold text-white">MAIN 종합 지수</span>
+        </div>
+      </div>
+
+      <div class="relative w-full h-[320px] md:h-[350px]">
+        <canvas id="chartStyle2"></canvas>
+      </div>
+
+      <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i> High/Low 밴드 오버레이 및 양봉/음봉 색상 자동 동기화</span>
+        <span class="text-slate-500">Volume Sync Bars</span>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------------- -->
+    <!-- GRAPH STYLE 03: Multi-Layered Glowing Area Stream (Liquidity)   -->
+    <!-- --------------------------------------------------------------- -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+      <div class="flex items-center justify-between pb-3 mb-2 border-b border-white/5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center text-xs font-bold font-mono">03</span>
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              글로우 영역 스택 & 유동성 스트림
+              <span class="text-[10px] font-mono text-slate-400 font-normal">Glassmorphism Area</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">네온 그라디언트 레이어로 시장 내 섹터별 자금 유입·유출 볼륨 시각화</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-md border border-purple-500/20">
+          <i data-lucide="waves" class="w-3.5 h-3.5"></i>
+          <span>LIQUIDITY STREAM</span>
+        </div>
+      </div>
+
+      <div class="relative w-full h-[320px] md:h-[350px]">
+        <canvas id="chartStyle3"></canvas>
+      </div>
+
+      <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> 개별 자산 클릭 시 배경 레이어 부드러운 블러 감쇠</span>
+        <span class="text-slate-500">Curved Bézier Spline</span>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------------- -->
+    <!-- GRAPH STYLE 04: Volatility & Momentum Deviation Matrix          -->
+    <!-- --------------------------------------------------------------- -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+      <div class="flex items-center justify-between pb-3 mb-2 border-b border-white/5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center text-xs font-bold font-mono">04</span>
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              모멘텀 이격도 & 변동성 바 매트릭스
+              <span class="text-[10px] font-mono text-slate-400 font-normal">Momentum & Dispersion Bar</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">기준선 대비 종목별 실시간 매수/매도 압력 편차 및 변동성 계수 비교</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">
+          <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+          <span>OSCILLATOR MATRIX</span>
+        </div>
+      </div>
+
+      <div class="relative w-full h-[320px] md:h-[350px]">
+        <canvas id="chartStyle4"></canvas>
+      </div>
+
+      <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span class="flex items-center gap-1.5"><i data-lucide="activity" class="w-3.5 h-3.5 text-rose-400"></i> 양(+)의 모멘텀 매수세 vs 음(-)의 매도세 즉시 판독</span>
+        <span class="text-slate-500">Zero-Center Divergence</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= BOTTOM STATUS FOOTER ================= -->
+  <footer class="w-full max-w-[1760px] mx-auto mt-6 glass-panel rounded-xl p-3.5 px-6 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-slate-400">
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="text-slate-300">WebSocket Engine: Connected (32ms)</span>
+      </div>
+      <div class="hidden md:flex items-center gap-2 text-slate-500">
+        <span>GSAP Hardware Accelerated UI</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-slate-400">
+      <span>GitHub Repository Ready • `index.html`</span>
+    </div>
+  </footer>
+
+  <!-- ================= CORE INTERACTIVE ENGINE SCRIPT ================= -->
+  <script>
+    // ----------------------------------------------------
+    // 1. Definition of 6 Assets (1 Main Benchmark + 5 Sectors)
+    // ----------------------------------------------------
+    const ASSETS = [
+      { id: 'main', name: 'MAIN 종합 지수', ticker: 'K-TOTAL 200', color: '#F59E0B', rgb: '245, 158, 11', basePrice: 2840.50, isMain: true },
+      { id: 'catA', name: 'A 반도체 / AI', ticker: 'NV-SEMI', color: '#06B6D4', rgb: '6, 182, 212', basePrice: 142300, isMain: false },
+      { id: 'catB', name: 'B 2차전지 / 모빌리티', ticker: 'BATT-X', color: '#10B981', rgb: '16, 185, 129', basePrice: 89400, isMain: false },
+      { id: 'catC', name: 'C 바이오 / 융합헬스', ticker: 'BIO-GEN', color: '#A855F7', rgb: '168, 85, 247', basePrice: 56700, isMain: false },
+      { id: 'catD', name: 'D 사이버보안 / 클라우드', ticker: 'CYBR-SEC', color: '#F43F5E', rgb: '244, 63, 94', basePrice: 48200, isMain: false },
+      { id: 'catE', name: 'E 핀테크 / 디지털에셋', ticker: 'FINT-WEB3', color: '#FB923C', rgb: '251, 146, 60', basePrice: 32900, isMain: false }
+    ];
+
+    // Global Interactive State
+    let currentTimeframe = '1D'; // '1H', '1D', '1W', '1M', '1Y'
+    let activeAssetId = 'ALL';   // 'ALL' or asset id ('main', 'catA', ...)
+    let charts = {};             // Chart instances storage
+
+    // Timeframe Configuration & Tick Count
+    const TF_CONFIG = {
+      '1H': { points: 60, interval: '1분 간격 (최근 60분)', volatility: 0.003 },
+      '1D': { points: 30, interval: '10분 간격 (당일 거래일)', volatility: 0.007 },
+      '1W': { points: 35, interval: '일간 캔들 (최근 5주)', volatility: 0.015 },
+      '1M': { points: 30, interval: '일별 종가 (최근 1개월)', volatility: 0.025 },
+      '1Y': { points: 52, interval: '주간 종가 (최근 1개년 52주)', volatility: 0.050 }
+    };
+
+    // ----------------------------------------------------
+    // 2. Market Data Generator Engine (Synchronized Walks)
+    // ----------------------------------------------------
+    function generateMarketData(tf) {
+      const config = TF_CONFIG[tf];
+      const count = config.points;
+      const labels = [];
+      
+      const now = new Date();
+      for (let i = 0; i < count; i++) {
+        if (tf === '1H') {
+          const t = new Date(now.getTime() - (count - 1 - i) * 60 * 1000);
+          labels.push(t.getHours().toString().padStart(2, '0') + ':' + t.getMinutes().toString().padStart(2, '0'));
+        } else if (tf === '1D') {
+          const h = 9 + Math.floor(i / 5);
+          const m = (i % 5) * 12;
+          labels.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+        } else if (tf === '1W') {
+          labels.push(`Day ${i + 1}`);
+        } else if (tf === '1M') {
+          labels.push(`${i + 1}일`);
+        } else {
+          labels.push(`W${i + 1}`);
+        }
+      }
+
+      // Generate realistic price walks for all 6 assets
+      const assetData = {};
+      ASSETS.forEach((asset, assetIdx) => {
+        let current = asset.basePrice;
+        const prices = [];
+        const normalized = [];
+        const candles = [];
+        const volumes = [];
+        const momentum = [];
+
+        // Realistic Trend bias
+        const bias = (assetIdx === 0) ? 0.0003 : (assetIdx % 2 === 1 ? 0.0007 : -0.0002);
+        const startPrice = current;
+
+        for (let i = 0; i < count; i++) {
+          const changePct = (Math.random() - 0.49 + bias) * config.volatility;
+          const open = current;
+          const close = current * (1 + changePct);
+          const high = Math.max(open, close) * (1 + Math.random() * config.volatility * 0.8);
+          const low = Math.min(open, close) * (1 - Math.random() * config.volatility * 0.8);
+          const volume = Math.floor(10000 + Math.random() * 45000 + (Math.abs(changePct) * 500000));
+
+          current = close;
+          prices.push(Number(close.toFixed(2)));
+          normalized.push(Number((((close - startPrice) / startPrice) * 100).toFixed(2)));
+          
+          candles.push({ open, high, low, close });
+          volumes.push(volume);
+          momentum.push(Number(((close - open) / open * 100).toFixed(3)));
+        }
+
+        assetData[asset.id] = {
+          prices,
+          normalized,
+          candles,
+          volumes,
+          momentum,
+          currentPrice: prices[prices.length - 1],
+          lastChange: normalized[normalized.length - 1]
+        };
+      });
+
+      return { labels, assetData };
+    }
+
+    let currentMarket = generateMarketData(currentTimeframe);
+
+    // ----------------------------------------------------
+    // 3. Render Top Asset Selector Badges
+    // ----------------------------------------------------
+    function renderAssetSelectors() {
+      const container = document.getElementById('asset-selectors');
+      container.innerHTML = '';
+
+      ASSETS.forEach(asset => {
+        const data = currentMarket.assetData[asset.id];
+        const isSelected = activeAssetId === asset.id;
+        const isDimmed = activeAssetId !== 'ALL' && !isSelected;
+        const changeSign = data.lastChange >= 0 ? '+' : '';
+        const changeColor = data.lastChange >= 0 ? 'text-emerald-400' : 'text-rose-400';
+
+        const card = document.createElement('div');
+        card.className = `asset-card p-3 rounded-xl border transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+          isSelected 
+            ? 'active-selected border-2 shadow-lg' 
+            : isDimmed 
+              ? 'bg-slate-900/40 border-white/5 opacity-30 hover:opacity-75' 
+              : 'bg-slate-900/70 border-white/10 hover:border-white/20 hover:scale-[1.01]'
+        }`;
+        card.style.borderColor = isSelected ? asset.color : '';
+        card.style.boxShadow = isSelected ? `0 0 20px ${asset.color}40` : '';
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${asset.color}"></span>
+              <span class="text-xs font-bold text-white tracking-tight">${asset.name}</span>
+            </div>
+            ${asset.isMain ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">BENCHMARK</span>' : ''}
+          </div>
+          <div class="mt-2 flex items-baseline justify-between font-mono">
+            <span class="text-sm font-semibold text-slate-200">
+              ${data.currentPrice >= 1000 ? data.currentPrice.toLocaleString() : data.currentPrice.toFixed(2)}
+            </span>
+            <span class="text-xs font-bold ${changeColor}">${changeSign}${data.lastChange}%</span>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          setActiveAsset(activeAssetId === asset.id ? 'ALL' : asset.id);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    // ----------------------------------------------------
+    // 4. Chart 01: Normalized Alpha Stream Line Chart
+    // ----------------------------------------------------
+    function initChart1() {
+      const ctx = document.getElementById('chartStyle1').getContext('2d');
+      const datasets = ASSETS.map(asset => {
+        const isMain = asset.id === 'main';
+        return {
+          label: asset.name,
+          assetId: asset.id,
+          data: currentMarket.assetData[asset.id].normalized,
+          borderColor: asset.color,
+          backgroundColor: `${asset.color}15`,
+          borderWidth: isMain ? 3 : 2,
+          borderDash: isMain ? [4, 4] : [],
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: asset.color,
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 2,
+        };
+      });
+
+      charts.style1 = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: currentMarket.labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          animation: { duration: 600, easing: 'easeOutQuart' },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.92)',
+              titleColor: '#F8FAFC',
+              bodyColor: '#CBD5E1',
+              borderColor: 'rgba(255, 255, 255, 0.15)',
+              borderWidth: 1,
+              padding: 12,
+              titleFont: { family: 'Fira Code', size: 12 },
+              bodyFont: { family: 'Fira Code', size: 11 },
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.dataset.label}: ${context.raw > 0 ? '+' : ''}${context.raw}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 8 }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: {
+                color: '#64748B',
+                font: { family: 'Fira Code', size: 10 },
+                callback: v => `${v > 0 ? '+' : ''}${v}%`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 5. Chart 02: Candlestick Envelope & Volume Matrix
+    // ----------------------------------------------------
+    function initChart2() {
+      const ctx = document.getElementById('chartStyle2').getContext('2d');
+      const targetId = activeAssetId === 'ALL' ? 'main' : activeAssetId;
+      const targetData = currentMarket.assetData[targetId];
+      const targetAsset = ASSETS.find(a => a.id === targetId);
+
+      const highData = targetData.candles.map(c => c.high);
+      const lowData = targetData.candles.map(c => c.low);
+      const closeData = targetData.candles.map(c => c.close);
+      const volumeData = targetData.volumes;
+
+      charts.style2 = new Chart(ctx, {
+        data: {
+          labels: currentMarket.labels,
+          datasets: [
+            {
+              type: 'line',
+              label: `${targetAsset.name} 종가`,
+              data: closeData,
+              borderColor: targetAsset.color,
+              borderWidth: 2.5,
+              tension: 0.25,
+              yAxisID: 'y',
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              pointHoverBackgroundColor: targetAsset.color
+            },
+            {
+              type: 'line',
+              label: 'High Envelope',
+              data: highData,
+              borderColor: 'transparent',
+              backgroundColor: `${targetAsset.color}10`,
+              fill: '+1',
+              tension: 0.25,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: 'Low Envelope',
+              data: lowData,
+              borderColor: 'transparent',
+              fill: false,
+              tension: 0.25,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: '거래량 (Volume)',
+              data: volumeData,
+              backgroundColor: targetData.candles.map(c => c.close >= c.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(244, 63, 94, 0.45)'),
+              borderRadius: 3,
+              yAxisID: 'yVolume',
+              barPercentage: 0.6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          animation: { duration: 500 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              borderColor: 'rgba(255, 255, 255, 0.15)',
+              borderWidth: 1,
+              titleFont: { family: 'Fira Code', size: 12 },
+              bodyFont: { family: 'Fira Code', size: 11 },
+              callbacks: {
+                afterBody: function(items) {
+                  const idx = items[0].dataIndex;
+                  const c = targetData.candles[idx];
+                  return [
+                    `시가(Open):  ${c.open.toFixed(1)}`,
+                    `고가(High):  ${c.high.toFixed(1)}`,
+                    `저가(Low):   ${c.low.toFixed(1)}`,
+                    `종가(Close): ${c.close.toFixed(1)}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 8 }
+            },
+            y: {
+              position: 'right',
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 10 } }
+            },
+            yVolume: {
+              position: 'left',
+              display: true,
+              max: Math.max(...volumeData) * 3.5,
+              grid: { display: false },
+              ticks: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 6. Chart 03: Layered Glowing Area Stream
+    // ----------------------------------------------------
+    function initChart3() {
+      const ctx = document.getElementById('chartStyle3').getContext('2d');
+      const datasets = ASSETS.map(asset => {
+        return {
+          label: asset.name,
+          assetId: asset.id,
+          data: currentMarket.assetData[asset.id].normalized.map(v => Math.max(0, v + 20)),
+          borderColor: asset.color,
+          backgroundColor: (context) => {
+            const chart = context.chart;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return null;
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, `rgba(${asset.rgb}, 0.45)`);
+            gradient.addColorStop(1, `rgba(${asset.rgb}, 0.02)`);
+            return gradient;
+          },
+          fill: true,
+          borderWidth: 2,
+          tension: 0.4,
+          pointRadius: 0
+        };
+      });
+
+      charts.style3 = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: currentMarket.labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'nearest', intersect: false },
+          animation: { duration: 600 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              borderColor: 'rgba(255, 255, 255, 0.15)',
+              borderWidth: 1,
+              titleFont: { family: 'Fira Code' },
+              bodyFont: { family: 'Fira Code' }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 8 }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 7. Chart 04: Volatility & Momentum Dispersion Bar
+    // ----------------------------------------------------
+    function initChart4() {
+      const ctx = document.getElementById('chartStyle4').getContext('2d');
+      const latestMom = ASSETS.map(asset => {
+        const momArr = currentMarket.assetData[asset.id].momentum;
+        const avg = momArr.slice(-3).reduce((a, b) => a + b, 0) / 3;
+        return Number(avg.toFixed(3));
+      });
+
+      charts.style4 = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ASSETS.map(a => a.name.split(' ')[1] || a.name),
+          datasets: [{
+            data: latestMom,
+            backgroundColor: ASSETS.map((asset, i) => {
+              const val = latestMom[i];
+              return val >= 0 ? asset.color : 'rgba(244, 63, 94, 0.85)';
+            }),
+            borderRadius: 6,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.15)'
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 500 },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              borderColor: 'rgba(255, 255, 255, 0.15)',
+              borderWidth: 1,
+              callbacks: {
+                label: ctx => ` 모멘텀 이격도: ${ctx.raw > 0 ? '+' : ''}${ctx.raw}%`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.08)', zeroLineColor: '#CBD5E1' },
+              ticks: {
+                color: '#94A3B8',
+                font: { family: 'Fira Code', size: 10 },
+                callback: v => `${v > 0 ? '+' : ''}${v}%`
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#E2E8F0', font: { weight: 'bold', size: 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 8. Universal Synchronizer & Interactive Focus Engine
+    // ----------------------------------------------------
+    function setActiveAsset(id) {
+      activeAssetId = id;
+      renderAssetSelectors();
+
+      // Update badge labels
+      const s1Label = document.getElementById('stat-s1-active');
+      const s2TargetDot = document.getElementById('s2-target-dot');
+      const s2TargetName = document.getElementById('s2-target-name');
+
+      if (id === 'ALL') {
+        s1Label.textContent = 'ALL 6 ASSETS FOCUS';
+        s1Label.className = 'text-cyan-400 font-bold';
+        s2TargetDot.style.backgroundColor = '#F59E0B';
+        s2TargetName.textContent = 'MAIN 종합 지수';
+      } else {
+        const found = ASSETS.find(a => a.id === id);
+        s1Label.textContent = `FOCUS: ${found.name}`;
+        s1Label.style.color = found.color;
+        s2TargetDot.style.backgroundColor = found.color;
+        s2TargetName.textContent = found.name;
+      }
+
+      // 1) Update Chart 1: Highlight Selected Dataset & Dim others
+      if (charts.style1) {
+        charts.style1.data.datasets.forEach(ds => {
+          const isTarget = (id === 'ALL') || (ds.assetId === id);
+          const origColor = ASSETS.find(a => a.id === ds.assetId).color;
+          if (isTarget) {
+            ds.borderColor = origColor;
+            ds.borderWidth = (ds.assetId === 'main') ? 3.5 : (id !== 'ALL' ? 3.5 : 2);
+            ds.backgroundColor = `${origColor}20`;
+          } else {
+            ds.borderColor = 'rgba(255, 255, 255, 0.08)';
+            ds.borderWidth = 1;
+            ds.backgroundColor = 'transparent';
+          }
+        });
+        charts.style1.update('none');
+      }
+
+      // 2) Update Chart 2: Rebind to the Focused Asset
+      if (charts.style2) {
+        const targetId = (id === 'ALL') ? 'main' : id;
+        const targetData = currentMarket.assetData[targetId];
+        const targetAsset = ASSETS.find(a => a.id === targetId);
+
+        charts.style2.data.datasets[0].label = `${targetAsset.name} 종가`;
+        charts.style2.data.datasets[0].data = targetData.candles.map(c => c.close);
+        charts.style2.data.datasets[0].borderColor = targetAsset.color;
+        charts.style2.data.datasets[0].pointHoverBackgroundColor = targetAsset.color;
+
+        charts.style2.data.datasets[1].data = targetData.candles.map(c => c.high);
+        charts.style2.data.datasets[1].backgroundColor = `${targetAsset.color}12`;
+
+        charts.style2.data.datasets[2].data = targetData.candles.map(c => c.low);
+        charts.style2.data.datasets[3].data = targetData.volumes;
+        charts.style2.data.datasets[3].backgroundColor = targetData.candles.map(c => c.close >= c.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(244, 63, 94, 0.45)');
+
+        charts.style2.update();
+      }
+
+      // 3) Update Chart 3: Dim non-focused area layers
+      if (charts.style3) {
+        charts.style3.data.datasets.forEach(ds => {
+          const isTarget = (id === 'ALL') || (ds.assetId === id);
+          const asset = ASSETS.find(a => a.id === ds.assetId);
+          if (isTarget) {
+            ds.borderWidth = 2.5;
+            ds.borderColor = asset.color;
+            ds.backgroundColor = (context) => {
+              const { ctx, chartArea } = context.chart;
+              if (!chartArea) return null;
+              const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+              g.addColorStop(0, `rgba(${asset.rgb}, 0.5)`);
+              g.addColorStop(1, `rgba(${asset.rgb}, 0.02)`);
+              return g;
+            };
+          } else {
+            ds.borderWidth = 0.5;
+            ds.borderColor = 'rgba(255, 255, 255, 0.05)';
+            ds.backgroundColor = 'rgba(255, 255, 255, 0.01)';
+          }
+        });
+        charts.style3.update('none');
+      }
+
+      // 4) Update Chart 4: Highlight Target Bar
+      if (charts.style4) {
+        charts.style4.data.datasets[0].backgroundColor = ASSETS.map(asset => {
+          const isTarget = (id === 'ALL') || (asset.id === id);
+          return isTarget ? asset.color : 'rgba(255, 255, 255, 0.08)';
+        });
+        charts.style4.update('none');
+      }
+    }
+
+    // ----------------------------------------------------
+    // 9. Timeframe Switcher Logic
+    // ----------------------------------------------------
+    function switchTimeframe(tf) {
+      if (currentTimeframe === tf) return;
+      currentTimeframe = tf;
+
+      // Update button visual styles
+      document.querySelectorAll('.tf-btn').forEach(btn => {
+        if (btn.dataset.tf === tf) {
+          btn.className = 'tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-bold';
+        } else {
+          btn.className = 'tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white';
+        }
+      });
+
+      // Regenerate market data for new timeframe
+      currentMarket = generateMarketData(tf);
+
+      // GSAP smooth container pulse
+      gsap.fromTo('main section', { opacity: 0.75, y: 4 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.05, ease: 'power2.out' });
+
+      // Update Chart 1
+      charts.style1.data.labels = currentMarket.labels;
+      charts.style1.data.datasets.forEach(ds => {
+        ds.data = currentMarket.assetData[ds.assetId].normalized;
+      });
+      charts.style1.update();
+
+      // Update Chart 2
+      charts.style2.data.labels = currentMarket.labels;
+      const targetId = activeAssetId === 'ALL' ? 'main' : activeAssetId;
+      const targetData = currentMarket.assetData[targetId];
+      charts.style2.data.datasets[0].data = targetData.candles.map(c => c.close);
+      charts.style2.data.datasets[1].data = targetData.candles.map(c => c.high);
+      charts.style2.data.datasets[2].data = targetData.candles.map(c => c.low);
+      charts.style2.data.datasets[3].data = targetData.volumes;
+      charts.style2.update();
+
+      // Update Chart 3
+      charts.style3.data.labels = currentMarket.labels;
+      charts.style3.data.datasets.forEach(ds => {
+        ds.data = currentMarket.assetData[ds.assetId].normalized.map(v => Math.max(0, v + 20));
+      });
+      charts.style3.update();
+
+      // Update Chart 4
+      const latestMom = ASSETS.map(asset => {
+        const momArr = currentMarket.assetData[asset.id].momentum;
+        return Number((momArr.slice(-3).reduce((a, b) => a + b, 0) / 3).toFixed(3));
+      });
+      charts.style4.data.datasets[0].data = latestMom;
+      charts.style4.update();
+
+      // Sync Top Badges
+      renderAssetSelectors();
+      setActiveAsset(activeAssetId);
+    }
+
+    // ----------------------------------------------------
+    // 10. Initialization on DOM Load
+    // ----------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderAssetSelectors();
+
+      // Initialize the 4 Chart Styles
+      initChart1();
+      initChart2();
+      initChart3();
+      initChart4();
+
+      // Attach Timeframe Event Listeners
+      document.getElementById('timeframe-buttons').addEventListener('click', (e) => {
+        const btn = e.target.closest('.tf-btn');
+        if (btn) switchTimeframe(btn.dataset.tf);
+      });
+
+      // Reset Focus Button
+      document.getElementById('reset-focus-btn').addEventListener('click', () => {
+        setActiveAsset('ALL');
+      });
+
+      // Entry GSAP Animation
+      gsap.from('header', { opacity: 0, y: -20, duration: 0.6, ease: 'power3.out' });
+      gsap.from('main > section', { opacity: 0, scale: 0.96, duration: 0.7, stagger: 0.1, delay: 0.2, ease: 'power3.out' });
+    });
+  </script>
+</body>
+</html>
