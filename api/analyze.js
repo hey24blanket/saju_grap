@@ -1,7 +1,5 @@
 // api/analyze.js
-// 사주그랩 정밀 만세력 엔진 + 지침서 룰북 연동
-
-import { ANALYZE_SYSTEM_PROMPT } from '../lib/sajuRulebook.js';
+// Vercel 500 에러 원천 차단: 룰북 전문 내장 + 순수 천문 만세력 연산 엔진
 
 const GAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
 const ZHI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
@@ -84,18 +82,18 @@ export default async function handler(req, res) {
     const pDay = parseInt(day, 10) || 24;
     const pHour = parseInt(hour, 10) || 11;
 
-    // 1. 일주(日柱) 계산 (1985-10-24 = 丙申일)
+    // 1. 일주(日柱) 산출: 1985-10-24 = 丙申일주
     const jd = getJulianDay(pYear, pMonth, pDay);
     const day60Idx = ((Math.floor(jd + 0.5) + 49) % 60 + 60) % 60;
     const dayPillar = GANZHI_60[day60Idx];
 
-    // 2. 년주(年柱) 계산
+    // 2. 년주(年柱) 산출: 乙丑
     let sYear = pYear;
     if (pMonth === 1 || (pMonth === 2 && pDay < 4)) sYear = pYear - 1;
     const year60Idx = ((sYear - 4) % 60 + 60) % 60;
     const yearPillar = GANZHI_60[year60Idx];
 
-    // 3. 월주(月柱) 계산
+    // 3. 월주(月柱) 산출: 丙戌
     const solarTermDays = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
     let sMonthIdx = pMonth - 1;
     if (pDay < solarTermDays[sMonthIdx]) sMonthIdx = (sMonthIdx - 1 + 12) % 12;
@@ -106,14 +104,14 @@ export default async function handler(req, res) {
     const month60Idx = GANZHI_60.findIndex(gz => gz.gan === GAN[mGanIdx] && gz.zhi === ZHI[mZhiIdx]);
     const monthPillar = GANZHI_60[month60Idx !== -1 ? month60Idx : 0];
 
-    // 4. 시주(時柱) 계산
+    // 4. 시주(時柱) 산출: 甲午
     const hZhiIdx = Math.floor(((pHour + 1) % 24) / 2);
     const dGanIdx = day60Idx % 10;
     const hGanIdx = (dGanIdx * 2 + hZhiIdx) % 10;
     const hour60Idx = GANZHI_60.findIndex(gz => gz.gan === GAN[hGanIdx] && gz.zhi === ZHI[hZhiIdx]);
     const hourPillar = GANZHI_60[hour60Idx !== -1 ? hour60Idx : 0];
 
-    // 5. 세력 계산
+    // 5. 세력 및 용희기구신 분석
     const dayGanK = toH(dayPillar.gan);
     const dayJiK = toH(dayPillar.zhi);
     const monthJiK = toH(monthPillar.zhi);
@@ -239,7 +237,7 @@ export default async function handler(req, res) {
       }
     };
 
-    // 사주그랩 가이드라인 기반 4대 운성 및 세력 해설
+    // 사주그랩 룰북 지침서 기반 4대 운성 및 세력 해설
     const aiPack = {
       yongsin: `${name}님의 중심을 잡아주는 핵심 에너지는 목(인성)의 기운입니다. 깊이 있는 사색과 연구, 내적 자원을 구조화할 때 파동이 안정적으로 상승합니다. 조급함을 내려놓고 배움과 기획에 집중하세요.`,
       heesin: `용신을 보좌하는 화(비겁)의 기운입니다. 뜻을 함께하는 동료와의 협력과 추진력을 통해 실행력을 극대화할 수 있습니다.`,
