@@ -1,81 +1,49 @@
 // api/chat.js
-// Vercel Serverless Function: Gemini 3.6 Flash API 연동 브릿지
+// 자세히 보기(1,500자) 및 실시간 AI 상담사 엔드포인트
 
 export default async function handler(req, res) {
-  // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method Not Allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method Not Allowed' });
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({
-      success: false,
-      message: 'GEMINI_API_KEY 환경변수가 설정되지 않았습니다. Vercel 설정을 확인하세요.'
-    });
-  }
+  if (!apiKey) return res.status(500).json({ success: false, message: 'GEMINI_API_KEY 미설정' });
 
-  const { mode, role, sajuContext, userMessage, history = [] } = req.body;
+  const { mode = 'chat', role, domain, cycle, sajuContext, userMessage, history = [] } = req.body;
 
-  // 시스템 프롬프트: 사주그랩 전문 AI 마스터
   const systemInstruction = `
-당신은 전통 명리학의 심오한 원리를 현대적인 인생 에너지 코칭 언어로 해석하는 '사주그랩 AI 마스터'입니다.
-과도한 미신이나 공포 마케팅을 철저히 배제하고, 질문자가 자신의 에너지 흐름(용신, 희신, 대운 파동)을 주도적으로 활용할 수 있도록 다정하면서도 통찰력 있게 조언합니다.
-
-[내담자 사주 컨텍스트]
-- 이름: ${sajuContext?.name || '사용자'}
-- 사주 원국: 년주(${sajuContext?.pillars?.year || '-'}), 월주(${sajuContext?.pillars?.month || '-'}), 일주(${sajuContext?.pillars?.day || '-'}), 시주(${sajuContext?.pillars?.hour || '-'})
-- 세력 판정: ${sajuContext?.analysis?.status || '-'} (신강 지수: ${sajuContext?.analysis?.strengthScore || '-'}점)
-- 4대 운성: 용신(${sajuContext?.analysis?.yongsinProfile?.yongsin || '-'}), 희신(${sajuContext?.analysis?.yongsinProfile?.heesin || '-'}), 기신(${sajuContext?.analysis?.yongsinProfile?.gisin || '-'}), 구신(${sajuContext?.analysis?.yongsinProfile?.gusin || '-'})
-- 현재 대운: ${sajuContext?.activeWave?.ganZhi || '-'}대운 (총운 점수: ${sajuContext?.activeWave?.scores?.total || 0}점)
-
-[답변 원칙]
-1. 정중하면서도 따뜻한 어조(해요체)를 유지합니다.
-2. 명리학 용어를 쉽게 풀어서 설명하며, 일상과 커리어에서 실천할 수 있는 현실적인 조언 1가지를 반드시 포함합니다.
-3. 팝업 해설 모드('insight')일 때는 3~4문장으로 핵심만 컴팩트하게 전달합니다.
-4. 일반 대화 모드('chat')일 때는 이전 대화 맥락과 사주 데이터를 결합하여 구체적인 답변을 제공합니다.
+당신은 '사주그랩(Saju Grap) 파동 역학 & 전략적 명리 지침서' 기반 수석 명리 전략 컨설턴트입니다.[cite: 2]
+1. 운은 길흉이 아니라 "지금 어떤 행동 모드가 유리한지 읽는 시간의 구조"입니다.[cite: 2]
+2. Y축 점수는 에너지 극성(+100 발산 ~ -100 수렴)을 나타냅니다.[cite: 2]
+3. 100% 품격 있는 한국어로 작성하며, 영문 소제목은 절대 사용하지 않습니다.
+4. '자세히 보기(detail)' 요청 시, 아래 3단계 프레임워크를 기반으로 **공백 포함 1,200~1,500자의 풍부하고 깊이 있는 전략 리포트**를 작성합니다[cite: 2]:
+   - 1단계: 해당 영역/에너지의 본질과 사주 원국에서의 구조적 의미[cite: 2]
+   - 2단계: 파동의 상승/하강 국면에서 얻는 구체적 기회와 리스크 관리법[cite: 2]
+   - 3단계: 내담자가 즉시 실행할 수 있는 구체적인 3개월 단계별 액션 플랜 (1개월차/2개월차/3개월차)[cite: 2]
 `;
 
   try {
     let contents = [];
 
-    if (mode === 'insight') {
-      contents = [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: `내담자의 사주에서 [${role}]에 해당하는 에너지(${sajuContext?.analysis?.yongsinProfile?.[role === '용신' ? 'yongsin' : role === '희신' ? 'heesin' : role === '기신' ? 'gisin' : 'gusin'] || role})에 대해 심층 해설해 주세요. 왜 이 기운이 중요한지, 그리고 일상에서 어떻게 다루어야 하는지 다정하게 설명해 주세요.`
-            }
-          ]
-        }
-      ];
-    } else {
-      contents = history.map(h => ({
-        role: h.role === 'user' ? 'user' : 'model',
-        parts: [{ text: h.text }]
-      }));
-      contents.push({
+    if (mode === 'detail') {
+      contents = [{
         role: 'user',
-        parts: [{ text: userMessage }]
-      });
+        parts: [{
+          text: `내담자(${sajuContext?.name || '사용자'}, 일주: ${sajuContext?.pillars?.day || ''})의 [${cycle || '대운'} 주기 - ${domain || role}]에 대한 1,500자 분량의 심층 전략 리포트를 작성해 주세요. 
+사주그랩 파동역학 지침서의 3단계 프레임워크(본질 분석 -> 기회와 리스크 -> 3개월 액션 플랜)를 충실히 반영하여 다정하고 통찰력 있게 작성해 주세요.`[cite: 2]
+        }]
+      }];
+    } else {
+      contents = history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', parts: [{ text: h.text }] }));
+      contents.push({ role: 'user', parts: [{ text: userMessage }] });
     }
 
-    // Gemini 3.6 Flash 엔드포인트 호출
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,28 +51,19 @@ export default async function handler(req, res) {
           systemInstruction: { parts: [{ text: systemInstruction }] },
           contents,
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 800
+            temperature: 0.75,
+            maxOutputTokens: 2500
           }
         })
       }
     );
 
     const data = await response.json();
+    if (!response.ok) return res.status(response.status).json({ success: false, message: data.error?.message });
 
-    if (!response.ok) {
-      console.error('Gemini API Error:', data);
-      return res.status(response.status).json({ success: false, message: data.error?.message || 'Gemini API 호출 오류' });
-    }
-
-    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '답변을 생성하지 못했습니다.';
-
-    return res.status(200).json({
-      success: true,
-      reply: replyText
-    });
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '답변을 생성하지 못했습니다.';
+    return res.status(200).json({ success: true, reply });
   } catch (error) {
-    console.error('API Handler Error:', error);
-    return res.status(500).json({ success: false, message: '서버 내부 오류가 발생했습니다.' });
+    return res.status(500).json({ success: false, message: '서버 통신 오류' });
   }
 }
