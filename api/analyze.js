@@ -1,5 +1,5 @@
 // api/analyze.js
-// 사주 원국 계산 + Gemini 3.6 Flash 가이드라인 일괄 JSON 생성 (오류 방지 강화)
+// 100년 파동 및 25개 시나리오 300자 가이드 일괄 생성
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -10,15 +10,16 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method Not Allowed' });
 
-  // 요청 데이터 검증 및 기본값 보정
   const { name = '사용자', year = 1995, month = 5, day = 15, hour = 12, minute = 0, gender = 1 } = req.body || {};
   const apiKey = process.env.GEMINI_API_KEY;
 
   try {
-    // 1. 사주 원국 및 100년 대운 기본 연산
+    const ganHanja = { '갑':'甲', '을':'乙', '병':'丙', '정':'丁', '무':'戊', '기':'己', '경':'庚', '신':'辛', '임':'壬', '계':'癸' };
+    const zhiHanja = { '자':'子', '축':'丑', '인':'寅', '묘':'卯', '진':'辰', '사':'巳', '오':'午', '미':'未', '신':'申', '유':'酉', '술':'戌', '해':'亥' };
+    const elementsKor = { '갑':'나무', '을':'나무', '병':'불', '정':'불', '무':'흙', '기':'흙', '경':'쇠', '신':'쇠', '임':'물', '계':'물' };
+
     const ganList = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
     const zhiList = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
-    const elements = { '갑':'목', '을':'목', '병':'화', '정':'화', '무':'토', '기':'토', '경':'금', '신':'금', '임':'수', '계':'수' };
 
     const parsedYear = parseInt(year, 10) || 1995;
     const parsedMonth = parseInt(month, 10) || 5;
@@ -26,88 +27,106 @@ export default async function handler(req, res) {
     const parsedHour = parseInt(hour, 10) || 12;
 
     const yIndex = Math.abs((parsedYear - 4) % 60);
-    const yearPillar = ganList[yIndex % 10] + zhiList[yIndex % 12];
-    const monthPillar = ganList[(yIndex * 2 + parsedMonth) % 10] + zhiList[(parsedMonth + 1) % 12];
-    const dayPillar = ganList[(Math.floor(parsedYear * 5.25) + parsedMonth * 2 + parsedDay) % 10] + zhiList[(parsedDay + 4) % 12];
-    const hourPillar = ganList[(ganList.indexOf(dayPillar[0]) * 2 + Math.floor(parsedHour / 2)) % 10] + zhiList[Math.floor((parsedHour + 1) / 2) % 12];
+    const yearGan = ganList[yIndex % 10];
+    const yearZhi = zhiList[yIndex % 12];
+    const monthGan = ganList[(yIndex * 2 + parsedMonth) % 10];
+    const monthZhi = zhiList[(parsedMonth + 1) % 12];
+    const dayGan = ganList[(Math.floor(parsedYear * 5.25) + parsedMonth * 2 + parsedDay) % 10];
+    const dayZhi = zhiList[(parsedDay + 4) % 12];
+    const hourGan = ganList[(ganList.indexOf(dayGan) * 2 + Math.floor(parsedHour / 2)) % 10];
+    const hourZhi = zhiList[Math.floor((parsedHour + 1) / 2) % 12];
 
-    const dayGan = dayPillar[0];
-    const dayElem = elements[dayGan] || '화';
+    const dayGanHanja = ganHanja[dayGan] || '壬';
+    const dayElemKor = elementsKor[dayGan] || '물';
+    const dayPillarStr = `${dayGanHanja}${zhiHanja[dayZhi] || '午'}`;
 
-    // 100년 (10개 대운) 파동 데이터 생성
-    const daewoonGanZhi = ['무진', '기사', '경오', '신미', '임신', '계유', '갑술', '을해', '병자', '정축'];
-    const daewoonWaves = daewoonGanZhi.map((gz, idx) => {
-      const startAge = idx * 10 + 4;
-      const baseTotal = Math.round(Math.sin((idx + 1) * 0.7) * 65);
-      return {
-        ganZhi: gz,
-        ageRange: { start: startAge, end: startAge + 9 },
-        scores: {
-          total: baseTotal,
-          career: Math.min(95, Math.max(-85, baseTotal + Math.round(Math.cos(idx) * 20))),
-          wealth: Math.min(90, Math.max(-90, baseTotal - Math.round(Math.sin(idx) * 25))),
-          mental: Math.min(85, Math.max(-80, -baseTotal + 15)),
-          love: Math.min(90, Math.max(-85, Math.round(Math.sin(idx * 1.5) * 50)))
-        },
-        band: { upper: baseTotal + 15, lower: baseTotal - 15 }
-      };
-    });
-
-    // 2. 기본 명리 가이드라인 데이터 (Fallback Baseline)
-    let aiPack = {
-      yongsin: { title: "용신(用神) 심층 해설", desc: `${name}님의 중심을 잡아주는 토(식상)의 기운입니다. 생각에만 머물지 않고 구조화된 루틴을 실행할 때 가장 강력한 발산 모드가 열립니다.` },
-      heesin: { title: "희신(喜神) 심층 해설", desc: "용신을 보좌하는 금(재성)의 기운입니다. 추진한 일들의 결실을 맺고 객관적인 시스템을 구축하는 데 유리하게 작용합니다." },
-      gisin: { title: "기신(忌神) 심층 해설", desc: "에너지가 한쪽으로 쏠릴 때 발생하는 과열을 경계해야 합니다. 억지 확장보다는 누수를 막는 점검이 효과적입니다." },
-      gusin: { title: "구신(仇神) 심층 해설", desc: "집중력을 분산시키는 요소를 정리하고, 불필요한 인간관계와 프로젝트를 필터링하는 용기가 필요합니다." },
-      strength: { title: "세력 균형 지수 분석", desc: "원국의 주도권이 명확하므로 스스로 판을 짜고 이끌어가는 독자적인 실행 전략이 유리합니다." },
-      flow: { title: "대운 순행/역행 흐름", desc: "순리대로 흐르는 100년 파동 속에서 성급함을 내려놓고 국면별 행동 매뉴얼에 집중하십시오." },
-      domains: {
-        career: "외부 발표와 론칭에 최적화된 발산 모드입니다. 완벽주의를 버리고 8주 단위 파일럿을 가동하세요.",
-        wealth: "벌어들인 성과를 시스템화하고 불필요한 고정비를 필터링하는 정리가 필요합니다.",
-        mental: "성과 뒤에 반드시 회복 슬롯을 캘린더에 고정하여 번아웃을 예방하세요.",
-        love: "상대방과의 즐거움이 체력을 잠식하지 않도록 에너지 안배에 유의하세요."
+    // 주기별 파동 데이터셋 생성
+    const cyclesData = {
+      daewoon: {
+        labels: ['무진(4세)', '기사(14세)', '경오(24세)', '신미(34세)', '임신(44세)', '계유(54세)', '갑술(64세)', '을해(74세)', '병자(84세)', '정축(94세)'],
+        total: [45, 68, 55, 22, -25, -60, -70, -42, 0, 42],
+        career: [60, 75, 50, 0, -35, -55, -45, -20, 10, 30],
+        wealth: [40, 48, 32, 10, -20, -50, -60, -40, 15, 35],
+        mental: [-25, -50, -42, -8, 72, 80, 55, 12, -20, -30],
+        love: [0, 50, 60, -45, 20, 48, 30, -50, 32, -40]
       },
-      masterInsight: `${name}님의 대표 대운은 수렴과 발산이 균형을 이루는 구간입니다. 파동의 방향을 믿고 한 걸음씩 나아가세요.`
+      year: {
+        labels: ['2021년', '2022년', '2023년', '2024년', '2025년', '2026년', '2027년', '2028년', '2029년', '2030년'],
+        total: [20, 45, 60, 35, -15, -45, -20, 30, 55, 40],
+        career: [30, 60, 70, 20, -30, -50, -10, 40, 65, 50],
+        wealth: [15, 35, 55, 40, -10, -35, -15, 25, 45, 30],
+        mental: [-10, -30, -45, -20, 40, 65, 35, -15, -30, -20],
+        love: [25, 40, -20, 50, 10, -40, 45, 20, -10, 35]
+      },
+      month: {
+        labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+        total: [-20, 10, 40, 65, 50, 20, -15, -40, -55, -30, 15, 35],
+        career: [-10, 25, 55, 80, 60, 10, -25, -50, -60, -20, 20, 45],
+        wealth: [-30, 0, 30, 50, 45, 25, -10, -35, -45, -25, 10, 30],
+        mental: [40, 10, -20, -45, -35, -10, 30, 60, 70, 45, -10, -25],
+        love: [10, 35, 50, -20, 40, 60, 20, -30, 15, 40, -15, 20]
+      },
+      day: {
+        labels: ['1일', '5일', '10일', '15일', '20일', '25일', '30일'],
+        total: [15, 45, 60, 20, -30, -15, 35],
+        career: [25, 60, 75, 10, -45, -10, 45],
+        wealth: [10, 35, 45, 30, -20, -15, 25],
+        mental: [-15, -35, -50, 0, 55, 30, -20],
+        love: [30, 10, -25, 45, 20, -35, 40]
+      },
+      hour: {
+        labels: ['자시', '축시', '인시', '묘시', '진시', '사시', '오시', '미시', '신시', '유시', '술시', '해시'],
+        total: [-40, -20, 15, 45, 60, 75, 50, 20, -10, -35, -50, -45],
+        career: [-50, -30, 20, 60, 80, 90, 65, 30, 0, -30, -45, -50],
+        wealth: [-35, -15, 10, 40, 55, 65, 40, 15, -15, -25, -40, -35],
+        mental: [60, 45, 0, -30, -50, -65, -40, -10, 30, 55, 65, 60],
+        love: [-10, 20, 40, 55, 30, -15, 45, 60, 10, -25, 35, -10]
+      }
     };
 
-    // 3. Gemini 3.6 Flash 호출 (안전 격리 처리)
+    // 2. 사주그랩 가이드라인 내장 프롬프트 (PDF 핵심 완벽 이식)
+    let aiPack = null;
     if (apiKey) {
-      try {
-        const systemInstruction = `
-당신은 '사주그랩(Saju Grap) 파동 역학 & 전략적 명리 해석 가이드라인'을 완벽히 체화한 AI 수석 컨설턴트입니다.
-1. 운은 길흉이 아니라 "어떤 행동 모드가 유리한지 읽는 시간의 구조"입니다.
-2. Y축 점수는 '에너지 극성(+100 발산·실행 ~ -100 수렴·재설계)'을 의미합니다.
-3. 100% 품격 있는 한국어로 작성하며, 영문 소제목은 절대 사용하지 않습니다.
-4. 반드시 지정된 JSON 형식으로만 응답하세요.
+      const systemInstruction = `
+당신은 '사주그랩(Saju Grap) 파동 역학 & 전략적 명리 지침서'를 기반으로 컨설팅하는 AI 수석 분석관입니다.[cite: 2]
+
+[핵심 작성 원칙]
+1. 운은 길흉(좋다/나쁘다)이 아닌 "어떤 행동 모드가 유리한지 읽는 시간의 구조"로 해석합니다.[cite: 2]
+2. Y축 점수는 '에너지 극성(+100 발산·전면실행 ~ -100 수렴·재설계)'을 뜻합니다.[cite: 2]
+3. 모든 항목은 내담자의 사주 원국과 시간축을 결합하여 **공백 포함 250~300자 내외**의 구조화된 실천 가이드로 작성합니다.[cite: 2]
+4. 영문 표기(Practical Coaching 등)는 전면 금지하며, 오직 품격 있는 명리 코칭 한국어만 사용합니다.
+5. 반드시 지정된 JSON Schema 형식 하나만 순수하게 반환합니다.
 `;
 
-        const prompt = `
-내담자 정보:
-- 이름: ${name}
-- 사주: 년주(${yearPillar}), 월주(${monthPillar}), 일주(${dayPillar}), 시주(${hourPillar})
-- 일간: ${dayGan} (${dayElem})
-- 대표 대운: ${daewoonWaves[3].ganZhi} 대운
+      const prompt = `
+내담자: ${name} (일간: ${dayGanHanja} ${dayElemKor}, 원국: ${yearGan}${yearZhi}년 ${monthGan}${monthZhi}월 ${dayGan}${dayZhi}일 ${hourGan}${hourZhi}시)
 
-다음 JSON 형식으로만 응답하세요:
+요구사항:
+1. 4대 운성(용신, 희신, 기신, 구신), 세력균형, 대운흐름에 대해 각각 250~300자 내외의 명리 해설을 작성하세요.
+2. 5대 주기(daewoon, year, month, day, hour) 각각에 대해 5대 영역(all, career, wealth, mental, love)의 250~300자 행동 전략을 작성하세요. (총 25개 시나리오)[cite: 2]
+
+반환할 JSON 구조:
 {
-  "yongsin": { "title": "용신(用神) 심층 해설", "desc": "3~4문장의 한글 설명" },
-  "heesin": { "title": "희신(喜神) 심층 해설", "desc": "3~4문장의 한글 설명" },
-  "gisin": { "title": "기신(忌神) 심층 해설", "desc": "3~4문장의 한글 설명" },
-  "gusin": { "title": "구신(仇神) 심층 해설", "desc": "3~4문장의 한글 설명" },
-  "strength": { "title": "세력 균형 지수 분석", "desc": "3~4문장의 한글 설명" },
-  "flow": { "title": "대운 순행/역행 흐름", "desc": "3~4문장의 한글 설명" },
-  "domains": {
-    "career": "사업운 맞춤 행동 모드 가이드",
-    "wealth": "재물운 맞춤 행동 모드 가이드",
-    "mental": "심신운 맞춤 행동 모드 가이드",
-    "love": "연애운 맞춤 행동 모드 가이드"
+  "yongsin": "용신 250~300자 설명",
+  "heesin": "희신 250~300자 설명",
+  "gisin": "기신 250~300자 설명",
+  "gusin": "구신 250~300자 설명",
+  "strength": "세력균형 250~300자 설명",
+  "flow": "대운흐름 250~300자 설명",
+  "scenarios": {
+    "daewoon": { "all": "300자", "career": "300자", "wealth": "300자", "mental": "300자", "love": "300자" },
+    "year": { "all": "300자", "career": "300자", "wealth": "300자", "mental": "300자", "love": "300자" },
+    "month": { "all": "300자", "career": "300자", "wealth": "300자", "mental": "300자", "love": "300자" },
+    "day": { "all": "300자", "career": "300자", "wealth": "300자", "mental": "300자", "love": "300자" },
+    "hour": { "all": "300자", "career": "300자", "wealth": "300자", "mental": "300자", "love": "300자" }
   },
   "masterInsight": "대표 대운 2문장 총평"
 }
 `;
 
+      try {
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -117,7 +136,7 @@ export default async function handler(req, res) {
               generationConfig: {
                 responseMimeType: "application/json",
                 temperature: 0.7,
-                maxOutputTokens: 1500
+                maxOutputTokens: 3500
               }
             })
           }
@@ -127,38 +146,60 @@ export default async function handler(req, res) {
           const geminiData = await geminiRes.json();
           const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
           if (rawText) {
-            // 마크다운 블록이 섞여있을 경우 제거 후 안전하게 파싱
-            const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsedJson = JSON.parse(cleanedText);
-            if (parsedJson.yongsin && parsedJson.domains) {
-              aiPack = parsedJson;
-            }
+            const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            aiPack = JSON.parse(cleaned);
           }
         }
-      } catch (aiErr) {
-        console.warn('Gemini 호출 중 경고(기본값 사용):', aiErr.message);
+      } catch (e) {
+        console.warn('AI 일괄 생성 실패(기본값 적용):', e.message);
       }
     }
 
-    // 4. 안전하게 통합 데이터 응답
+    // Fallback 300자 데이터
+    if (!aiPack || !aiPack.scenarios) {
+      const fallback300 = `${name}님의 사주 원국과 시간 파동을 분석한 결과, 현재 구간은 외부로 무리하게 확장하기보다 내부 프로세스를 정비하고 핵심 역량을 구조화하기에 최적화된 시기입니다.[cite: 2] 성과에 대한 조급함을 내려놓고 8주 단위의 작은 실행 루틴을 확립하세요.[cite: 2] 에너지가 수렴할 때 축적된 내실은 다음 발산 국면에서 폭발적인 추진력으로 전환됩니다.[cite: 2]`;
+      aiPack = {
+        yongsin: `${name}님을 살게 하는 중심 에너지는 식상의 기운입니다.[cite: 2] 생각에만 머물지 않고 구조화된 산출물을 세상에 내놓을 때 파동이 최고점으로 도약합니다.[cite: 2] 완벽주의를 버리고 작게 실험하는 태도를 유지하세요.[cite: 2]`,
+        heesin: `용신을 든든하게 받쳐주는 재성의 기운입니다.[cite: 2] 추진한 일들의 결실을 객관적인 지표로 전환하고, 유리한 협업 관계를 형성하는 데 강력한 조력자로 작용합니다.[cite: 2]`,
+        gisin: `에너지가 한쪽으로 쏠릴 때 발생하는 과열을 경계해야 하는 기운입니다.[cite: 2] 억지 확장보다는 누수를 점검하고 감정적 소모를 차단하는 원칙 중심의 태도가 필요합니다.[cite: 2]`,
+        gusin: `집중력을 분산시키는 요소를 정리해야 하는 기운입니다.[cite: 2] 불필요한 인간관계와 프로젝트를 과감히 필터링하고 본질에 집중할 때 멘탈 리셋이 완성됩니다.[cite: 2]`,
+        strength: `원국의 주도권이 명확하여 스스로 판을 짜고 실행하는 주도형 전략이 유리합니다.[cite: 2] 다만 과속으로 인한 번아웃을 방지하기 위해 정기적인 회복 슬롯을 일정에 고정하세요.[cite: 2]`,
+        flow: `시간의 큰 물결이 순리대로 흐르는 구간입니다.[cite: 2] 결과에 집착하지 않고 파동의 리듬에 맞춰 한 걸음씩 나아갈 때 장기적인 안정성을 확보할 수 있습니다.[cite: 2]`,
+        scenarios: {
+          daewoon: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
+          year: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
+          month: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
+          day: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
+          hour: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 }
+        },
+        masterInsight: `${name}님의 대표 대운은 수렴과 발산이 조화를 이루는 구간입니다.[cite: 2] 파동의 방향을 믿고 실행하세요.[cite: 2]`
+      };
+    }
+
     return res.status(200).json({
       success: true,
       data: {
-        pillars: { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar },
+        pillars: {
+          year: `${yearGan}${yearZhi}`,
+          month: `${monthGan}${monthZhi}`,
+          day: dayPillarStr,
+          hour: `${hourGan}${hourZhi}`
+        },
+        dayGanHanja,
+        dayElemKor,
         analysis: {
           status: '신강 (주도형)',
           strengthScore: 72,
           scores: { deungRyeong: 30, deungJi: 20, deungSe: 22 },
           yongsinProfile: { yongsin: '토(식상)', heesin: '금(재성)', gisin: '수(관살)', gusin: '화(비겁)' }
         },
-        daewoonWaves,
+        cyclesData,
         meta: { isForward: parseInt(gender, 10) === 1, startAge: 4 },
         aiPack
       }
     });
 
   } catch (error) {
-    console.error('Analyze Fatal Error:', error);
-    return res.status(500).json({ success: false, message: '데이터 연산 중 오류가 발생했습니다: ' + error.message });
+    return res.status(500).json({ success: false, message: '데이터 연산 오류: ' + error.message });
   }
 }
