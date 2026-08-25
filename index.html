@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -15,6 +15,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+  <!-- 분리된 Firebase 외부 설정 파일 로드 -->
+  <script src="./firebase-config.js"></script>
+
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     * { 
@@ -26,7 +29,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     
-    /* 휠 피커: X축 고정 및 초고속 관성 스크롤 */
+    /* 휠 피커: X축 고정 및 초고속 관성 가속 스크롤 */
     .wheel-scroll-container {
       scroll-snap-type: y mandatory;
       -webkit-overflow-scrolling: touch;
@@ -75,7 +78,7 @@
         class="w-full px-4 py-3 bg-stone-100/80 border border-stone-200 rounded-2xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-sm" />
     </div>
 
-    <!-- 파친코 휠 단계 탭 -->
+    <!-- 파친코 휠 단계 탭 (상단 클릭으로 즉시 이동) -->
     <div class="flex items-center justify-between bg-stone-100 p-1.5 rounded-2xl mb-4 text-xs font-bold gap-1">
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition" data-step="0" id="tabYear">1995년</button>
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="1" id="tabMonth">5월</button>
@@ -350,9 +353,7 @@
   <!-- Script: Web Audio Sound FX + 휠 피커 제어 & API 연동                 -->
   <!-- ===================================================================== -->
   <script>
-    // ==========================================
-    // 0. Web Audio API 기반 초경량 Sound FX 엔진
-    // ==========================================
+    // 0. Web Audio API 기반 Sound FX 엔진
     let audioCtx = null;
 
     function getAudioContext() {
@@ -366,7 +367,6 @@
       return audioCtx;
     }
 
-    // 휠 회전 시 발생하는 부드러운 래칫 틱(Tick) 사운드
     function playTickSound() {
       try {
         const ctx = getAudioContext();
@@ -376,12 +376,10 @@
         const gain = ctx.createGain();
         const now = ctx.currentTime;
 
-        // 짧고 탄력 있는 피치 드롭 (700Hz -> 180Hz)
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(700, now);
         osc.frequency.exponentialRampToValueAtTime(180, now + 0.022);
 
-        // 볼륨 엔벨로프 (경쾌하고 맑은 클릭)
         gain.gain.setValueAtTime(0.09, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
 
@@ -391,48 +389,35 @@
         osc.start(now);
         osc.stop(now + 0.022);
 
-        // 모바일 기기 미세 진동 피드백 (지원 브라우저)
         if (navigator.vibrate) {
           navigator.vibrate(3);
         }
-      } catch (e) {
-        // 브라우저 오디오 정책 예외 무시
-      }
+      } catch (e) {}
     }
 
-    // 화면 터치/클릭 시 AudioContext 사전 활성화
     window.addEventListener('touchstart', () => getAudioContext(), { once: true, passive: true });
     window.addEventListener('mousedown', () => getAudioContext(), { once: true });
 
-    // ==========================================
-    // 1. Firebase 구성
-    // ==========================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyD-YOUR_ACTUAL_API_KEY",
-      authDomain: "saju-grap.firebaseapp.com",
-      projectId: "saju-grap",
-      storageBucket: "saju-grap.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:abcdef123456"
-    };
-
+    // 1. Firebase 초기화 (firebase-config.js에서 주입된 window.firebaseConfig 사용)
     let auth = null, db = null, currentUser = null;
     let chartInstance = null;
     let currentPayload = null;
 
-    if (firebaseConfig.apiKey !== "AIzaSyD-YOUR_ACTUAL_API_KEY") {
-      firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
-      auth.signInAnonymously().then(cred => {
-        currentUser = cred.user;
-        loadSavedProfiles();
-      }).catch(err => console.warn('Firebase Auth:', err.message));
+    if (window.firebaseConfig && window.firebaseConfig.apiKey && !window.firebaseConfig.apiKey.includes('YOUR_ACTUAL_API_KEY')) {
+      try {
+        firebase.initializeApp(window.firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        auth.signInAnonymously().then(cred => {
+          currentUser = cred.user;
+          loadSavedProfiles();
+        }).catch(err => console.warn('Firebase Auth:', err.message));
+      } catch (e) {
+        console.warn('Firebase Init Error:', e.message);
+      }
     }
 
-    // ==========================================
     // 2. 휠 피커 상태 관리
-    // ==========================================
     const state = {
       name: '',
       year: 1995,
@@ -555,7 +540,6 @@
       setTimeout(() => { isProgrammaticScroll = false; }, 300);
     }
 
-    // 중앙 타겟 감지 및 사운드 FX 트리거
     function highlightCenterItem() {
       const wheelEl = document.getElementById('wheelList');
       const containerRect = wheelEl.getBoundingClientRect();
@@ -583,7 +567,6 @@
         closestEl.classList.add('text-amber-400', 'scale-110', 'text-2xl');
 
         const currentVal = closestEl.dataset.value;
-        // 새로운 숫자로 진입할 때마다 래칫 틱 사운드 재생
         if (lastHighlightedValue !== null && lastHighlightedValue !== currentVal) {
           playTickSound();
         }
@@ -623,7 +606,6 @@
     document.getElementById('btnPrevStep').addEventListener('click', () => { playTickSound(); goToStep(state.step - 1); });
     document.getElementById('btnNextStep').addEventListener('click', () => { playTickSound(); goToStep(state.step + 1); });
 
-    // 스와이프 제스처
     let touchStartX = 0;
     let touchStartY = 0;
     const wheelContainer = document.getElementById('wheelContainer');
@@ -649,9 +631,7 @@
       }
     }, { passive: true });
 
-    // ==========================================
     // 3. 화면 전환 및 분석 실행
-    // ==========================================
     function switchView(viewName) {
       const vOnboarding = document.getElementById('viewOnboarding');
       const vDashboard = document.getElementById('viewDashboard');
@@ -707,6 +687,7 @@
       }
     }
 
+    // 4. 결과 렌더링
     function renderDashboard(name, data) {
       const { pillars, analysis, daewoonWaves, meta } = data;
       const dayPillar = pillars.day;
@@ -811,13 +792,11 @@
       });
     }
 
-    // ==========================================
-    // 4. Firebase 연동
-    // ==========================================
+    // 5. Firebase 저장/불러오기
     async function saveToCloud() {
       if (!currentPayload) return;
       if (!db || !currentUser) {
-        alert('Firebase 미설정 상태입니다. 로컬 스토리지에 임시 저장되었습니다.');
+        alert('Firebase 미설정 상태입니다. firebase-config.js를 확인하세요.');
         localStorage.setItem('saju_last_profile', JSON.stringify(currentPayload));
         return;
       }
@@ -876,3 +855,9 @@
   </script>
 </body>
 </html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("index.html generated successfully!")
