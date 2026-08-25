@@ -46,7 +46,7 @@
 <body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-center p-3 md:p-8">
 
   <!-- ===================================================================== -->
-  <!-- 1. [온보딩 화면] 화면 정중앙 배치 & 파친코 휠 슬라이더               -->
+  <!-- 1. [온보딩 화면] 화면 정중앙 배치 & 좌우 스와이프 휠 피커             -->
   <!-- ===================================================================== -->
   <div id="viewOnboarding" class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[36px] p-6 md:p-8 shadow-2xl border border-stone-200/80 fade-in flex flex-col justify-between my-auto">
     
@@ -62,13 +62,11 @@
 
     <!-- 사용자 이름 입력 -->
     <div class="mb-5">
-      <div class="relative">
-        <input type="text" id="initName" placeholder="이름 또는 닉네임 (선택)" value=""
-          class="w-full px-4 py-3 bg-stone-100/80 border border-stone-200 rounded-2xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-sm" />
-      </div>
+      <input type="text" id="initName" placeholder="이름 또는 닉네임 (선택)" value=""
+        class="w-full px-4 py-3 bg-stone-100/80 border border-stone-200 rounded-2xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-sm" />
     </div>
 
-    <!-- 파친코 휠 단계 탭 (년/월/일/시/분/성별) -->
+    <!-- 파친코 휠 단계 탭 (상단 클릭으로 즉시 이동 가능) -->
     <div class="flex items-center justify-between bg-stone-100 p-1.5 rounded-2xl mb-4 text-xs font-bold gap-1">
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition" data-step="0" id="tabYear">1995년</button>
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="1" id="tabMonth">5월</button>
@@ -78,23 +76,40 @@
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="5" id="tabGender">남성</button>
     </div>
 
-    <!-- 파친코 휠 슬롯 컨테이너 -->
-    <div class="relative w-full h-52 bg-stone-900 rounded-3xl overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center mb-6">
+    <!-- 드래그 패널 (좌우 화살표 + 터치 스와이프 지원) -->
+    <div class="relative w-full mb-6 flex items-center">
       
-      <!-- 상하 그라데이션 오버레이 (파친코 원통 렌즈 효과) -->
-      <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
-      <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
-      
-      <!-- 중앙 선택 표시 타겟 바 -->
-      <div class="absolute w-[88%] h-12 border-y-2 border-amber-500/80 bg-amber-500/10 rounded-xl pointer-events-none z-0"></div>
+      <!-- 좌측 이전 단계 화살표 -->
+      <button type="button" id="btnPrevStep" class="absolute -left-3 md:-left-4 z-20 w-9 h-9 rounded-full bg-white/95 shadow-md border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-amber-500 hover:text-white transition active:scale-90 opacity-30 pointer-events-none" title="이전 단계">
+        <i class="fa-solid fa-chevron-left text-xs"></i>
+      </button>
 
-      <!-- 동적 롤러 휠 -->
-      <div id="wheelList" class="wheel-scroll-container w-full h-full overflow-y-auto no-scrollbar py-[72px] z-5">
-        <!-- JS로 동적 아이템 생성 -->
+      <!-- 우측 다음 단계 화살표 -->
+      <button type="button" id="btnNextStep" class="absolute -right-3 md:-right-4 z-20 w-9 h-9 rounded-full bg-white/95 shadow-md border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-amber-500 hover:text-white transition active:scale-90" title="다음 단계">
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
+
+      <!-- 휠 박스 -->
+      <div id="wheelContainer" class="relative w-full h-52 bg-stone-900 rounded-3xl overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center touch-pan-y">
+        <!-- 상하 렌즈 그라데이션 -->
+        <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
+        <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
+        
+        <!-- 중앙 선택 표시 타겟 바 -->
+        <div class="absolute w-[86%] h-12 border-y-2 border-amber-500/80 bg-amber-500/10 rounded-xl pointer-events-none z-0"></div>
+
+        <!-- 롤러 휠 -->
+        <div id="wheelList" class="wheel-scroll-container w-full h-full overflow-y-auto no-scrollbar py-[72px] z-5"></div>
       </div>
     </div>
 
-    <!-- 파동 보기 시작 버튼 -->
+    <!-- 스와이프 안내 문구 -->
+    <div class="flex items-center justify-center gap-1.5 text-[11px] text-stone-400 font-medium mb-5 -mt-3">
+      <i class="fa-solid fa-arrows-left-right text-amber-600"></i>
+      <span>좌우 스와이프 또는 화살표로 탭 이동</span>
+    </div>
+
+    <!-- 파동 보기 버튼 -->
     <button type="button" id="btnStart"
       class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
       <i class="fa-solid fa-chart-line text-sm"></i>
@@ -323,10 +338,9 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- Script: 휠 피커 제어 & API 연동                                        -->
+  <!-- Script: 휠 피커 제어 & 제스처 & API 연동                             -->
   <!-- ===================================================================== -->
   <script>
-    // 1. Firebase 구성 정보
     const firebaseConfig = {
       apiKey: "AIzaSyD-YOUR_ACTUAL_API_KEY",
       authDomain: "saju-grap.firebaseapp.com",
@@ -350,7 +364,7 @@
       }).catch(err => console.warn('Firebase Auth:', err.message));
     }
 
-    // 2. 휠 피커 상태 관리
+    // 휠 피커 상태
     const state = {
       name: '',
       year: 1995,
@@ -371,17 +385,42 @@
       { id: 'gender', label: '성별', options: [{ val: 1, text: '남성 (乾命)' }, { val: 2, text: '여성 (坤命)' }] }
     ];
 
-    let autoNextTimer = null;
     let isProgrammaticScroll = false;
+
+    // 단계 이동 함수
+    function goToStep(nextStep) {
+      if (nextStep >= 0 && nextStep < steps.length) {
+        renderWheel(nextStep);
+      }
+    }
+
+    // 이전/다음 화살표 버튼 상태 갱신
+    function updateNavButtons() {
+      const btnPrev = document.getElementById('btnPrevStep');
+      const btnNext = document.getElementById('btnNextStep');
+
+      if (state.step === 0) {
+        btnPrev.classList.add('opacity-30', 'pointer-events-none');
+      } else {
+        btnPrev.classList.remove('opacity-30', 'pointer-events-none');
+      }
+
+      if (state.step === steps.length - 1) {
+        btnNext.classList.add('opacity-30', 'pointer-events-none');
+      } else {
+        btnNext.classList.remove('opacity-30', 'pointer-events-none');
+      }
+    }
 
     // 휠 렌더링
     function renderWheel(stepIndex) {
       state.step = stepIndex;
+      updateNavButtons();
       const config = steps[stepIndex];
       const wheelEl = document.getElementById('wheelList');
       wheelEl.innerHTML = '';
 
-      // 탭 활성화 스타일 갱신
+      // 탭 활성화 스타일
       document.querySelectorAll('.step-tab').forEach((tab, idx) => {
         if (idx === stepIndex) {
           tab.classList.add('bg-amber-500', 'text-white', 'shadow-sm');
@@ -408,14 +447,14 @@
         div.dataset.value = item.val;
         div.innerText = item.text;
         
-        // 탭 클릭 시 즉시 선택 & 다음 단계 이동
+        // 클릭 시 해당 위치로 스크롤 및 선택 (자동 탭 전환 없음)
         div.onclick = () => {
-          selectWheelItem(div, true);
+          selectWheelItem(div);
         };
         wheelEl.appendChild(div);
       });
 
-      // 현재 선택된 값으로 스크롤 위치 이동
+      // 현재 선택된 값으로 스크롤 복원
       setTimeout(() => {
         const currentVal = (stepIndex === 0 ? state.year :
                            stepIndex === 1 ? state.month :
@@ -433,8 +472,8 @@
       }, 20);
     }
 
-    // 아이템 선택 처리 및 자동 전환
-    function selectWheelItem(el, shouldAdvance = true) {
+    // 아이템 선택 처리 (값만 갱신)
+    function selectWheelItem(el) {
       if (!el) return;
       isProgrammaticScroll = true;
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -450,18 +489,10 @@
       else if (s === 5) { state.gender = val; document.getElementById('tabGender').innerText = val === 1 ? '남성' : '여성'; }
 
       highlightCenterItem();
-
-      clearTimeout(autoNextTimer);
-      if (shouldAdvance && s < steps.length - 1) {
-        autoNextTimer = setTimeout(() => {
-          renderWheel(s + 1);
-        }, 350); // 0.35초 뒤 다음 탭으로 매끄럽게 전환
-      }
-
       setTimeout(() => { isProgrammaticScroll = false; }, 300);
     }
 
-    // 스크롤 시 중앙 아이템 하이라이트
+    // 중앙 하이라이트
     function highlightCenterItem() {
       const wheelEl = document.getElementById('wheelList');
       const containerRect = wheelEl.getBoundingClientRect();
@@ -480,7 +511,6 @@
           closestEl = child;
         }
 
-        // 비선택 텍스트 어둡게 처리
         child.classList.remove('text-amber-400', 'scale-110', 'text-2xl');
         child.classList.add('text-stone-600', 'text-base');
       });
@@ -492,7 +522,7 @@
       return closestEl;
     }
 
-    // 휠 스크롤 멈춤 감지
+    // 스크롤 시 값 실시간 동기화
     let scrollEndTimer = null;
     document.getElementById('wheelList').addEventListener('scroll', () => {
       highlightCenterItem();
@@ -502,9 +532,16 @@
       scrollEndTimer = setTimeout(() => {
         const centerEl = highlightCenterItem();
         if (centerEl) {
-          selectWheelItem(centerEl, true);
+          const val = Number(centerEl.dataset.value);
+          const s = state.step;
+          if (s === 0) { state.year = val; document.getElementById('tabYear').innerText = `${val}년`; }
+          else if (s === 1) { state.month = val; document.getElementById('tabMonth').innerText = `${val}월`; }
+          else if (s === 2) { state.day = val; document.getElementById('tabDay').innerText = `${val}일`; }
+          else if (s === 3) { state.hour = val; document.getElementById('tabHour').innerText = `${val}시`; }
+          else if (s === 4) { state.minute = val; document.getElementById('tabMin').innerText = `${String(val).padStart(2, '0')}분`; }
+          else if (s === 5) { state.gender = val; document.getElementById('tabGender').innerText = val === 1 ? '남성' : '여성'; }
         }
-      }, 150);
+      }, 100);
     });
 
     // 탭 직접 클릭 이벤트
@@ -514,7 +551,37 @@
       });
     });
 
-    // 3. 화면 전환 및 분석 실행
+    // 화살표 버튼 이벤트
+    document.getElementById('btnPrevStep').addEventListener('click', () => goToStep(state.step - 1));
+    document.getElementById('btnNextStep').addEventListener('click', () => goToStep(state.step + 1));
+
+    // 좌우 터치 스와이프 제스처 이벤트
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const wheelContainer = document.getElementById('wheelContainer');
+
+    wheelContainer.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    wheelContainer.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      // 수평 스와이프 판정 (수직 스크롤과 간섭 방지)
+      if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+        if (diffX < 0) {
+          goToStep(state.step + 1); // 왼쪽으로 밀면 다음 탭
+        } else {
+          goToStep(state.step - 1); // 오른쪽으로 밀면 이전 탭
+        }
+      }
+    }, { passive: true });
+
+    // 화면 전환 및 분석 실행
     function switchView(viewName) {
       const vOnboarding = document.getElementById('viewOnboarding');
       const vDashboard = document.getElementById('viewDashboard');
@@ -569,7 +636,7 @@
       }
     }
 
-    // 4. 대시보드 렌더링
+    // 결과 렌더링
     function renderDashboard(name, data) {
       const { pillars, analysis, daewoonWaves, meta } = data;
       const dayPillar = pillars.day;
@@ -674,7 +741,7 @@
       });
     }
 
-    // 5. Firebase 저장/불러오기
+    // Firebase 연동
     async function saveToCloud() {
       if (!currentPayload) return;
       if (!db || !currentUser) {
@@ -728,12 +795,12 @@
       });
     }
 
-    // 6. 이벤트 바인딩
+    // 이벤트 바인딩
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
     document.getElementById('btnSaveToCloud').addEventListener('click', saveToCloud);
     document.getElementById('btnEditInput').addEventListener('click', () => switchView('onboarding'));
 
-    // 초기 0단계(년도 휠) 렌더링
+    // 초기 실행
     renderWheel(0);
   </script>
 </body>
