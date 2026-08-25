@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuantPulse Pro // Multi-Dimensional Stock Analytics Hub</title>
+  <title>QuantPulse Pro // Center-Anchored Stock Analytics Lab</title>
   
-  <!-- Tailwind CSS (CDN) -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,6 +52,7 @@
         radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.06) 0px, transparent 60%);
       color: #E2E8F0;
       min-height: 100vh;
+      user-select: none;
     }
     
     .glass-panel {
@@ -66,34 +67,50 @@
       border-color: rgba(255, 255, 255, 0.16);
     }
 
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    /* Swipe & Drag Surface Styling */
+    .chart-swipe-container {
+      cursor: grab;
+      touch-action: pan-y;
     }
-    ::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.25);
+    .chart-swipe-container:active {
+      cursor: grabbing;
     }
 
-    /* Pulse Live Dot */
+    /* Center Anchor Guideline Overlay */
+    .center-anchor-line {
+      position: absolute;
+      top: 10%;
+      bottom: 10%;
+      left: 50%;
+      width: 1px;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.35), transparent);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .center-anchor-badge {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 11;
+      pointer-events: none;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
     @keyframes pulse-glow {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.35; transform: scale(1.25); }
     }
-    .live-dot {
-      animation: pulse-glow 2s infinite ease-in-out;
-    }
+    .live-dot { animation: pulse-glow 2s infinite ease-in-out; }
 
-    /* Active Stock Selection Glow */
     .asset-card.active-selected {
-      background: rgba(30, 41, 59, 0.9) !important;
+      background: rgba(30, 41, 59, 0.95) !important;
       transform: translateY(-2px);
     }
   </style>
@@ -105,39 +122,45 @@
   <header class="w-full max-w-[1760px] mx-auto mb-5">
     <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
       
-      <!-- Logo & Realtime Status Indicator -->
+      <!-- Brand Logo -->
       <div class="flex items-center gap-3.5">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <i data-lucide="candlestick-chart" class="w-5 h-5 text-white"></i>
+          <i data-lucide="crosshair" class="w-5 h-5 text-white"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              QUANT-X <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">PRO ENGINE</span>
+              QUANT-X <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">CENTER-PIVOT LAB</span>
             </h1>
             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span>
-              REALTIME SYNC
+              SWIPE & ZOOM SYNC
             </span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">다차원 주식 그래프 인터랙션 허브 (메인 1종 + 섹터 카테고리 5종 = 총 6종 동기화)</p>
+          <p class="text-xs text-slate-400 mt-0.5">중앙 고정 줌인/줌아웃 (시봉 ↔ 연봉) & 4개 차트 동시 좌우 스와이프 탐색</p>
         </div>
       </div>
 
-      <!-- Timeframe Selector (봉 단위 전환기: 시봉/일봉/주봉/월봉/연봉) -->
+      <!-- Timeframe Selector (봉 단위 줌인/줌아웃 컨트롤러) -->
       <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-white/10 shadow-inner">
-        <span class="text-[11px] font-mono text-slate-400 px-3 uppercase tracking-wider hidden md:inline-block">Timeframe</span>
+        <span class="text-[11px] font-mono text-cyan-400 px-3 uppercase tracking-wider hidden md:inline-flex items-center gap-1">
+          <i data-lucide="zoom-in" class="w-3 h-3"></i> Zoom
+        </span>
         <div class="flex items-center gap-1" id="timeframe-buttons">
-          <button data-tf="1H" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">시봉 (1H)</button>
-          <button data-tf="1D" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-bold">일봉 (1D)</button>
-          <button data-tf="1W" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">주봉 (1W)</button>
-          <button data-tf="1M" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">월봉 (1M)</button>
-          <button data-tf="1Y" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">연봉 (1Y)</button>
+          <button data-tf="1H" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">시봉 (1H 🔍최대줌인)</button>
+          <button data-tf="1D" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-bold">일봉 (1D 줌인)</button>
+          <button data-tf="1W" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">주봉 (1W 표준)</button>
+          <button data-tf="1M" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">월봉 (1M 줌아웃)</button>
+          <button data-tf="1Y" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-slate-800 text-slate-300 hover:text-white">연봉 (1Y 🔭최대줌아웃)</button>
         </div>
       </div>
 
-      <!-- Reset & Global Focus Switcher -->
+      <!-- Navigation & Swipe Guide Button -->
       <div class="flex items-center gap-2">
+        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-white/5 text-[11px] font-mono text-slate-400">
+          <i data-lucide="move-horizontal" class="w-3.5 h-3.5 text-cyan-400 animate-pulse"></i>
+          <span>그래프를 좌우로 드래그/스와이프하세요</span>
+        </div>
         <button id="reset-focus-btn" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 hover:text-white transition-all">
           <i data-lucide="layers" class="w-3.5 h-3.5 text-cyan-400"></i>
           <span>전체 동시보기 (ALL)</span>
@@ -167,7 +190,7 @@
               상대 수익률 정규화 차트
               <span class="text-[10px] font-mono text-slate-400 font-normal">Normalized Alpha %</span>
             </h2>
-            <p class="text-[11px] text-slate-400">시작 시점(0%) 기준 전 종목 상대 등락률 및 메인 지수 스프레드 추적</p>
+            <p class="text-[11px] text-slate-400">중앙 기준점 대비 전 종목 상대 등락률 및 메인 지수 스프레드</p>
           </div>
         </div>
         <div class="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded-md border border-white/5">
@@ -176,13 +199,15 @@
         </div>
       </div>
 
-      <div class="relative w-full h-[320px] md:h-[350px]">
+      <div class="relative w-full h-[320px] md:h-[350px] chart-swipe-container" id="container-chart1">
+        <div class="center-anchor-line"></div>
+        <div class="center-anchor-badge text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">CENTER PIVOT</div>
         <canvas id="chartStyle1"></canvas>
       </div>
 
       <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5 text-amber-400"></i> 비선택 종목 투명도 10% 감쇠 포커스 모드 지원</span>
-        <span class="text-slate-500">Auto Scaled Y-Axis</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="hand" class="w-3.5 h-3.5 text-cyan-400"></i> 좌우 드래그로 타임라인 스와이프 탐색</span>
+        <span class="text-slate-500" id="s1-range-info">Span: 30 Ticks</span>
       </div>
     </section>
 
@@ -207,13 +232,15 @@
         </div>
       </div>
 
-      <div class="relative w-full h-[320px] md:h-[350px]">
+      <div class="relative w-full h-[320px] md:h-[350px] chart-swipe-container" id="container-chart2">
+        <div class="center-anchor-line"></div>
+        <div class="center-anchor-badge text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">CENTER PIVOT</div>
         <canvas id="chartStyle2"></canvas>
       </div>
 
       <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i> High/Low 밴드 오버레이 및 양봉/음봉 색상 자동 동기화</span>
-        <span class="text-slate-500">Volume Sync Bars</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i> 중앙 중심 줌인/줌아웃 시 고/저가 밴드 자동 리스케일링</span>
+        <span class="text-slate-500">Volume Sync</span>
       </div>
     </section>
 
@@ -238,13 +265,15 @@
         </div>
       </div>
 
-      <div class="relative w-full h-[320px] md:h-[350px]">
+      <div class="relative w-full h-[320px] md:h-[350px] chart-swipe-container" id="container-chart3">
+        <div class="center-anchor-line"></div>
+        <div class="center-anchor-badge text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">CENTER PIVOT</div>
         <canvas id="chartStyle3"></canvas>
       </div>
 
       <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> 개별 자산 클릭 시 배경 레이어 부드러운 블러 감쇠</span>
-        <span class="text-slate-500">Curved Bézier Spline</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> 포커스 및 스와이프 시 6종 자산 부드러운 유동 곡선 동기화</span>
+        <span class="text-slate-500">Bézier Stream</span>
       </div>
     </section>
 
@@ -257,15 +286,15 @@
           <span class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center text-xs font-bold font-mono">04</span>
           <div>
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              모멘텀 이격도 & 변동성 바 매트릭스
-              <span class="text-[10px] font-mono text-slate-400 font-normal">Momentum & Dispersion Bar</span>
+              중앙 기준 실시간 모멘텀 & 이격도
+              <span class="text-[10px] font-mono text-slate-400 font-normal">Center-Point Momentum Bar</span>
             </h2>
-            <p class="text-[11px] text-slate-400">기준선 대비 종목별 실시간 매수/매도 압력 편차 및 변동성 계수 비교</p>
+            <p class="text-[11px] text-slate-400">화면 중앙 기준점 위치에서의 종목별 매수/매도 압력 및 변동성 계수</p>
           </div>
         </div>
         <div class="flex items-center gap-2 text-xs font-mono text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">
           <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
-          <span>OSCILLATOR MATRIX</span>
+          <span id="center-time-indicator">CENTER: --:--</span>
         </div>
       </div>
 
@@ -274,8 +303,8 @@
       </div>
 
       <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="activity" class="w-3.5 h-3.5 text-rose-400"></i> 양(+)의 모멘텀 매수세 vs 음(-)의 매도세 즉시 판독</span>
-        <span class="text-slate-500">Zero-Center Divergence</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="crosshair" class="w-3.5 h-3.5 text-rose-400"></i> 좌우 스와이프 시 중앙 시점의 모멘텀 실시간 연동 재산출</span>
+        <span class="text-slate-500">Zero-Center</span>
       </div>
     </section>
 
@@ -285,15 +314,15 @@
   <footer class="w-full max-w-[1760px] mx-auto mt-6 glass-panel rounded-xl p-3.5 px-6 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-slate-400">
     <div class="flex items-center gap-6">
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span class="text-slate-300">WebSocket Engine: Connected (32ms)</span>
+        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+        <span class="text-slate-300">Center Pivot Sync Engine: Active</span>
       </div>
       <div class="hidden md:flex items-center gap-2 text-slate-500">
-        <span>GSAP Hardware Accelerated UI</span>
+        <span>Mouse Drag / Touch Swipe / Wheel Zoom Supported</span>
       </div>
     </div>
     <div class="flex items-center gap-4 text-slate-400">
-      <span>GitHub Repository Ready • `index.html`</span>
+      <span id="timeline-buffer-stat">Total Buffer: 180 Ticks</span>
     </div>
   </footer>
 
@@ -311,47 +340,38 @@
       { id: 'catE', name: 'E 핀테크 / 디지털에셋', ticker: 'FINT-WEB3', color: '#FB923C', rgb: '251, 146, 60', basePrice: 32900, isMain: false }
     ];
 
-    // Global Interactive State
-    let currentTimeframe = '1D'; // '1H', '1D', '1W', '1M', '1Y'
-    let activeAssetId = 'ALL';   // 'ALL' or asset id ('main', 'catA', ...)
-    let charts = {};             // Chart instances storage
-
-    // Timeframe Configuration & Tick Count
+    // Global Timeframe Zoom Configs (Center window spans)
+    // 1H is tight zoom-in (16 ticks visible), 1Y is wide zoom-out (70 ticks visible)
     const TF_CONFIG = {
-      '1H': { points: 60, interval: '1분 간격 (최근 60분)', volatility: 0.003 },
-      '1D': { points: 30, interval: '10분 간격 (당일 거래일)', volatility: 0.007 },
-      '1W': { points: 35, interval: '일간 캔들 (최근 5주)', volatility: 0.015 },
-      '1M': { points: 30, interval: '일별 종가 (최근 1개월)', volatility: 0.025 },
-      '1Y': { points: 52, interval: '주간 종가 (최근 1개년 52주)', volatility: 0.050 }
+      '1H': { span: 16, label: '시봉 (1H 🔍최대줌인)', volatility: 0.0025, name: '1H' },
+      '1D': { span: 26, label: '일봉 (1D 줌인)', volatility: 0.005, name: '1D' },
+      '1W': { span: 40, label: '주봉 (1W 표준)', volatility: 0.012, name: '1W' },
+      '1M': { span: 56, label: '월봉 (1M 줌아웃)', volatility: 0.022, name: '1M' },
+      '1Y': { span: 76, label: '연봉 (1Y 🔭최대줌아웃)', volatility: 0.045, name: '1Y' }
     };
 
+    const TOTAL_BUFFER = 200; // Continuous master timeline buffer points
+    let currentTimeframe = '1D';
+    let activeAssetId = 'ALL';
+    let charts = {};
+
+    // Center Anchor Navigation State
+    let centerIndex = Math.floor(TOTAL_BUFFER / 2); // Default anchor: exact middle of dataset
+    let currentSpan = TF_CONFIG[currentTimeframe].span;
+
     // ----------------------------------------------------
-    // 2. Market Data Generator Engine (Synchronized Walks)
+    // 2. Master Continuous Dataset Generation
     // ----------------------------------------------------
-    function generateMarketData(tf) {
-      const config = TF_CONFIG[tf];
-      const count = config.points;
+    function generateContinuousMasterData() {
       const labels = [];
-      
       const now = new Date();
-      for (let i = 0; i < count; i++) {
-        if (tf === '1H') {
-          const t = new Date(now.getTime() - (count - 1 - i) * 60 * 1000);
-          labels.push(t.getHours().toString().padStart(2, '0') + ':' + t.getMinutes().toString().padStart(2, '0'));
-        } else if (tf === '1D') {
-          const h = 9 + Math.floor(i / 5);
-          const m = (i % 5) * 12;
-          labels.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-        } else if (tf === '1W') {
-          labels.push(`Day ${i + 1}`);
-        } else if (tf === '1M') {
-          labels.push(`${i + 1}일`);
-        } else {
-          labels.push(`W${i + 1}`);
-        }
+      
+      for (let i = 0; i < TOTAL_BUFFER; i++) {
+        const offsetMin = (i - TOTAL_BUFFER / 2) * 5;
+        const t = new Date(now.getTime() + offsetMin * 60 * 1000);
+        labels.push(`${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`);
       }
 
-      // Generate realistic price walks for all 6 assets
       const assetData = {};
       ASSETS.forEach((asset, assetIdx) => {
         let current = asset.basePrice;
@@ -361,56 +381,80 @@
         const volumes = [];
         const momentum = [];
 
-        // Realistic Trend bias
-        const bias = (assetIdx === 0) ? 0.0003 : (assetIdx % 2 === 1 ? 0.0007 : -0.0002);
+        const bias = (assetIdx === 0) ? 0.0002 : (assetIdx % 2 === 1 ? 0.0005 : -0.0003);
         const startPrice = current;
 
-        for (let i = 0; i < count; i++) {
-          const changePct = (Math.random() - 0.49 + bias) * config.volatility;
+        for (let i = 0; i < TOTAL_BUFFER; i++) {
+          const changePct = (Math.sin(i / 7) * 0.002) + (Math.random() - 0.49 + bias) * 0.006;
           const open = current;
           const close = current * (1 + changePct);
-          const high = Math.max(open, close) * (1 + Math.random() * config.volatility * 0.8);
-          const low = Math.min(open, close) * (1 - Math.random() * config.volatility * 0.8);
-          const volume = Math.floor(10000 + Math.random() * 45000 + (Math.abs(changePct) * 500000));
+          const high = Math.max(open, close) * (1 + Math.random() * 0.004);
+          const low = Math.min(open, close) * (1 - Math.random() * 0.004);
+          const volume = Math.floor(12000 + Math.random() * 40000 + (Math.abs(changePct) * 600000));
 
           current = close;
           prices.push(Number(close.toFixed(2)));
           normalized.push(Number((((close - startPrice) / startPrice) * 100).toFixed(2)));
-          
           candles.push({ open, high, low, close });
           volumes.push(volume);
           momentum.push(Number(((close - open) / open * 100).toFixed(3)));
         }
 
-        assetData[asset.id] = {
-          prices,
-          normalized,
-          candles,
-          volumes,
-          momentum,
-          currentPrice: prices[prices.length - 1],
-          lastChange: normalized[normalized.length - 1]
-        };
+        assetData[asset.id] = { prices, normalized, candles, volumes, momentum };
       });
 
       return { labels, assetData };
     }
 
-    let currentMarket = generateMarketData(currentTimeframe);
+    const masterData = generateContinuousMasterData();
+
+    // Slices dataset symmetrically around `centerIndex`
+    function getViewportSlice() {
+      const halfSpan = Math.floor(currentSpan / 2);
+      let start = Math.max(0, centerIndex - halfSpan);
+      let end = start + currentSpan;
+
+      if (end > TOTAL_BUFFER) {
+        end = TOTAL_BUFFER;
+        start = Math.max(0, end - currentSpan);
+      }
+
+      const labels = masterData.labels.slice(start, end);
+      const centerLabel = masterData.labels[centerIndex] || masterData.labels[Math.floor((start + end) / 2)];
+
+      const assetData = {};
+      ASSETS.forEach(asset => {
+        const full = masterData.assetData[asset.id];
+        assetData[asset.id] = {
+          prices: full.prices.slice(start, end),
+          normalized: full.normalized.slice(start, end),
+          candles: full.candles.slice(start, end),
+          volumes: full.volumes.slice(start, end),
+          momentum: full.momentum.slice(start, end),
+          centerMomentum: full.momentum[centerIndex] ?? full.momentum[Math.floor(full.momentum.length / 2)],
+          currentPrice: full.prices[centerIndex] ?? full.prices[full.prices.length - 1],
+          centerChange: full.normalized[centerIndex] ?? 0
+        };
+      });
+
+      return { labels, assetData, centerLabel, start, end };
+    }
+
+    let currentView = getViewportSlice();
 
     // ----------------------------------------------------
-    // 3. Render Top Asset Selector Badges
+    // 3. Top Asset Selector Badges
     // ----------------------------------------------------
     function renderAssetSelectors() {
       const container = document.getElementById('asset-selectors');
       container.innerHTML = '';
 
       ASSETS.forEach(asset => {
-        const data = currentMarket.assetData[asset.id];
+        const data = currentView.assetData[asset.id];
         const isSelected = activeAssetId === asset.id;
         const isDimmed = activeAssetId !== 'ALL' && !isSelected;
-        const changeSign = data.lastChange >= 0 ? '+' : '';
-        const changeColor = data.lastChange >= 0 ? 'text-emerald-400' : 'text-rose-400';
+        const changeSign = data.centerChange >= 0 ? '+' : '';
+        const changeColor = data.centerChange >= 0 ? 'text-emerald-400' : 'text-rose-400';
 
         const card = document.createElement('div');
         card.className = `asset-card p-3 rounded-xl border transition-all duration-300 cursor-pointer flex flex-col justify-between ${
@@ -435,7 +479,7 @@
             <span class="text-sm font-semibold text-slate-200">
               ${data.currentPrice >= 1000 ? data.currentPrice.toLocaleString() : data.currentPrice.toFixed(2)}
             </span>
-            <span class="text-xs font-bold ${changeColor}">${changeSign}${data.lastChange}%</span>
+            <span class="text-xs font-bold ${changeColor}">${changeSign}${data.centerChange}%</span>
           </div>
         `;
 
@@ -448,7 +492,7 @@
     }
 
     // ----------------------------------------------------
-    // 4. Chart 01: Normalized Alpha Stream Line Chart
+    // 4. Chart 01: Normalized Line
     // ----------------------------------------------------
     function initChart1() {
       const ctx = document.getElementById('chartStyle1').getContext('2d');
@@ -457,7 +501,7 @@
         return {
           label: asset.name,
           assetId: asset.id,
-          data: currentMarket.assetData[asset.id].normalized,
+          data: currentView.assetData[asset.id].normalized,
           borderColor: asset.color,
           backgroundColor: `${asset.color}15`,
           borderWidth: isMain ? 3 : 2,
@@ -466,207 +510,18 @@
           pointRadius: 0,
           pointHoverRadius: 6,
           pointHoverBackgroundColor: asset.color,
-          pointHoverBorderColor: '#ffffff',
-          pointHoverBorderWidth: 2,
+          pointHoverBorderColor: '#ffffff'
         };
       });
 
       charts.style1 = new Chart(ctx, {
         type: 'line',
-        data: {
-          labels: currentMarket.labels,
-          datasets: datasets
-        },
+        data: { labels: currentView.labels, datasets: datasets },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
-          animation: { duration: 600, easing: 'easeOutQuart' },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.92)',
-              titleColor: '#F8FAFC',
-              bodyColor: '#CBD5E1',
-              borderColor: 'rgba(255, 255, 255, 0.15)',
-              borderWidth: 1,
-              padding: 12,
-              titleFont: { family: 'Fira Code', size: 12 },
-              bodyFont: { family: 'Fira Code', size: 11 },
-              callbacks: {
-                label: function(context) {
-                  return ` ${context.dataset.label}: ${context.raw > 0 ? '+' : ''}${context.raw}%`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
-              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 8 }
-            },
-            y: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: {
-                color: '#64748B',
-                font: { family: 'Fira Code', size: 10 },
-                callback: v => `${v > 0 ? '+' : ''}${v}%`
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // ----------------------------------------------------
-    // 5. Chart 02: Candlestick Envelope & Volume Matrix
-    // ----------------------------------------------------
-    function initChart2() {
-      const ctx = document.getElementById('chartStyle2').getContext('2d');
-      const targetId = activeAssetId === 'ALL' ? 'main' : activeAssetId;
-      const targetData = currentMarket.assetData[targetId];
-      const targetAsset = ASSETS.find(a => a.id === targetId);
-
-      const highData = targetData.candles.map(c => c.high);
-      const lowData = targetData.candles.map(c => c.low);
-      const closeData = targetData.candles.map(c => c.close);
-      const volumeData = targetData.volumes;
-
-      charts.style2 = new Chart(ctx, {
-        data: {
-          labels: currentMarket.labels,
-          datasets: [
-            {
-              type: 'line',
-              label: `${targetAsset.name} 종가`,
-              data: closeData,
-              borderColor: targetAsset.color,
-              borderWidth: 2.5,
-              tension: 0.25,
-              yAxisID: 'y',
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              pointHoverBackgroundColor: targetAsset.color
-            },
-            {
-              type: 'line',
-              label: 'High Envelope',
-              data: highData,
-              borderColor: 'transparent',
-              backgroundColor: `${targetAsset.color}10`,
-              fill: '+1',
-              tension: 0.25,
-              pointRadius: 0,
-              yAxisID: 'y'
-            },
-            {
-              type: 'line',
-              label: 'Low Envelope',
-              data: lowData,
-              borderColor: 'transparent',
-              fill: false,
-              tension: 0.25,
-              pointRadius: 0,
-              yAxisID: 'y'
-            },
-            {
-              type: 'bar',
-              label: '거래량 (Volume)',
-              data: volumeData,
-              backgroundColor: targetData.candles.map(c => c.close >= c.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(244, 63, 94, 0.45)'),
-              borderRadius: 3,
-              yAxisID: 'yVolume',
-              barPercentage: 0.6
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          animation: { duration: 500 },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.15)',
-              borderWidth: 1,
-              titleFont: { family: 'Fira Code', size: 12 },
-              bodyFont: { family: 'Fira Code', size: 11 },
-              callbacks: {
-                afterBody: function(items) {
-                  const idx = items[0].dataIndex;
-                  const c = targetData.candles[idx];
-                  return [
-                    `시가(Open):  ${c.open.toFixed(1)}`,
-                    `고가(High):  ${c.high.toFixed(1)}`,
-                    `저가(Low):   ${c.low.toFixed(1)}`,
-                    `종가(Close): ${c.close.toFixed(1)}`
-                  ];
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
-              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 8 }
-            },
-            y: {
-              position: 'right',
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 10 } }
-            },
-            yVolume: {
-              position: 'left',
-              display: true,
-              max: Math.max(...volumeData) * 3.5,
-              grid: { display: false },
-              ticks: { display: false }
-            }
-          }
-        }
-      });
-    }
-
-    // ----------------------------------------------------
-    // 6. Chart 03: Layered Glowing Area Stream
-    // ----------------------------------------------------
-    function initChart3() {
-      const ctx = document.getElementById('chartStyle3').getContext('2d');
-      const datasets = ASSETS.map(asset => {
-        return {
-          label: asset.name,
-          assetId: asset.id,
-          data: currentMarket.assetData[asset.id].normalized.map(v => Math.max(0, v + 20)),
-          borderColor: asset.color,
-          backgroundColor: (context) => {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return null;
-            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, `rgba(${asset.rgb}, 0.45)`);
-            gradient.addColorStop(1, `rgba(${asset.rgb}, 0.02)`);
-            return gradient;
-          },
-          fill: true,
-          borderWidth: 2,
-          tension: 0.4,
-          pointRadius: 0
-        };
-      });
-
-      charts.style3 = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: currentMarket.labels,
-          datasets: datasets
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'nearest', intersect: false },
-          animation: { duration: 600 },
+          animation: false,
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -678,40 +533,136 @@
             }
           },
           scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
-              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 8 }
-            },
-            y: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 } }
-            }
+            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 7 } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, callback: v => `${v > 0 ? '+' : ''}${v}%` } }
           }
         }
       });
     }
 
     // ----------------------------------------------------
-    // 7. Chart 04: Volatility & Momentum Dispersion Bar
+    // 5. Chart 02: Candlestick Envelope & Volume
+    // ----------------------------------------------------
+    function initChart2() {
+      const ctx = document.getElementById('chartStyle2').getContext('2d');
+      const targetId = activeAssetId === 'ALL' ? 'main' : activeAssetId;
+      const targetData = currentView.assetData[targetId];
+      const targetAsset = ASSETS.find(a => a.id === targetId);
+
+      charts.style2 = new Chart(ctx, {
+        data: {
+          labels: currentView.labels,
+          datasets: [
+            {
+              type: 'line',
+              label: `${targetAsset.name} 종가`,
+              data: targetData.candles.map(c => c.close),
+              borderColor: targetAsset.color,
+              borderWidth: 2.5,
+              tension: 0.25,
+              yAxisID: 'y',
+              pointRadius: 0
+            },
+            {
+              type: 'line',
+              label: 'High Envelope',
+              data: targetData.candles.map(c => c.high),
+              borderColor: 'transparent',
+              backgroundColor: `${targetAsset.color}10`,
+              fill: '+1',
+              tension: 0.25,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: 'Low Envelope',
+              data: targetData.candles.map(c => c.low),
+              borderColor: 'transparent',
+              fill: false,
+              tension: 0.25,
+              pointRadius: 0,
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: 'Volume',
+              data: targetData.volumes,
+              backgroundColor: targetData.candles.map(c => c.close >= c.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(244, 63, 94, 0.45)'),
+              borderRadius: 2,
+              yAxisID: 'yVolume',
+              barPercentage: 0.65
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 7 } },
+            y: { position: 'right', grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 10 } } },
+            yVolume: { position: 'left', display: true, max: Math.max(...targetData.volumes) * 3.5, grid: { display: false }, ticks: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 6. Chart 03: Layered Glowing Area Stream
+    // ----------------------------------------------------
+    function initChart3() {
+      const ctx = document.getElementById('chartStyle3').getContext('2d');
+      const datasets = ASSETS.map(asset => ({
+        label: asset.name,
+        assetId: asset.id,
+        data: currentView.assetData[asset.id].normalized.map(v => Math.max(0, v + 20)),
+        borderColor: asset.color,
+        backgroundColor: (context) => {
+          const { ctx, chartArea } = context.chart;
+          if (!chartArea) return null;
+          const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          g.addColorStop(0, `rgba(${asset.rgb}, 0.45)`);
+          g.addColorStop(1, `rgba(${asset.rgb}, 0.02)`);
+          return g;
+        },
+        fill: true,
+        borderWidth: 2,
+        tension: 0.4,
+        pointRadius: 0
+      }));
+
+      charts.style3 = new Chart(ctx, {
+        type: 'line',
+        data: { labels: currentView.labels, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, maxTicksLimit: 7 } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 } } }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 7. Chart 04: Center-Point Momentum Bar
     // ----------------------------------------------------
     function initChart4() {
       const ctx = document.getElementById('chartStyle4').getContext('2d');
-      const latestMom = ASSETS.map(asset => {
-        const momArr = currentMarket.assetData[asset.id].momentum;
-        const avg = momArr.slice(-3).reduce((a, b) => a + b, 0) / 3;
-        return Number(avg.toFixed(3));
-      });
+      const centerMomValues = ASSETS.map(asset => currentView.assetData[asset.id].centerMomentum);
 
       charts.style4 = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: ASSETS.map(a => a.name.split(' ')[1] || a.name),
           datasets: [{
-            data: latestMom,
-            backgroundColor: ASSETS.map((asset, i) => {
-              const val = latestMom[i];
-              return val >= 0 ? asset.color : 'rgba(244, 63, 94, 0.85)';
-            }),
+            data: centerMomValues,
+            backgroundColor: ASSETS.map((asset, i) => centerMomValues[i] >= 0 ? asset.color : 'rgba(244, 63, 94, 0.85)'),
             borderRadius: 6,
             borderWidth: 1,
             borderColor: 'rgba(255, 255, 255, 0.15)'
@@ -721,44 +672,78 @@
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          animation: { duration: 500 },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.15)',
-              borderWidth: 1,
-              callbacks: {
-                label: ctx => ` 모멘텀 이격도: ${ctx.raw > 0 ? '+' : ''}${ctx.raw}%`
-              }
-            }
-          },
+          animation: false,
+          plugins: { legend: { display: false } },
           scales: {
             x: {
-              grid: { color: 'rgba(255, 255, 255, 0.08)', zeroLineColor: '#CBD5E1' },
-              ticks: {
-                color: '#94A3B8',
-                font: { family: 'Fira Code', size: 10 },
-                callback: v => `${v > 0 ? '+' : ''}${v}%`
-              }
+              grid: { color: 'rgba(255, 255, 255, 0.08)' },
+              ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 10 }, callback: v => `${v > 0 ? '+' : ''}${v}%` }
             },
-            y: {
-              grid: { display: false },
-              ticks: { color: '#E2E8F0', font: { weight: 'bold', size: 11 } }
-            }
+            y: { grid: { display: false }, ticks: { color: '#E2E8F0', font: { weight: 'bold', size: 11 } } }
           }
         }
       });
     }
 
     // ----------------------------------------------------
-    // 8. Universal Synchronizer & Interactive Focus Engine
+    // 8. Synchronized Refresh & Focus Updates
     // ----------------------------------------------------
+    function updateAllViews() {
+      currentView = getViewportSlice();
+
+      // Update Center HUD labels
+      document.getElementById('center-time-indicator').textContent = `CENTER: ${currentView.centerLabel}`;
+      document.getElementById('s1-range-info').textContent = `Span: ${currentSpan} Ticks (${currentView.start + 1}~${currentView.end})`;
+
+      // 1. Chart 1
+      if (charts.style1) {
+        charts.style1.data.labels = currentView.labels;
+        charts.style1.data.datasets.forEach(ds => {
+          ds.data = currentView.assetData[ds.assetId].normalized;
+        });
+        charts.style1.update('none');
+      }
+
+      // 2. Chart 2
+      if (charts.style2) {
+        charts.style2.data.labels = currentView.labels;
+        const targetId = activeAssetId === 'ALL' ? 'main' : activeAssetId;
+        const targetData = currentView.assetData[targetId];
+        charts.style2.data.datasets[0].data = targetData.candles.map(c => c.close);
+        charts.style2.data.datasets[1].data = targetData.candles.map(c => c.high);
+        charts.style2.data.datasets[2].data = targetData.candles.map(c => c.low);
+        charts.style2.data.datasets[3].data = targetData.volumes;
+        charts.style2.data.datasets[3].backgroundColor = targetData.candles.map(c => c.close >= c.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(244, 63, 94, 0.45)');
+        charts.style2.update('none');
+      }
+
+      // 3. Chart 3
+      if (charts.style3) {
+        charts.style3.data.labels = currentView.labels;
+        charts.style3.data.datasets.forEach(ds => {
+          ds.data = currentView.assetData[ds.assetId].normalized.map(v => Math.max(0, v + 20));
+        });
+        charts.style3.update('none');
+      }
+
+      // 4. Chart 4
+      if (charts.style4) {
+        const centerMomValues = ASSETS.map(asset => currentView.assetData[asset.id].centerMomentum);
+        charts.style4.data.datasets[0].data = centerMomValues;
+        charts.style4.data.datasets[0].backgroundColor = ASSETS.map((asset, i) => {
+          const isTarget = (activeAssetId === 'ALL') || (asset.id === activeAssetId);
+          if (!isTarget) return 'rgba(255, 255, 255, 0.08)';
+          return centerMomValues[i] >= 0 ? asset.color : 'rgba(244, 63, 94, 0.85)';
+        });
+        charts.style4.update('none');
+      }
+
+      renderAssetSelectors();
+    }
+
     function setActiveAsset(id) {
       activeAssetId = id;
-      renderAssetSelectors();
 
-      // Update badge labels
       const s1Label = document.getElementById('stat-s1-active');
       const s2TargetDot = document.getElementById('s2-target-dot');
       const s2TargetName = document.getElementById('s2-target-name');
@@ -776,88 +761,47 @@
         s2TargetName.textContent = found.name;
       }
 
-      // 1) Update Chart 1: Highlight Selected Dataset & Dim others
+      // Dimming lines in Chart 1
       if (charts.style1) {
         charts.style1.data.datasets.forEach(ds => {
           const isTarget = (id === 'ALL') || (ds.assetId === id);
           const origColor = ASSETS.find(a => a.id === ds.assetId).color;
-          if (isTarget) {
-            ds.borderColor = origColor;
-            ds.borderWidth = (ds.assetId === 'main') ? 3.5 : (id !== 'ALL' ? 3.5 : 2);
-            ds.backgroundColor = `${origColor}20`;
-          } else {
-            ds.borderColor = 'rgba(255, 255, 255, 0.08)';
-            ds.borderWidth = 1;
-            ds.backgroundColor = 'transparent';
-          }
+          ds.borderColor = isTarget ? origColor : 'rgba(255, 255, 255, 0.08)';
+          ds.borderWidth = isTarget ? (ds.assetId === 'main' ? 3.5 : 2.5) : 1;
         });
         charts.style1.update('none');
       }
 
-      // 2) Update Chart 2: Rebind to the Focused Asset
+      // Rebind Chart 2
       if (charts.style2) {
         const targetId = (id === 'ALL') ? 'main' : id;
-        const targetData = currentMarket.assetData[targetId];
         const targetAsset = ASSETS.find(a => a.id === targetId);
-
         charts.style2.data.datasets[0].label = `${targetAsset.name} 종가`;
-        charts.style2.data.datasets[0].data = targetData.candles.map(c => c.close);
         charts.style2.data.datasets[0].borderColor = targetAsset.color;
-        charts.style2.data.datasets[0].pointHoverBackgroundColor = targetAsset.color;
-
-        charts.style2.data.datasets[1].data = targetData.candles.map(c => c.high);
         charts.style2.data.datasets[1].backgroundColor = `${targetAsset.color}12`;
-
-        charts.style2.data.datasets[2].data = targetData.candles.map(c => c.low);
-        charts.style2.data.datasets[3].data = targetData.volumes;
-        charts.style2.data.datasets[3].backgroundColor = targetData.candles.map(c => c.close >= c.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(244, 63, 94, 0.45)');
-
-        charts.style2.update();
       }
 
-      // 3) Update Chart 3: Dim non-focused area layers
+      // Dimming area in Chart 3
       if (charts.style3) {
         charts.style3.data.datasets.forEach(ds => {
           const isTarget = (id === 'ALL') || (ds.assetId === id);
           const asset = ASSETS.find(a => a.id === ds.assetId);
-          if (isTarget) {
-            ds.borderWidth = 2.5;
-            ds.borderColor = asset.color;
-            ds.backgroundColor = (context) => {
-              const { ctx, chartArea } = context.chart;
-              if (!chartArea) return null;
-              const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-              g.addColorStop(0, `rgba(${asset.rgb}, 0.5)`);
-              g.addColorStop(1, `rgba(${asset.rgb}, 0.02)`);
-              return g;
-            };
-          } else {
-            ds.borderWidth = 0.5;
-            ds.borderColor = 'rgba(255, 255, 255, 0.05)';
-            ds.backgroundColor = 'rgba(255, 255, 255, 0.01)';
-          }
+          ds.borderColor = isTarget ? asset.color : 'rgba(255, 255, 255, 0.05)';
+          ds.borderWidth = isTarget ? 2.5 : 0.5;
         });
         charts.style3.update('none');
       }
 
-      // 4) Update Chart 4: Highlight Target Bar
-      if (charts.style4) {
-        charts.style4.data.datasets[0].backgroundColor = ASSETS.map(asset => {
-          const isTarget = (id === 'ALL') || (asset.id === id);
-          return isTarget ? asset.color : 'rgba(255, 255, 255, 0.08)';
-        });
-        charts.style4.update('none');
-      }
+      updateAllViews();
     }
 
     // ----------------------------------------------------
-    // 9. Timeframe Switcher Logic
+    // 9. Center-Anchored Zoom In / Zoom Out (Timeframe Switch)
     // ----------------------------------------------------
     function switchTimeframe(tf) {
       if (currentTimeframe === tf) return;
       currentTimeframe = tf;
 
-      // Update button visual styles
       document.querySelectorAll('.tf-btn').forEach(btn => {
         if (btn.dataset.tf === tf) {
           btn.className = 'tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/30 font-bold';
@@ -866,76 +810,126 @@
         }
       });
 
-      // Regenerate market data for new timeframe
-      currentMarket = generateMarketData(tf);
+      // Update span while preserving exact centerIndex!
+      currentSpan = TF_CONFIG[tf].span;
 
-      // GSAP smooth container pulse
-      gsap.fromTo('main section', { opacity: 0.75, y: 4 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.05, ease: 'power2.out' });
+      // GSAP Center Scale Animation feedback
+      gsap.fromTo('.center-anchor-line', { scaleY: 0.3, opacity: 0.8 }, { scaleY: 1, opacity: 1, duration: 0.4, ease: 'power2.out' });
+      gsap.fromTo('main section', { scale: 0.985 }, { scale: 1, duration: 0.3, ease: 'power2.out' });
 
-      // Update Chart 1
-      charts.style1.data.labels = currentMarket.labels;
-      charts.style1.data.datasets.forEach(ds => {
-        ds.data = currentMarket.assetData[ds.assetId].normalized;
-      });
-      charts.style1.update();
-
-      // Update Chart 2
-      charts.style2.data.labels = currentMarket.labels;
-      const targetId = activeAssetId === 'ALL' ? 'main' : activeAssetId;
-      const targetData = currentMarket.assetData[targetId];
-      charts.style2.data.datasets[0].data = targetData.candles.map(c => c.close);
-      charts.style2.data.datasets[1].data = targetData.candles.map(c => c.high);
-      charts.style2.data.datasets[2].data = targetData.candles.map(c => c.low);
-      charts.style2.data.datasets[3].data = targetData.volumes;
-      charts.style2.update();
-
-      // Update Chart 3
-      charts.style3.data.labels = currentMarket.labels;
-      charts.style3.data.datasets.forEach(ds => {
-        ds.data = currentMarket.assetData[ds.assetId].normalized.map(v => Math.max(0, v + 20));
-      });
-      charts.style3.update();
-
-      // Update Chart 4
-      const latestMom = ASSETS.map(asset => {
-        const momArr = currentMarket.assetData[asset.id].momentum;
-        return Number((momArr.slice(-3).reduce((a, b) => a + b, 0) / 3).toFixed(3));
-      });
-      charts.style4.data.datasets[0].data = latestMom;
-      charts.style4.update();
-
-      // Sync Top Badges
-      renderAssetSelectors();
-      setActiveAsset(activeAssetId);
+      updateAllViews();
     }
 
     // ----------------------------------------------------
-    // 10. Initialization on DOM Load
+    // 10. Horizontal Swipe & Drag Pan Engine
+    // ----------------------------------------------------
+    function setupSwipeAndPanListeners() {
+      const swipeContainers = [
+        document.getElementById('container-chart1'),
+        document.getElementById('container-chart2'),
+        document.getElementById('container-chart3')
+      ];
+
+      let isDragging = false;
+      let startX = 0;
+      let initialCenter = centerIndex;
+
+      swipeContainers.forEach(container => {
+        // Mouse Events
+        container.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.clientX;
+          initialCenter = centerIndex;
+        });
+
+        // Touch Events for Mobile / Tablet
+        container.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            initialCenter = centerIndex;
+          }
+        }, { passive: true });
+
+        // Wheel Zoom Support
+        container.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          if (e.deltaY < 0) {
+            // Zoom In
+            currentSpan = Math.max(12, currentSpan - 2);
+          } else {
+            // Zoom Out
+            currentSpan = Math.min(TOTAL_BUFFER - 10, currentSpan + 2);
+          }
+          updateAllViews();
+        }, { passive: false });
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - startX;
+        // Sensitivity: 1 tick per 14px drag
+        const tickDelta = Math.round(deltaX / 14);
+        const newCenter = initialCenter - tickDelta;
+
+        const halfSpan = Math.floor(currentSpan / 2);
+        const minCenter = halfSpan;
+        const maxCenter = TOTAL_BUFFER - halfSpan;
+
+        if (newCenter >= minCenter && newCenter <= maxCenter && newCenter !== centerIndex) {
+          centerIndex = newCenter;
+          updateAllViews();
+        }
+      });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        const deltaX = e.touches[0].clientX - startX;
+        const tickDelta = Math.round(deltaX / 14);
+        const newCenter = initialCenter - tickDelta;
+
+        const halfSpan = Math.floor(currentSpan / 2);
+        const minCenter = halfSpan;
+        const maxCenter = TOTAL_BUFFER - halfSpan;
+
+        if (newCenter >= minCenter && newCenter <= maxCenter && newCenter !== centerIndex) {
+          centerIndex = newCenter;
+          updateAllViews();
+        }
+      }, { passive: true });
+
+      window.addEventListener('mouseup', () => { isDragging = false; });
+      window.addEventListener('touchend', () => { isDragging = false; });
+    }
+
+    // ----------------------------------------------------
+    // 11. Initialization on DOM Load
     // ----------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      renderAssetSelectors();
 
-      // Initialize the 4 Chart Styles
       initChart1();
       initChart2();
       initChart3();
       initChart4();
 
-      // Attach Timeframe Event Listeners
+      updateAllViews();
+      setupSwipeAndPanListeners();
+
+      // Timeframe buttons
       document.getElementById('timeframe-buttons').addEventListener('click', (e) => {
         const btn = e.target.closest('.tf-btn');
         if (btn) switchTimeframe(btn.dataset.tf);
       });
 
-      // Reset Focus Button
+      // Reset Focus
       document.getElementById('reset-focus-btn').addEventListener('click', () => {
         setActiveAsset('ALL');
       });
 
       // Entry GSAP Animation
       gsap.from('header', { opacity: 0, y: -20, duration: 0.6, ease: 'power3.out' });
-      gsap.from('main > section', { opacity: 0, scale: 0.96, duration: 0.7, stagger: 0.1, delay: 0.2, ease: 'power3.out' });
+      gsap.from('main > section', { opacity: 0, scale: 0.96, duration: 0.6, stagger: 0.08, delay: 0.15, ease: 'power3.out' });
     });
   </script>
 </body>
