@@ -17,20 +17,29 @@
 
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { 
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+      -webkit-tap-highlight-color: transparent; 
+    }
     
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     
-    /* 휠 피커 스크롤 스냅 */
+    /* 휠 피커: X축 고정 및 초고속 관성 스크롤 */
     .wheel-scroll-container {
       scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
+      overflow-x: hidden !important;
+      touch-action: pan-y !important;
     }
+    
     .wheel-item {
       scroll-snap-align: center;
-      scroll-snap-stop: always;
+      scroll-snap-stop: normal;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     /* 페이드 애니메이션 */
@@ -43,10 +52,10 @@
     }
   </style>
 </head>
-<body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-center p-3 md:p-8">
+<body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-center p-3 md:p-8 select-none">
 
   <!-- ===================================================================== -->
-  <!-- 1. [온보딩 화면] 화면 정중앙 배치 & 좌우 스와이프 휠 피커             -->
+  <!-- 1. [온보딩 화면] 화면 정중앙 배치 & 가속 관성 휠 피커 + Sound FX     -->
   <!-- ===================================================================== -->
   <div id="viewOnboarding" class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[36px] p-6 md:p-8 shadow-2xl border border-stone-200/80 fade-in flex flex-col justify-between my-auto">
     
@@ -66,7 +75,7 @@
         class="w-full px-4 py-3 bg-stone-100/80 border border-stone-200 rounded-2xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-sm" />
     </div>
 
-    <!-- 파친코 휠 단계 탭 (상단 클릭으로 즉시 이동 가능) -->
+    <!-- 파친코 휠 단계 탭 -->
     <div class="flex items-center justify-between bg-stone-100 p-1.5 rounded-2xl mb-4 text-xs font-bold gap-1">
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition" data-step="0" id="tabYear">1995년</button>
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="1" id="tabMonth">5월</button>
@@ -76,7 +85,7 @@
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="5" id="tabGender">남성</button>
     </div>
 
-    <!-- 드래그 패널 (좌우 화살표 + 터치 스와이프 지원) -->
+    <!-- 드래그 패널 (좌우 화살표 + 정밀 수직 휠) -->
     <div class="relative w-full mb-6 flex items-center">
       
       <!-- 좌측 이전 단계 화살표 -->
@@ -89,8 +98,8 @@
         <i class="fa-solid fa-chevron-right text-xs"></i>
       </button>
 
-      <!-- 휠 박스 -->
-      <div id="wheelContainer" class="relative w-full h-52 bg-stone-900 rounded-3xl overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center touch-pan-y">
+      <!-- 휠 박스 (X축 완전 고정) -->
+      <div id="wheelContainer" class="relative w-full h-52 bg-stone-900 rounded-3xl overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center">
         <!-- 상하 렌즈 그라데이션 -->
         <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
         <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
@@ -338,9 +347,66 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- Script: 휠 피커 제어 & 제스처 & API 연동                             -->
+  <!-- Script: Web Audio Sound FX + 휠 피커 제어 & API 연동                 -->
   <!-- ===================================================================== -->
   <script>
+    // ==========================================
+    // 0. Web Audio API 기반 초경량 Sound FX 엔진
+    // ==========================================
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // 휠 회전 시 발생하는 부드러운 래칫 틱(Tick) 사운드
+    function playTickSound() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const now = ctx.currentTime;
+
+        // 짧고 탄력 있는 피치 드롭 (700Hz -> 180Hz)
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(700, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.022);
+
+        // 볼륨 엔벨로프 (경쾌하고 맑은 클릭)
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.022);
+
+        // 모바일 기기 미세 진동 피드백 (지원 브라우저)
+        if (navigator.vibrate) {
+          navigator.vibrate(3);
+        }
+      } catch (e) {
+        // 브라우저 오디오 정책 예외 무시
+      }
+    }
+
+    // 화면 터치/클릭 시 AudioContext 사전 활성화
+    window.addEventListener('touchstart', () => getAudioContext(), { once: true, passive: true });
+    window.addEventListener('mousedown', () => getAudioContext(), { once: true });
+
+    // ==========================================
+    // 1. Firebase 구성
+    // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD-YOUR_ACTUAL_API_KEY",
       authDomain: "saju-grap.firebaseapp.com",
@@ -364,7 +430,9 @@
       }).catch(err => console.warn('Firebase Auth:', err.message));
     }
 
-    // 휠 피커 상태
+    // ==========================================
+    // 2. 휠 피커 상태 관리
+    // ==========================================
     const state = {
       name: '',
       year: 1995,
@@ -373,7 +441,7 @@
       hour: 12,
       minute: 0,
       gender: 1,
-      step: 0 // 0:year, 1:month, 2:day, 3:hour, 4:minute, 5:gender
+      step: 0
     };
 
     const steps = [
@@ -382,19 +450,18 @@
       { id: 'day', label: '일', min: 1, max: 31, unit: '일' },
       { id: 'hour', label: '시', min: 0, max: 23, unit: '시' },
       { id: 'minute', label: '분', min: 0, max: 55, stepVal: 5, unit: '분' },
-      { id: 'gender', label: '성별', options: [{ val: 1, text: '남성 (乾命)' }, { val: 2, text: '여성 (坤命)' }] }
+      { id: 'gender', label: '성별', options: [{ val: 1, text: '남성' }, { val: 2, text: '여성' }] }
     ];
 
     let isProgrammaticScroll = false;
+    let lastHighlightedValue = null;
 
-    // 단계 이동 함수
     function goToStep(nextStep) {
       if (nextStep >= 0 && nextStep < steps.length) {
         renderWheel(nextStep);
       }
     }
 
-    // 이전/다음 화살표 버튼 상태 갱신
     function updateNavButtons() {
       const btnPrev = document.getElementById('btnPrevStep');
       const btnNext = document.getElementById('btnNextStep');
@@ -412,15 +479,14 @@
       }
     }
 
-    // 휠 렌더링
     function renderWheel(stepIndex) {
       state.step = stepIndex;
       updateNavButtons();
       const config = steps[stepIndex];
       const wheelEl = document.getElementById('wheelList');
       wheelEl.innerHTML = '';
+      lastHighlightedValue = null;
 
-      // 탭 활성화 스타일
       document.querySelectorAll('.step-tab').forEach((tab, idx) => {
         if (idx === stepIndex) {
           tab.classList.add('bg-amber-500', 'text-white', 'shadow-sm');
@@ -447,14 +513,12 @@
         div.dataset.value = item.val;
         div.innerText = item.text;
         
-        // 클릭 시 해당 위치로 스크롤 및 선택 (자동 탭 전환 없음)
         div.onclick = () => {
           selectWheelItem(div);
         };
         wheelEl.appendChild(div);
       });
 
-      // 현재 선택된 값으로 스크롤 복원
       setTimeout(() => {
         const currentVal = (stepIndex === 0 ? state.year :
                            stepIndex === 1 ? state.month :
@@ -472,7 +536,6 @@
       }, 20);
     }
 
-    // 아이템 선택 처리 (값만 갱신)
     function selectWheelItem(el) {
       if (!el) return;
       isProgrammaticScroll = true;
@@ -492,7 +555,7 @@
       setTimeout(() => { isProgrammaticScroll = false; }, 300);
     }
 
-    // 중앙 하이라이트
+    // 중앙 타겟 감지 및 사운드 FX 트리거
     function highlightCenterItem() {
       const wheelEl = document.getElementById('wheelList');
       const containerRect = wheelEl.getBoundingClientRect();
@@ -518,11 +581,17 @@
       if (closestEl) {
         closestEl.classList.remove('text-stone-600', 'text-base');
         closestEl.classList.add('text-amber-400', 'scale-110', 'text-2xl');
+
+        const currentVal = closestEl.dataset.value;
+        // 새로운 숫자로 진입할 때마다 래칫 틱 사운드 재생
+        if (lastHighlightedValue !== null && lastHighlightedValue !== currentVal) {
+          playTickSound();
+        }
+        lastHighlightedValue = currentVal;
       }
       return closestEl;
     }
 
-    // 스크롤 시 값 실시간 동기화
     let scrollEndTimer = null;
     document.getElementById('wheelList').addEventListener('scroll', () => {
       highlightCenterItem();
@@ -544,18 +613,17 @@
       }, 100);
     });
 
-    // 탭 직접 클릭 이벤트
     document.querySelectorAll('.step-tab').forEach(tab => {
       tab.addEventListener('click', () => {
+        playTickSound();
         renderWheel(Number(tab.dataset.step));
       });
     });
 
-    // 화살표 버튼 이벤트
-    document.getElementById('btnPrevStep').addEventListener('click', () => goToStep(state.step - 1));
-    document.getElementById('btnNextStep').addEventListener('click', () => goToStep(state.step + 1));
+    document.getElementById('btnPrevStep').addEventListener('click', () => { playTickSound(); goToStep(state.step - 1); });
+    document.getElementById('btnNextStep').addEventListener('click', () => { playTickSound(); goToStep(state.step + 1); });
 
-    // 좌우 터치 스와이프 제스처 이벤트
+    // 스와이프 제스처
     let touchStartX = 0;
     let touchStartY = 0;
     const wheelContainer = document.getElementById('wheelContainer');
@@ -571,17 +639,19 @@
       const diffX = touchEndX - touchStartX;
       const diffY = touchEndY - touchStartY;
 
-      // 수평 스와이프 판정 (수직 스크롤과 간섭 방지)
-      if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.2) {
+      if (Math.abs(diffX) > 60 && Math.abs(diffY) < 30) {
+        playTickSound();
         if (diffX < 0) {
-          goToStep(state.step + 1); // 왼쪽으로 밀면 다음 탭
+          goToStep(state.step + 1);
         } else {
-          goToStep(state.step - 1); // 오른쪽으로 밀면 이전 탭
+          goToStep(state.step - 1);
         }
       }
     }, { passive: true });
 
-    // 화면 전환 및 분석 실행
+    // ==========================================
+    // 3. 화면 전환 및 분석 실행
+    // ==========================================
     function switchView(viewName) {
       const vOnboarding = document.getElementById('viewOnboarding');
       const vDashboard = document.getElementById('viewDashboard');
@@ -598,6 +668,7 @@
     }
 
     async function executeAnalysis() {
+      playTickSound();
       const btn = document.getElementById('btnStart');
       btn.classList.add('opacity-70', 'pointer-events-none');
       btn.querySelector('span').innerText = '인생 파동 계산 중...';
@@ -636,7 +707,6 @@
       }
     }
 
-    // 결과 렌더링
     function renderDashboard(name, data) {
       const { pillars, analysis, daewoonWaves, meta } = data;
       const dayPillar = pillars.day;
@@ -741,7 +811,9 @@
       });
     }
 
-    // Firebase 연동
+    // ==========================================
+    // 4. Firebase 연동
+    // ==========================================
     async function saveToCloud() {
       if (!currentPayload) return;
       if (!db || !currentUser) {
@@ -782,6 +854,7 @@
         chip.className = 'bg-stone-100 hover:bg-amber-100 border border-stone-200 text-stone-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5';
         chip.innerHTML = `<i class="fa-regular fa-user text-amber-600"></i> ${item.name} (${item.year}.${item.month}.${item.day})`;
         chip.onclick = () => {
+          playTickSound();
           document.getElementById('initName').value = item.name;
           state.year = item.year;
           state.month = item.month;
@@ -795,12 +868,10 @@
       });
     }
 
-    // 이벤트 바인딩
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
     document.getElementById('btnSaveToCloud').addEventListener('click', saveToCloud);
     document.getElementById('btnEditInput').addEventListener('click', () => switchView('onboarding'));
 
-    // 초기 실행
     renderWheel(0);
   </script>
 </body>
