@@ -1,5 +1,5 @@
 // api/analyze.js
-// 정밀 천문 절기 만세력 엔진 + 월주 기준 대운 순행/역행 전개 알고리즘
+// Gemini 3.7 Flash 모델 적용: 사주 원국 계산 및 25개 시나리오 일괄 연산
 
 import { ANALYZE_SYSTEM } from '../lib/sajuRulebook.js';
 
@@ -20,10 +20,8 @@ export default async function handler(req, res) {
     const ZHI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
     const GAN_H = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
     const ZHI_H = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    const ELEMENTS = { '갑':'목', '을':'목', '병':'화', '정':'화', '무':'토', '기':'토', '경':'금', '신':'금', '임':'수', '계':'수' };
     const ELEMENTS_KOR = { '갑':'나무', '을':'나무', '병':'불', '정':'불', '무':'흙', '기':'흙', '경':'쇠', '신':'쇠', '임':'물', '계':'물' };
 
-    // 60갑자 전체 테이블 생성 (0: 甲子 ~ 59: 癸亥)
     const GANZHI_60 = [];
     for (let i = 0; i < 60; i++) {
       GANZHI_60.push({
@@ -42,26 +40,21 @@ export default async function handler(req, res) {
     const pHour = parseInt(hour, 10) || 12;
     const pGender = parseInt(gender, 10) || 1;
 
-    // 1. 일주(日柱) 정밀 연산: 1970-01-01 (癸酉일, index 9) 기준 Julian Day 오프셋
+    // 일주 연산
     const diffDays = Math.floor(Date.UTC(pYear, pMonth - 1, pDay) / 86400000);
     const day60Idx = ((diffDays + 9) % 60 + 60) % 60;
     const dayPillar = GANZHI_60[day60Idx];
 
-    // 2. 년주(年柱) 정밀 연산: 입춘(양력 2월 4일경) 기준 년도 보정
+    // 년주 연산
     let sYear = pYear;
-    if (pMonth === 1 || (pMonth === 2 && pDay < 4)) {
-      sYear = pYear - 1;
-    }
+    if (pMonth === 1 || (pMonth === 2 && pDay < 4)) sYear = pYear - 1;
     const year60Idx = ((sYear - 4) % 60 + 60) % 60;
     const yearPillar = GANZHI_60[year60Idx];
 
-    // 3. 월주(月柱) 정밀 연산: 24절기 기준 월령 및 년간 두간법(年干斗干法)
-    const solarTermDays = [5, 4, 5, 5, 5, 5, 7, 7, 7, 8, 7, 7]; // 소한, 입춘, 경칩, 청명, 입하, 망종, 소서, 입추, 백로, 한로, 입동, 대설
-    let solarMonthIdx = pMonth - 1; // 0: 1월, 1: 2월...
-    if (pDay < solarTermDays[solarMonthIdx]) {
-      solarMonthIdx = (solarMonthIdx - 1 + 12) % 12;
-    }
-    // 인월(寅月)을 0으로 기준화: 2월 입춘 이후 = 인월(0) ~ 1월 소한 = 축월(11)
+    // 월주 연산
+    const solarTermDays = [5, 4, 5, 5, 5, 5, 7, 7, 7, 8, 7, 7];
+    let solarMonthIdx = pMonth - 1;
+    if (pDay < solarTermDays[solarMonthIdx]) solarMonthIdx = (solarMonthIdx - 1 + 12) % 12;
     const zhiMonthOffset = (solarMonthIdx + 10) % 12;
     const yGanIdx = year60Idx % 10;
     const monthGanStart = (yGanIdx * 2 + 2) % 10;
@@ -70,18 +63,17 @@ export default async function handler(req, res) {
     const month60Idx = GANZHI_60.findIndex(gz => gz.gan === GAN[monthGanIdx] && gz.zhi === ZHI[monthZhiIdx]);
     const monthPillar = GANZHI_60[month60Idx !== -1 ? month60Idx : 0];
 
-    // 4. 시주(時柱) 정밀 연산: 일간 두시법(日干斗時法)
+    // 시주 연산
     const hourZhiIdx = Math.floor(((pHour + 1) % 24) / 2);
     const dayGanIdx = day60Idx % 10;
     const hourGanIdx = (dayGanIdx * 2 + hourZhiIdx) % 10;
     const hour60Idx = GANZHI_60.findIndex(gz => gz.gan === GAN[hourGanIdx] && gz.zhi === ZHI[hourZhiIdx]);
     const hourPillar = GANZHI_60[hour60Idx !== -1 ? hour60Idx : 0];
 
-    // 5. 대운(大運) 순행/역행 및 100년 대운 간지 전개
-    // 양남음녀(陽男陰女) = 순행, 음남양녀(陰男陽女) = 역행
-    const isYangYear = (year60Idx % 10) % 2 === 0; // 甲, 丙, 戊, 庚, 壬 = 양간
+    // 대운 순행/역행 전개
+    const isYangYear = (year60Idx % 10) % 2 === 0;
     const isForward = (isYangYear && pGender === 1) || (!isYangYear && pGender === 2);
-    const startAge = 4; // 대운 시작 나이
+    const startAge = 4;
 
     const daewoonWaves = [];
     const daewoonLabels = [];
@@ -92,10 +84,8 @@ export default async function handler(req, res) {
       const dw60Idx = ((month60Idx + step) % 60 + 60) % 60;
       const dwGz = GANZHI_60[dw60Idx];
       const age = startAge + (i - 1) * 10;
-      const label = `${dwGz.name}(${age}세)`;
-      daewoonLabels.push(label);
+      daewoonLabels.push(`${dwGz.name}(${age}세)`);
 
-      // 명리학 파동 곡선 시뮬레이션
       const baseVal = Math.round(Math.sin((i + dayGanIdx) * 0.7) * 65);
       dwTotal.push(baseVal);
       dwCareer.push(Math.min(95, Math.max(-85, baseVal + Math.round(Math.cos(i) * 20))));
@@ -103,23 +93,11 @@ export default async function handler(req, res) {
       dwMental.push(Math.min(85, Math.max(-80, -baseVal + 15)));
       dwLove.push(Math.min(90, Math.max(-85, Math.round(Math.sin(i * 1.5) * 50))));
 
-      daewoonWaves.push({
-        ganZhi: dwGz.name,
-        hanja: dwGz.hanja,
-        age
-      });
+      daewoonWaves.push({ ganZhi: dwGz.name, hanja: dwGz.hanja, age });
     }
 
-    // 5대 주기별 파동 데이터셋
     const cyclesData = {
-      daewoon: {
-        labels: daewoonLabels,
-        total: dwTotal,
-        career: dwCareer,
-        wealth: dwWealth,
-        mental: dwMental,
-        love: dwLove
-      },
+      daewoon: { labels: daewoonLabels, total: dwTotal, career: dwCareer, wealth: dwWealth, mental: dwMental, love: dwLove },
       year: {
         labels: ['2022년', '2023년', '2024년', '2025년', '2026년', '2027년', '2028년', '2029년', '2030년', '2031년'],
         total: [20, 45, 60, 35, -15, -45, -20, 30, 55, 40],
@@ -154,7 +132,6 @@ export default async function handler(req, res) {
       }
     };
 
-    // 6. Gemini 3.6 Flash 가이드라인 일괄 JSON 생성
     let aiPack = null;
     if (apiKey) {
       const prompt = `
@@ -165,8 +142,8 @@ export default async function handler(req, res) {
 - 현재 대운: ${daewoonWaves[3].ganZhi} 대운
 
 요구사항:
-1. 내담자의 정확한 일주(${dayPillar.hanja})와 사주 원국에 기반하여 4대 운성(yongsin, heesin, gisin, gusin), 세력균형(strength), 대운흐름(flow)을 완결된 문장으로 작성하세요.
-2. 5대 주기(daewoon, year, month, day, hour) 각각의 5대 영역(all, career, wealth, mental, love)에 대한 25개 시나리오 행동 전략을 완성도 높게 작성하세요.
+1. 내담자의 사주 원국에 기반하여 4대 운성(yongsin, heesin, gisin, gusin), 세력균형(strength), 대운흐름(flow)을 완결된 문장으로 작성하세요.
+2. 5대 주기(daewoon, year, month, day, hour)와 5대 영역(all, career, wealth, mental, love)에 대한 25개 시나리오 행동 전략을 모두 작성하세요.
 3. 글자가 중간에 잘리지 않도록 완결된 문장으로 작성하십시오.
 
 반드시 아래 JSON Schema 규격으로만 응답하세요:
@@ -190,7 +167,7 @@ export default async function handler(req, res) {
 
       try {
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -220,13 +197,13 @@ export default async function handler(req, res) {
     }
 
     if (!aiPack || !aiPack.scenarios) {
-      const makeScenario = (domain, cycleName) => `${name}님의 ${dayPillar.name}일주 기준 ${cycleName} ${domain} 흐름입니다. 현재 국면은 외부 확장보다 내부 프로세스를 점검하고 핵심 자원을 정돈하기에 적합합니다. 조급함을 내려놓고 지속 가능한 루틴을 확립하여 다음 상승 국면의 도약 발판을 마련하세요.`;
+      const makeScenario = (domain, cycleName) => `${name}님의 ${dayPillar.name}일주 기준 ${cycleName} ${domain} 흐름입니다. 현재 국면은 외부 확장보다 내부 프로세스를 점검하고 핵심 자원을 정돈하기에 적합합니다. 지속 가능한 루틴을 확립하여 다음 상승 국면의 도약 발판을 마련하세요.`;
       aiPack = {
-        yongsin: `${name}님의 중심을 잡아주는 핵심 기운입니다. 생각을 구체적인 산출물로 연결할 때 파동이 가장 강력하게 도약합니다. 완벽주의를 내려놓고 작은 실험부터 실행하세요.`,
+        yongsin: `${name}님의 중심을 잡아주는 핵심 기운입니다. 생각을 구체적인 산출물로 연결할 때 파동이 가장 강력하게 도약합니다. 작은 실험부터 차근차근 실행하세요.`,
         heesin: `용신을 든든하게 받쳐주는 조력자의 기운입니다. 추진한 일들을 객관적인 시스템으로 안착시키고 협력 관계를 형성하는 데 유리하게 작용합니다.`,
         gisin: `에너지가 과열될 때 경계해야 하는 기운입니다. 무리한 확장보다는 누수를 막고 감정 소모를 줄이는 원칙 중심의 태도가 필요합니다.`,
         gusin: `집중력을 분산시키는 요소를 정리해야 하는 기운입니다. 불필요한 인간관계와 프로젝트를 필터링하고 본질에 집중할 때 멘탈 리셋이 완성됩니다.`,
-        strength: `원국의 주도권이 명확하여 스스로 판을 짜고 이끌어가는 주도형 전략이 유리합니다. 과속으로 인한 피로를 방지하기 위해 정기적인 회복 슬롯을 확보하세요.`,
+        strength: `원국의 주도권이 명확하여 스스로 판을 짜고 이끌어가는 주도형 전략이 유리합니다. 정기적인 회복 슬롯을 확보하여 과속을 방지하세요.`,
         flow: `${isForward ? '순행' : '역행'}하는 대운의 흐름 속에서 조급함을 버리고 파동의 리듬에 맞춰 한 걸음씩 나아가십시오.`,
         scenarios: {
           daewoon: { all: makeScenario('총운', '100년 대운'), career: makeScenario('사업운', '100년 대운'), wealth: makeScenario('재물운', '100년 대운'), mental: makeScenario('심신운', '100년 대운'), love: makeScenario('연애운', '100년 대운') },
