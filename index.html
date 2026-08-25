@@ -77,7 +77,7 @@
     .liquid-pill-emerald {
       background: linear-gradient(135deg, rgba(52, 211, 153, 0.85), rgba(5, 150, 105, 0.95));
       border: 1px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 8px 18px -4px rgba(16, 185, 129, 0.4), inset 0 1.5px 2px rgba(255, 255, 255, 0.8);
+      box-shadow: 0 8px 18px -4px rgba(168, 85, 247, 0.4), inset 0 1.5px 2px rgba(255, 255, 255, 0.8);
     }
 
     .liquid-pill-purple {
@@ -176,9 +176,9 @@
   </div>
 
 
-  <!-- 2. 슬라이더 휠 피커 모달 -->
-  <div id="modalWheelPicker" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4 fade-in">
-    <div class="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl relative flex flex-col justify-between border border-stone-100">
+  <!-- 2. 슬라이더 휠 피커 모달 (배경 투명 유지) -->
+  <div id="modalWheelPicker" class="fixed inset-0 z-50 bg-transparent hidden items-center justify-center p-4 fade-in">
+    <div class="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl relative flex flex-col justify-between border border-stone-200">
       <div>
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
@@ -256,7 +256,7 @@
             <button class="cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm" data-cycle="daewoon">대운(10년)</button>
           </div>
 
-          <!-- 5대 영역 필터 칩 -->
+          <!-- 5대 영역 필터 칩 (터치 시 팝업 없이 그래프만 변경) -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 text-xs font-bold">
             <button class="domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0" data-domain="all">총운</button>
             <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
@@ -265,7 +265,7 @@
             <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
           </div>
 
-          <!-- Chart.js 캔버스 (터치 시 해당 운 300자 설명 팝업 호출) -->
+          <!-- Chart.js 캔버스 (그래프 영역/선 터치 시 팝업 호출) -->
           <div id="chartContainerBox" class="liquid-card-inner rounded-[28px] p-3 mb-4 relative cursor-pointer group hover:ring-2 ring-amber-400/60 transition" title="터치하여 현재 파동의 행동 전략 확인">
             <div class="w-full h-56 relative overflow-hidden pointer-events-none">
               <canvas id="daewoonChart"></canvas>
@@ -389,10 +389,10 @@
 
 
   <!-- ===================================================================== -->
-  <!-- 4. [단일 통합 모달] 블러 제거 + 바깥 클릭 시 닫기 + 순수 텍스트/버튼     -->
+  <!-- 4. [모달] 배경 블러/어두움 완전 제거 (배경 100% 투명 유지)           -->
   <!-- ===================================================================== -->
-  <div id="modalAiInsight" class="fixed inset-0 z-50 bg-black/40 hidden items-center justify-center p-4 fade-in">
-    <div id="modalCardBox" class="w-full max-w-md bg-white rounded-[28px] p-6 shadow-2xl relative flex flex-col justify-between border border-stone-100 max-h-[85vh]">
+  <div id="modalAiInsight" class="fixed inset-0 z-50 bg-transparent hidden items-center justify-center p-4 fade-in">
+    <div id="modalCardBox" class="w-full max-w-md bg-white rounded-[28px] p-6 shadow-2xl relative flex flex-col justify-between border border-stone-200/90 max-h-[85vh]">
       
       <!-- 상단 헤더: 제목 + 닫기 버튼 -->
       <div class="flex items-center justify-between pb-3.5 mb-2 border-b border-stone-100">
@@ -402,7 +402,7 @@
         </button>
       </div>
 
-      <!-- 본문 줄글 영역 (모서리 잘림 방지 넉넉한 패딩 & 자연스러운 스크롤) -->
+      <!-- 본문 줄글 영역 (모서리 잘림 방지) -->
       <div class="flex-1 overflow-y-auto no-scrollbar py-2 px-0.5">
         <div id="modalAiLoading" class="py-10 text-center text-stone-400 text-xs font-bold flex items-center justify-center gap-2 hidden">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-500"></i>
@@ -411,7 +411,7 @@
 
         <div id="modalAiContent" class="text-sm text-stone-700 leading-relaxed font-medium whitespace-pre-line"></div>
         
-        <!-- 자세히 보기 내용 컨테이너 -->
+        <!-- 자세히 보기 영역 -->
         <div id="modalDetailBox" class="mt-4 pt-4 border-t border-stone-200 hidden">
           <div id="modalDetailLoading" class="py-6 text-center text-xs text-amber-700 font-bold flex items-center justify-center gap-2 hidden">
             <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-500"></i>
@@ -421,7 +421,7 @@
         </div>
       </div>
 
-      <!-- 하단 액션 바: '자세히 보기' 단일 버튼 -->
+      <!-- 하단 액션 바 -->
       <div class="pt-4 mt-2 border-t border-stone-100">
         <button id="btnFetchDetail" class="w-full py-3.5 bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-white font-bold text-sm rounded-2xl transition flex items-center justify-center gap-2 shadow-md">
           <i class="fa-solid fa-book-open text-amber-400 text-xs"></i>
@@ -433,9 +433,9 @@
   </div>
 
 
-  <!-- 5. 챗봇 모달 -->
-  <div id="modalChatDrawer" class="fixed inset-0 z-50 bg-black/40 hidden items-end md:items-center justify-center p-0 md:p-4 fade-in">
-    <div id="chatDrawerBox" class="w-full max-w-lg bg-white rounded-t-[32px] md:rounded-[32px] p-5 shadow-2xl h-[80vh] flex flex-col justify-between border border-stone-100">
+  <!-- 5. 챗봇 모달 (배경 투명 유지) -->
+  <div id="modalChatDrawer" class="fixed inset-0 z-50 bg-transparent hidden items-end md:items-center justify-center p-0 md:p-4 fade-in">
+    <div id="chatDrawerBox" class="w-full max-w-lg bg-white rounded-t-[32px] md:rounded-[32px] p-5 shadow-2xl h-[80vh] flex flex-col justify-between border border-stone-200">
       <div class="flex items-center justify-between pb-3 border-b border-stone-100">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xs shadow-md">
@@ -469,7 +469,7 @@
 
 
   <!-- ===================================================================== -->
-  <!-- 6. 스크립트 로직                                                     -->
+  <!-- 6. 프론트엔드 스크립트                                               -->
   <!-- ===================================================================== -->
   <script>
     const CACHE_KEY = 'saju_grap_user_profile_cache';
@@ -679,7 +679,6 @@
       document.getElementById('modalWheelPicker').classList.remove('flex');
     });
 
-    // 휠 모달 바깥 클릭 시 닫기
     document.getElementById('modalWheelPicker').addEventListener('click', (e) => {
       if (e.target.id === 'modalWheelPicker') {
         document.getElementById('modalWheelPicker').classList.add('hidden');
@@ -820,8 +819,8 @@
       });
     });
 
-    // 5대 영역 전환
-    function setDomain(index, showModal = false) {
+    // 5대 영역 전환 (칩 터치 시 팝업 없이 그래프만 즉시 변경)
+    function setDomain(index) {
       currentDomainIndex = (index + domainKeys.length) % domainKeys.length;
       const domainKey = domainKeys[currentDomainIndex];
 
@@ -834,29 +833,25 @@
       });
 
       renderWaveChart(currentCycle, domainKey);
-
-      if (showModal) {
-        openScenarioModal(domainKey);
-      }
     }
 
     document.querySelectorAll('.domain-chip').forEach((btn, idx) => {
-      btn.addEventListener('click', () => setDomain(idx, true));
+      btn.addEventListener('click', () => setDomain(idx));
     });
 
     document.querySelectorAll('.tube-btn').forEach(tube => {
       tube.addEventListener('click', () => {
         const idx = domainKeys.indexOf(tube.dataset.domain);
-        if (idx !== -1) setDomain(idx, true);
+        if (idx !== -1) setDomain(idx);
       });
     });
 
-    // 그래프 터치(클릭) 시 현재 활성화된 운 300자 팝업 실행
+    // 그래프 캔버스/선 터치 시에만 팝업 실행
     document.getElementById('chartContainerBox').addEventListener('click', () => {
       openScenarioModal(domainKeys[currentDomainIndex]);
     });
 
-    // 모달 팝업 열기 (단일 통일 규격)
+    // 통일 모달 팝업 열기
     function openUnifiedModal(title, content, isLoading = false) {
       playTickSound();
       document.getElementById('modalAiTitle').innerText = title;
@@ -1019,7 +1014,6 @@
       document.getElementById('modalChatDrawer').classList.remove('flex');
     });
 
-    // 챗봇 바깥 클릭 시 닫기
     document.getElementById('modalChatDrawer').addEventListener('click', (e) => {
       if (e.target.id === 'modalChatDrawer') {
         document.getElementById('modalChatDrawer').classList.add('hidden');
