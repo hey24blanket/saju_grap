@@ -5,17 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>사주 Grap - 인생 파동 분석 엔진</title>
   
-  <!-- Tailwind CSS, FontAwesome & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <!-- Firebase Web SDK (v9 compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <!-- Firebase 설정 파일 로드 -->
   <script src="./firebase-config.js"></script>
 
   <style>
@@ -29,7 +25,6 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     
-    /* 휠 피커 */
     .wheel-scroll-container {
       scroll-snap-type: y mandatory;
       -webkit-overflow-scrolling: touch;
@@ -46,9 +41,6 @@
     .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ========================================================================= */
-    /* Liquid Glassmorphism Core CSS                                            */
-    /* ========================================================================= */
     .liquid-glass {
       background: rgba(255, 255, 255, 0.55);
       backdrop-filter: blur(28px) saturate(190%);
@@ -70,23 +62,16 @@
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.9);
     }
 
-    /* 3D 젤리 캡슐 버튼 스타일 */
     .liquid-pill-amber {
       background: linear-gradient(135deg, rgba(251, 191, 36, 0.85), rgba(217, 119, 6, 0.95));
       border: 1px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 
-        0 8px 20px -4px rgba(245, 158, 11, 0.4),
-        inset 0 1.5px 2px rgba(255, 255, 255, 0.8),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.4), inset 0 1.5px 2px rgba(255, 255, 255, 0.8), inset 0 -2px 4px rgba(0, 0, 0, 0.15);
     }
 
     .liquid-pill-dark {
       background: linear-gradient(135deg, rgba(41, 37, 36, 0.9), rgba(28, 25, 23, 0.98));
       border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 
-        0 8px 18px -4px rgba(0, 0, 0, 0.25),
-        inset 0 1px 1.5px rgba(255, 255, 255, 0.4),
-        inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.25), inset 0 1px 1.5px rgba(255, 255, 255, 0.4), inset 0 -2px 3px rgba(0, 0, 0, 0.3);
     }
 
     .liquid-pill-emerald {
@@ -110,36 +95,24 @@
     .liquid-pill-clear {
       background: rgba(255, 255, 255, 0.65);
       border: 1px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 
-        0 6px 16px -2px rgba(0, 0, 0, 0.03),
-        inset 0 1.5px 2px rgba(255, 255, 255, 0.9),
-        inset 0 -1px 2px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.03), inset 0 1.5px 2px rgba(255, 255, 255, 0.9);
     }
 
-    /* 투명 앰플 유리관 */
     .liquid-ampoule {
       background: rgba(255, 255, 255, 0.35);
       border: 1.2px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 
-        inset 0 2px 6px rgba(0, 0, 0, 0.04),
-        inset 0 -2px 6px rgba(255, 255, 255, 0.8),
-        0 4px 12px rgba(0, 0, 0, 0.02);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 -2px 6px rgba(255, 255, 255, 0.8);
     }
   </style>
 </head>
 <body class="bg-[#ECE7E1] text-stone-800 min-h-screen flex flex-col items-center justify-center p-2 md:p-6 select-none relative overflow-x-hidden">
 
-  <!-- 배경 앰비언트 글로우 오로라 (유리 뒤에서 은은하게 빛남) -->
   <div class="fixed top-12 -left-20 w-80 h-80 rounded-full bg-amber-300/30 blur-[70px] pointer-events-none z-0"></div>
   <div class="fixed top-1/3 -right-20 w-96 h-96 rounded-full bg-purple-300/25 blur-[80px] pointer-events-none z-0"></div>
   <div class="fixed bottom-10 left-1/4 w-80 h-80 rounded-full bg-emerald-300/25 blur-[70px] pointer-events-none z-0"></div>
 
-
-  <!-- ===================================================================== -->
-  <!-- 1. [온보딩 화면] 리퀴드 글래스 슬라브                                 -->
-  <!-- ===================================================================== -->
+  <!-- 1. 온보딩 화면 -->
   <div id="viewOnboarding" class="w-full max-w-md liquid-glass rounded-[40px] p-6 md:p-8 fade-in flex flex-col justify-between my-auto relative z-10">
-    
     <div class="text-center mb-6">
       <div class="inline-flex items-center gap-2 liquid-pill-clear text-amber-900 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide mb-3">
         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-sm"></span>
@@ -149,13 +122,11 @@
       <p class="text-xs md:text-sm text-stone-500 font-medium mt-1">생년월일시를 입력하면 인생 파동이 열립니다</p>
     </div>
 
-    <!-- 닉네임 인풋 -->
     <div class="mb-5">
       <input type="text" id="initName" placeholder="이름 또는 닉네임 (선택)" value=""
         class="w-full px-4 py-3.5 liquid-card-inner rounded-2xl font-bold text-center text-stone-800 focus:bg-white/80 focus:ring-2 focus:ring-amber-500/50 outline-none transition text-sm" />
     </div>
 
-    <!-- 상단 피커 탭 -->
     <div class="flex items-center justify-between liquid-card-inner p-1.5 rounded-2xl mb-4 text-xs font-bold gap-1">
       <button type="button" class="step-tab flex-1 py-2 rounded-xl liquid-pill-amber text-white font-extrabold transition" data-step="0" id="tabYear">1995년</button>
       <button type="button" class="step-tab flex-1 py-2 rounded-xl text-stone-600 hover:text-stone-900 transition" data-step="1" id="tabMonth">5월</button>
@@ -165,7 +136,6 @@
       <button type="button" class="step-tab flex-1 py-2 rounded-xl text-stone-600 hover:text-stone-900 transition" data-step="5" id="tabGender">남성</button>
     </div>
 
-    <!-- 휠 컨테이너 -->
     <div class="relative w-full mb-6 flex items-center">
       <button type="button" id="btnPrevStep" class="absolute -left-3 md:-left-4 z-20 w-10 h-10 rounded-full liquid-pill-clear text-stone-700 flex items-center justify-center hover:scale-105 active:scale-95 transition opacity-30 pointer-events-none">
         <i class="fa-solid fa-chevron-left text-xs"></i>
@@ -182,20 +152,16 @@
       </div>
     </div>
 
-    <!-- 시작 버튼 -->
-    <button type="button" id="btnStart" class="w-full py-4 liquid-pill-amber hover:opacity-95 active:scale-[0.98] text-white font-black text-base rounded-[24px] transition flex items-center justify-center gap-2">
+    <button type="button" id="btnStart" class="w-full py-4 liquid-pill-amber hover:opacity-95 active:scale-[0.98] text-white font-black text-base rounded-[24px] transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
       <i class="fa-solid fa-chart-line text-sm"></i>
       <span>파동 보기</span>
     </button>
   </div>
 
 
-  <!-- ===================================================================== -->
-  <!-- 2. [대시보드 화면] 듀얼 리퀴드 글래스 패널                             -->
-  <!-- ===================================================================== -->
+  <!-- 2. 대시보드 화면 -->
   <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-4 fade-in pb-12 relative z-10">
     
-    <!-- 헤더 -->
     <header class="w-full liquid-glass rounded-[28px] p-3.5 px-5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-1.5">
@@ -223,7 +189,7 @@
 
     <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       
-      <!-- SCREEN 1: 100년 파동 곡선 패널 -->
+      <!-- SCREEN 1: 파동 패널 -->
       <section class="liquid-glass rounded-[36px] p-5 md:p-6 flex flex-col justify-between min-h-[660px]">
         <div>
           <div class="flex items-center justify-between mb-4">
@@ -235,7 +201,7 @@
             </div>
           </div>
 
-          <!-- 주기 탭 (젤리 캡슐 탭) -->
+          <!-- 주기 탭 -->
           <div class="flex items-center gap-1 liquid-card-inner p-1.5 rounded-2xl mb-3 text-xs font-bold text-stone-500">
             <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="hour">시</button>
             <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="day">일</button>
@@ -253,7 +219,7 @@
             <button class="domain-chip liquid-pill-clear text-rose-800 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
           </div>
 
-          <!-- Chart.js 캔버스 (투명 유리 뷰) -->
+          <!-- Chart.js 캔버스 -->
           <div class="liquid-card-inner rounded-[28px] p-3 mb-4 relative">
             <div class="w-full h-56 relative overflow-hidden">
               <canvas id="daewoonChart"></canvas>
@@ -268,13 +234,13 @@
           <div class="grid grid-cols-2 gap-2.5 mb-4">
             <div class="liquid-card-inner rounded-[24px] p-3.5">
               <span class="text-xs font-black text-amber-900 flex items-center gap-1 mb-1.5">
-                <i class="fa-solid fa-sparkles text-amber-500"></i>4대 운성 (실시간)
+                <i class="fa-solid fa-sparkles text-amber-500"></i>4대 운성 전략
               </span>
               <div class="grid grid-cols-2 gap-1.5">
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-rose-800 hover:bg-rose-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-role="용신" id="badgeYongsin">용신: -</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-amber-800 hover:bg-amber-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-role="희신" id="badgeHeesin">희신: -</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-stone-700 hover:bg-stone-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-role="기신" id="badgeGisin">기신: -</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-blue-800 hover:bg-blue-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-role="구신" id="badgeGusin">구신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-rose-800 hover:bg-rose-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="yongsin" id="badgeYongsin">용신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-amber-800 hover:bg-amber-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="heesin" id="badgeHeesin">희신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-stone-700 hover:bg-stone-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="gisin" id="badgeGisin">기신: -</button>
+                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-blue-800 hover:bg-blue-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="gusin" id="badgeGusin">구신: -</button>
               </div>
             </div>
 
@@ -286,14 +252,13 @@
                 <p id="txtStrengthStatus" class="text-[10px] text-stone-600 font-bold truncate mb-2">-</p>
               </div>
               <div class="flex items-center gap-1.5">
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-blue-700 px-2 py-1 rounded-lg flex-1 truncate transition" data-role="세력균형" id="badgeDeung">-</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-purple-700 px-2 py-1 rounded-lg flex-1 truncate transition" data-role="대운흐름" id="badgeFlow">-</button>
+                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-blue-700 px-2 py-1 rounded-lg flex-1 truncate transition" data-key="strength" id="badgeDeung">-</button>
+                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-purple-700 px-2 py-1 rounded-lg flex-1 truncate transition" data-key="flow" id="badgeFlow">-</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 하단 조약돌 네비게이션 탭바 -->
         <nav class="liquid-card-inner rounded-[26px] px-6 py-2 flex items-center justify-between text-stone-500 text-xs font-black">
           <button class="flex flex-col items-center gap-0.5 text-amber-700"><i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">홈</span></button>
           <button id="navWeatherTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-cloud-sun text-sm"></i><span class="text-[10px]">기상도</span></button>
@@ -303,12 +268,12 @@
         </nav>
       </section>
 
-      <!-- SCREEN 2: 4대 에너지 저널 (액체 유리 앰플) -->
+      <!-- SCREEN 2: 4대 에너지 저널 -->
       <section class="liquid-glass rounded-[36px] p-5 md:p-6 flex flex-col justify-between min-h-[660px]">
         <div>
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-black text-stone-900 text-sm">인생 에너지 저널</h4>
-            <span class="text-[10px] font-black text-amber-800 liquid-pill-clear px-3 py-1 rounded-full">실시간 연동</span>
+            <span class="text-[10px] font-black text-amber-800 liquid-pill-clear px-3 py-1 rounded-full">대표 대운</span>
           </div>
 
           <div class="text-center mb-5">
@@ -316,11 +281,8 @@
             <p class="text-[11px] font-bold text-stone-400">대운 구간별 4대 에너지 충전율</p>
           </div>
 
-          <!-- 4대 에너지 액체 앰플 -->
           <div class="liquid-card-inner rounded-[32px] p-5 mb-4">
             <div class="grid grid-cols-4 gap-3 h-44 items-end justify-items-center pt-2">
-              
-              <!-- 사업운 -->
               <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="career">
                 <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
                   <div id="tubeCareer" class="tube-fill w-full liquid-pill-amber rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
@@ -330,7 +292,6 @@
                 <p class="text-[10px] font-black text-stone-800">사업운</p>
               </div>
 
-              <!-- 재물운 -->
               <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="wealth">
                 <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
                   <div id="tubeWealth" class="tube-fill w-full liquid-pill-emerald rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
@@ -340,7 +301,6 @@
                 <p class="text-[10px] font-black text-stone-800">재물운</p>
               </div>
 
-              <!-- 심신운 -->
               <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="mental">
                 <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
                   <div id="tubeMental" class="tube-fill w-full liquid-pill-purple rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
@@ -350,7 +310,6 @@
                 <p class="text-[10px] font-black text-stone-800">심신운</p>
               </div>
 
-              <!-- 연애운 -->
               <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="love">
                 <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
                   <div id="tubeLove" class="tube-fill w-full liquid-pill-rose rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
@@ -359,15 +318,13 @@
                 </div>
                 <p class="text-[10px] font-black text-stone-800">연애운</p>
               </div>
-
             </div>
           </div>
 
-          <!-- 통찰 팁 박스 -->
           <div class="liquid-card-inner rounded-[24px] p-4 mb-4">
             <div class="flex items-start gap-3">
               <span class="text-base p-1.5 liquid-pill-clear rounded-xl">💡</span>
-              <p class="text-xs text-stone-700 leading-relaxed font-semibold">파동의 높낮이는 성패가 아니라 현재 유리한 행동 모드를 보여줍니다. 각 지표를 터치하여 실시간 맞춤 가이드를 확인하세요.</p>
+              <p id="txtInsightDesc" class="text-xs text-stone-700 leading-relaxed font-semibold">파동의 높낮이는 성패가 아니라 현재 유리한 행동 모드를 보여줍니다.</p>
             </div>
           </div>
         </div>
@@ -382,13 +339,10 @@
   </div>
 
 
-  <!-- ===================================================================== -->
-  <!-- 3. [모달] 리퀴드 글래스 심층 해설 팝업                                -->
-  <!-- ===================================================================== -->
+  <!-- 3. 실시간 0초 팝업 모달 -->
   <div id="modalAiInsight" class="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-md hidden items-center justify-center p-3.5 fade-in">
-    <div class="w-full max-w-md liquid-glass rounded-[36px] p-6 shadow-2xl relative max-h-[85vh] flex flex-col justify-between">
+    <div class="w-full max-w-md liquid-glass rounded-[36px] p-6 shadow-2xl relative max-h-[88vh] flex flex-col justify-between">
       <div>
-        <!-- 모달 헤더 -->
         <div class="flex items-center justify-between mb-3.5">
           <div class="flex items-center gap-1.5">
             <button id="btnModalPrev" class="w-8 h-8 rounded-full liquid-pill-clear text-stone-700 flex items-center justify-center text-xs hover:scale-105 active:scale-95 transition">
@@ -404,33 +358,26 @@
           </button>
         </div>
 
-        <!-- 300자 본문 영역 -->
-        <div class="liquid-card-inner rounded-[26px] p-4.5 mb-3 max-h-[52vh] overflow-y-auto no-scrollbar">
+        <!-- 본문 텍스트 영역 (자연스러운 스크롤 & 문장 완결 보장) -->
+        <div class="liquid-card-inner rounded-[26px] p-4.5 mb-3 max-h-[56vh] overflow-y-auto no-scrollbar">
           <p id="modalAiSubtitle" class="text-xs font-black text-amber-900 mb-2">파동역학 맞춤 가이드</p>
+          <div id="modalAiContent" class="text-xs text-stone-800 leading-relaxed font-semibold whitespace-pre-line space-y-2"></div>
           
-          <div id="modalAiLoading" class="py-8 text-center text-stone-500 text-xs font-bold flex items-center justify-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-500"></i>
-            <span>지침서를 바탕으로 실시간 전략을 도출 중입니다...</span>
-          </div>
-
-          <div id="modalAiContent" class="text-xs text-stone-800 leading-relaxed font-semibold whitespace-pre-line hidden"></div>
-          
-          <!-- 1,500자 상세 리포트 -->
+          <!-- 자세히 보기 영역 -->
           <div id="modalDetailBox" class="mt-3.5 pt-3.5 border-t border-white/60 hidden">
             <div id="modalDetailLoading" class="py-5 text-center text-xs text-amber-800 font-bold flex items-center justify-center gap-1.5 hidden">
               <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-600"></i>
-              <span>지침서 기반 1,500자 심층 리포트 작성 중...</span>
+              <span>지침서 기반 심층 분석 리포트 작성 중...</span>
             </div>
             <div id="modalDetailText" class="text-xs text-stone-800 leading-relaxed font-semibold whitespace-pre-line space-y-2.5"></div>
           </div>
         </div>
       </div>
 
-      <!-- 모달 하단 버튼 바 -->
       <div class="flex items-center justify-between text-xs pt-1">
         <button id="btnFetchDetail" class="px-4 py-2.5 liquid-pill-dark text-white font-bold rounded-2xl transition flex items-center gap-1.5 hover:scale-105 active:scale-95">
           <i class="fa-solid fa-book-open text-amber-400 text-xs"></i>
-          <span>자세히 보기 (1,500자)</span>
+          <span>자세히 보기</span>
         </button>
         <button id="btnAskMoreAi" class="text-amber-800 font-black hover:underline text-xs">AI와 대화하기 →</button>
       </div>
@@ -438,9 +385,7 @@
   </div>
 
 
-  <!-- ===================================================================== -->
-  <!-- 4. [챗봇 모달]                                                       -->
-  <!-- ===================================================================== -->
+  <!-- 4. 챗봇 모달 -->
   <div id="modalChatDrawer" class="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-md hidden items-end md:items-center justify-center p-0 md:p-4 fade-in">
     <div class="w-full max-w-lg liquid-glass rounded-t-[36px] md:rounded-[36px] p-5 shadow-2xl h-[80vh] flex flex-col justify-between">
       <div class="flex items-center justify-between pb-3 border-b border-white/60">
@@ -475,9 +420,7 @@
   </div>
 
 
-  <!-- ===================================================================== -->
-  <!-- Script: 프론트엔드 연동 & 차트 렌더링                                 -->
-  <!-- ===================================================================== -->
+  <!-- 5. 프론트엔드 연동 로직 -->
   <script>
     let audioCtx = null;
     function getAudioContext() {
@@ -515,16 +458,14 @@
     let chartInstance = null;
     let currentPayload = null;
     let currentAnalysisData = null;
+    let cachedAiPack = null; // 온보딩 시 단 1회 로드된 전체 가이드라인 패키지
     let currentCycle = 'daewoon';
     let currentDomainIndex = 0;
     const domainKeys = ['all', 'career', 'wealth', 'mental', 'love'];
     const domainTitles = { all: '총운', career: '사업운', wealth: '재물운', mental: '심신운', love: '연애운' };
     const cycleTitles = { daewoon: '100년 대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
-    
-    const dynamicAiCache = {};
     let chatHistory = [];
 
-    // 온보딩 휠
     const state = { name: '', year: 1995, month: 5, day: 15, hour: 12, minute: 0, gender: 1, step: 0 };
     const steps = [
       { id: 'year', min: 1940, max: 2030, unit: '년' },
@@ -592,12 +533,12 @@
     document.getElementById('btnPrevStep').addEventListener('click', () => { if (state.step > 0) { playTickSound(); renderWheel(state.step - 1); } });
     document.getElementById('btnNextStep').addEventListener('click', () => { if (state.step < steps.length - 1) { playTickSound(); renderWheel(state.step + 1); } });
 
-    // 분석 실행
+    // 온보딩 1회 호출로 전체 데이터 사전 수신
     async function executeAnalysis() {
       playTickSound();
       const btn = document.getElementById('btnStart');
       btn.classList.add('opacity-70', 'pointer-events-none');
-      btn.querySelector('span').innerText = '파동 계산 중...';
+      btn.querySelector('span').innerText = '파동 및 전략 분석 중...';
 
       const payload = {
         name: document.getElementById('initName').value.trim() || '사용자',
@@ -619,6 +560,7 @@
         if (json.success && json.data) {
           currentPayload = payload;
           currentAnalysisData = json.data;
+          cachedAiPack = json.data.aiPack;
           chatHistory = [];
           renderDashboard(payload.name, json.data);
           document.getElementById('viewOnboarding').classList.add('hidden');
@@ -636,7 +578,7 @@
     }
 
     function renderDashboard(name, data) {
-      const { pillars, analysis, dayGanHanja, dayElemKor } = data;
+      const { pillars, analysis, dayGanHanja, dayElemKor, aiPack } = data;
       document.getElementById('dashUserName').innerText = name;
       document.getElementById('dashPillarTag').innerText = `${pillars.day}일주`;
       document.getElementById('dashGanBadge').innerText = dayGanHanja;
@@ -653,12 +595,13 @@
       document.getElementById('badgeGisin').innerText = `기신: ${p.gisin}`;
       document.getElementById('badgeGusin').innerText = `구신: ${p.gusin}`;
 
+      document.getElementById('txtInsightDesc').innerText = aiPack?.masterInsight || '파동의 높낮이는 성패가 아니라 현재 유리한 행동 모드를 보여줍니다.';
+
       currentCycle = 'daewoon';
       currentDomainIndex = 0;
       renderWaveChart(currentCycle, 'all');
     }
 
-    // Chart.js 렌더링 (리퀴드 네온 컬러 & No Animation)
     function renderWaveChart(cycleKey, highlightDomain = 'all') {
       const ctx = document.getElementById('daewoonChart').getContext('2d');
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
@@ -709,7 +652,6 @@
       });
     }
 
-    // 주기 탭 전환
     document.querySelectorAll('.cycle-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         playTickSound();
@@ -723,7 +665,6 @@
       });
     });
 
-    // 5대 영역 전환
     function setDomain(index, showModal = false) {
       currentDomainIndex = (index + domainKeys.length) % domainKeys.length;
       const domainKey = domainKeys[currentDomainIndex];
@@ -738,8 +679,12 @@
 
       renderWaveChart(currentCycle, domainKey);
 
-      if (showModal) {
-        fetchDynamicSummary(domainKey);
+      if (showModal && cachedAiPack?.scenarios?.[currentCycle]) {
+        openModal(
+          `${cycleTitles[currentCycle]} · ${domainTitles[domainKey]}`,
+          `${currentPayload?.name || '내담자'}님의 파동 행동 전략`,
+          cachedAiPack.scenarios[currentCycle][domainKey]
+        );
       }
     }
 
@@ -754,127 +699,29 @@
       });
     });
 
-    // 실시간 AI 300자 가이드 호출
-    async function fetchDynamicSummary(domainKey) {
+    // 0초 즉시 모달 출력
+    function openModal(title, subtitle, content) {
       playTickSound();
-      const title = `${cycleTitles[currentCycle]} · ${domainTitles[domainKey]}`;
-      const cacheKey = `${currentCycle}_${domainKey}`;
-
       document.getElementById('modalAiTitle').innerText = title;
-      document.getElementById('modalAiSubtitle').innerText = `${currentPayload?.name || '내담자'}님의 파동 행동 지침 (300자)`;
-      
-      const contentEl = document.getElementById('modalAiContent');
-      const loadingEl = document.getElementById('modalAiLoading');
-      const modal = document.getElementById('modalAiInsight');
+      document.getElementById('modalAiSubtitle').innerText = subtitle;
+      document.getElementById('modalAiContent').innerText = content;
       
       document.getElementById('modalDetailBox').classList.add('hidden');
       document.getElementById('modalDetailText').innerText = '';
       
+      const modal = document.getElementById('modalAiInsight');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-
-      if (dynamicAiCache[cacheKey]) {
-        loadingEl.classList.add('hidden');
-        contentEl.classList.remove('hidden');
-        contentEl.innerText = dynamicAiCache[cacheKey];
-        return;
-      }
-
-      loadingEl.classList.remove('hidden');
-      contentEl.classList.add('hidden');
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mode: 'summary',
-            domain: domainTitles[domainKey],
-            cycle: cycleTitles[currentCycle],
-            score: currentAnalysisData.cyclesData[currentCycle][domainKey === 'all' ? 'total' : domainKey][3] || 0,
-            sajuContext: {
-              name: currentPayload?.name,
-              pillars: currentAnalysisData?.pillars
-            }
-          })
-        });
-
-        const json = await res.json();
-        loadingEl.classList.add('hidden');
-        contentEl.classList.remove('hidden');
-
-        if (json.success && json.reply) {
-          dynamicAiCache[cacheKey] = json.reply;
-          contentEl.innerText = json.reply;
-        } else {
-          contentEl.innerText = json.message || '가이드를 생성하지 못했습니다.';
-        }
-      } catch (err) {
-        loadingEl.classList.add('hidden');
-        contentEl.classList.remove('hidden');
-        contentEl.innerText = '서버와 통신할 수 없습니다.';
-      }
     }
 
-    // 4대 운성 버튼 실시간 생성
+    // 4대 운성 / 세력 버튼 클릭 -> 0초 팝업
     document.querySelectorAll('.ai-role-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        playTickSound();
-        const role = btn.dataset.role;
-        const cacheKey = `role_${role}`;
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        if (!cachedAiPack) return;
 
-        document.getElementById('modalAiTitle').innerText = `${role} 심층 해설`;
-        document.getElementById('modalAiSubtitle').innerText = '사주그랩 파동 지침서 기반 맞춤 분석';
-        
-        const contentEl = document.getElementById('modalAiContent');
-        const loadingEl = document.getElementById('modalAiLoading');
-        const modal = document.getElementById('modalAiInsight');
-        
-        document.getElementById('modalDetailBox').classList.add('hidden');
-        document.getElementById('modalDetailText').innerText = '';
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-
-        if (dynamicAiCache[cacheKey]) {
-          loadingEl.classList.add('hidden');
-          contentEl.classList.remove('hidden');
-          contentEl.innerText = dynamicAiCache[cacheKey];
-          return;
-        }
-
-        loadingEl.classList.remove('hidden');
-        contentEl.classList.add('hidden');
-
-        try {
-          const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              mode: 'summary',
-              role,
-              sajuContext: {
-                name: currentPayload?.name,
-                pillars: currentAnalysisData?.pillars
-              }
-            })
-          });
-
-          const json = await res.json();
-          loadingEl.classList.add('hidden');
-          contentEl.classList.remove('hidden');
-
-          if (json.success && json.reply) {
-            dynamicAiCache[cacheKey] = json.reply;
-            contentEl.innerText = json.reply;
-          } else {
-            contentEl.innerText = json.message || '해설을 불러오지 못했습니다.';
-          }
-        } catch (e) {
-          loadingEl.classList.add('hidden');
-          contentEl.classList.remove('hidden');
-          contentEl.innerText = '서버 통신 오류가 발생했습니다.';
-        }
+        const titles = { yongsin: '용신 심층 해설', heesin: '희신 심층 해설', gisin: '기신 심층 해설', gusin: '구신 심층 해설', strength: '세력 균형 지수', flow: '대운 흐름 시간축' };
+        openModal(titles[key], '사주그랩 파동 지침서 기반 분석', cachedAiPack[key]);
       });
     });
 
@@ -885,7 +732,7 @@
       document.getElementById('modalAiInsight').classList.remove('flex');
     });
 
-    // 1,500자 자세히 보기
+    // 자세히 보기 (비동기 심층 리포트)
     document.getElementById('btnFetchDetail').addEventListener('click', async () => {
       playTickSound();
       const domainKey = domainKeys[currentDomainIndex];
@@ -917,7 +764,7 @@
         if (json.success && json.reply) {
           detailText.innerText = json.reply;
         } else {
-          detailText.innerText = json.message || '1,500자 상세 리포트를 생성하지 못했습니다.';
+          detailText.innerText = json.message || '상세 리포트를 생성하지 못했습니다.';
         }
       } catch (e) {
         detailLoading.classList.add('hidden');
