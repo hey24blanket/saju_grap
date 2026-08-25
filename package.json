@@ -1,0 +1,9 @@
+{
+  "name": "saju_grap",
+  "version": "1.0.0",
+  "description": "SajuGrap Core Computation Engine API",
+  "main": "api/analyze.js",
+  "dependencies": {
+    "lunar-javascript": "^1.6.12"
+  }
+}
