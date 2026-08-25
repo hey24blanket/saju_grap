@@ -1,6 +1,7 @@
 {
   "name": "saju_grap",
   "version": "1.0.0",
+  "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "main": "api/analyze.js",
   "dependencies": {
