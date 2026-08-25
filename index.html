@@ -5,64 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>사주그랩 // SAJU GRAP - 인생 에너지 기상도</title>
   
-  <!-- Tailwind CSS & Chart.js CDN -->
+  <!-- Tailwind CSS, FontAwesome & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+  <!-- Firebase Web SDK (v9 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
-    
-    /* 부드러운 스크롤 & 스크롤바 숨김 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* 에너지 튜브 애니메이션 */
-    .tube-fill {
-      transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
+    .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
   </style>
 </head>
 <body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-start p-3 md:p-8">
 
   <!-- ========================================== -->
-  <!-- 0. 상단 실시간 데이터 입력 & 시뮬레이터 바 -->
+  <!-- 0. 상단 실시간 데이터 입력 & Firebase 저장 바 -->
   <!-- ========================================== -->
-  <header class="w-full max-w-5xl bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-stone-200/70 p-4 mb-6 transition-all">
+  <header class="w-full max-w-5xl bg-white/90 backdrop-blur-md rounded-2xl shadow-sm border border-stone-200/70 p-4 mb-6 transition-all">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
-        <h1 class="font-extrabold text-stone-900 text-lg tracking-tight">SAJU GRAP <span class="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full ml-1">Live Engine</span></h1>
+        <h1 class="font-extrabold text-stone-900 text-lg tracking-tight">SAJU GRAP <span class="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full ml-1">Cloud Live</span></h1>
       </div>
-      
-      <!-- 입력 폼 -->
-      <form id="sajuForm" class="flex flex-wrap items-center gap-2 text-xs md:text-sm">
-        <input type="number" id="inpYear" value="1985" min="1900" max="2100" class="w-20 px-2.5 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="연도" />
-        <span class="text-stone-400 font-bold">/</span>
-        <input type="number" id="inpMonth" value="10" min="1" max="12" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="월" />
-        <span class="text-stone-400 font-bold">/</span>
-        <input type="number" id="inpDay" value="24" min="1" max="31" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="일" />
-        
-        <input type="number" id="inpHour" value="11" min="0" max="23" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none ml-1" title="시" />
-        <span class="text-stone-400 font-bold">:</span>
-        <input type="number" id="inpMin" value="45" min="0" max="59" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="분" />
 
-        <select id="inpGender" class="px-2.5 py-1.5 bg-stone-100 border border-stone-300 rounded-lg font-bold focus:ring-2 focus:ring-amber-500 outline-none ml-1">
+      <!-- 입력 폼 (중립 기본값 세팅) -->
+      <form id="sajuForm" class="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+        <input type="text" id="inpName" placeholder="이름(예: 본인)" value="사용자" class="w-20 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" />
+        <input type="number" id="inpYear" value="2000" min="1900" max="2100" class="w-18 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="연도" />
+        <span class="text-stone-400 font-bold">/</span>
+        <input type="number" id="inpMonth" value="1" min="1" max="12" class="w-12 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="월" />
+        <span class="text-stone-400 font-bold">/</span>
+        <input type="number" id="inpDay" value="1" min="1" max="31" class="w-12 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="일" />
+        
+        <input type="number" id="inpHour" value="12" min="0" max="23" class="w-12 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none ml-1" title="시" />
+        <span class="text-stone-400 font-bold">:</span>
+        <input type="number" id="inpMin" value="0" min="0" max="59" class="w-12 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="분" />
+
+        <select id="inpGender" class="px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg font-bold focus:ring-2 focus:ring-amber-500 outline-none ml-1">
           <option value="1">남성(1)</option>
           <option value="2">여성(2)</option>
         </select>
 
-        <button type="submit" id="btnSubmit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate text-xs"></i>
-          <span>분석 실행</span>
+        <button type="submit" id="btnSubmit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold px-3.5 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <i class="fa-solid fa-calculator text-xs"></i>
+          <span>분석</span>
+        </button>
+
+        <!-- Firebase 클라우드 저장 버튼 -->
+        <button type="button" id="btnSaveCloud" class="bg-stone-800 hover:bg-stone-900 active:scale-95 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5" title="Firebase 클라우드에 저장">
+          <i class="fa-solid fa-cloud-arrow-up text-xs text-amber-400"></i>
+          <span>저장</span>
         </button>
       </form>
+    </div>
+
+    <!-- Firebase에 저장된 사주 주소록 칩 목록 -->
+    <div class="flex items-center gap-2 mt-3 pt-3 border-t border-stone-100 overflow-x-auto no-scrollbar">
+      <span class="text-xs font-bold text-stone-400 shrink-0"><i class="fa-solid fa-address-book mr-1"></i>저장 목록:</span>
+      <div id="savedProfileList" class="flex items-center gap-1.5 text-xs font-semibold text-stone-600">
+        <span class="text-stone-300 text-xs italic">저장된 사주가 없습니다.</span>
+      </div>
     </div>
   </header>
 
   <!-- ========================================== -->
-  <!-- 메인 모바일 듀얼 레이아웃 컨테이너 -->
+  <!-- 메인 모바일 듀얼 레이아웃 -->
   <!-- ========================================== -->
   <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
     
@@ -74,12 +88,12 @@
           <div>
             <p class="text-xs font-semibold text-stone-400 mb-0.5">인생 에너지 기상도</p>
             <h2 class="text-xl font-black text-stone-900 flex items-center gap-1.5">
-              반가워요, <span id="txtUserPillar" class="text-amber-600 underline decoration-amber-300 decoration-2 underline-offset-4">병신(丙申)</span>님 ☀️
+              반가워요, <span id="txtUserPillar" class="text-amber-600 underline decoration-amber-300 decoration-2 underline-offset-4">분석 대기</span>님 ☀️
             </h2>
           </div>
           <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 p-0.5 shadow-md flex items-center justify-center">
             <div id="txtDayGanBadge" class="w-full h-full bg-white rounded-full flex items-center justify-center font-black text-stone-800 text-sm">
-              丙
+              ?
             </div>
           </div>
         </div>
@@ -109,49 +123,46 @@
             <span class="flex items-center gap-1.5 text-stone-700">
               <span class="w-2 h-2 rounded-full bg-amber-500"></span> 80년 마스터 파동 궤적
             </span>
-            <span id="txtCurrentAge" class="text-amber-600 font-extrabold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">현재 대운 구간</span>
+            <span id="txtCurrentAge" class="text-amber-600 font-extrabold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">-</span>
           </div>
 
-          <!-- Chart.js 캔버스 -->
           <div class="w-full h-56 relative">
             <canvas id="daewoonChart"></canvas>
           </div>
 
           <div class="flex items-center justify-between text-[11px] text-stone-400 mt-2 font-medium">
-            <span>👈 좌우 스와이프로 10년 주기 탐색</span>
+            <span>👈 좌우 탐색으로 10년 주기 확인</span>
             <span class="text-amber-600 font-semibold">반투명 밴드 = 유동성 마진</span>
           </div>
         </div>
 
         <!-- 하단 상태 카드 2종 -->
         <div class="grid grid-cols-2 gap-3 mb-4">
-          <!-- 모드 카드 -->
           <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm">
             <div class="flex items-center justify-between mb-1">
-              <span id="txtModeTag" class="text-xs font-black text-rose-500">내실 심화 모드</span>
+              <span id="txtModeTag" class="text-xs font-black text-rose-500">운성 모드</span>
               <i class="fa-solid fa-seedling text-emerald-500 text-xs"></i>
             </div>
             <p id="txtModeDesc" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
-              지금은 서재에서 다음 10년의 판을 짤 때입니다.
+              사주 정보를 입력하고 분석을 실행하세요.
             </p>
             <div class="flex items-center gap-1.5">
-              <span id="badgeYongsin" class="text-[10px] font-extrabold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md border border-rose-100">용신 식상</span>
-              <span id="badgeHeesin" class="text-[10px] font-extrabold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-100">희신 재성</span>
+              <span id="badgeYongsin" class="text-[10px] font-extrabold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md border border-rose-100">용신 -</span>
+              <span id="badgeHeesin" class="text-[10px] font-extrabold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-100">희신 -</span>
             </div>
           </div>
 
-          <!-- 전략 지수 카드 -->
           <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-black text-amber-600">세력 균형 지수</span>
               <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-xs"></i>
             </div>
             <p id="txtStrengthStatus" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
-              중화신강 (55점) · 오행의 유통 원활
+              -
             </p>
             <div class="flex items-center gap-1.5">
-              <span id="badgeDeung" class="text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100">득세 우세</span>
-              <span id="badgeFlow" class="text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md border border-purple-100">순행 대운</span>
+              <span id="badgeDeung" class="text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100">-</span>
+              <span id="badgeFlow" class="text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md border border-purple-100">-</span>
             </div>
           </div>
         </div>
@@ -182,10 +193,9 @@
     </section>
 
 
-    <!-- 📱 [SCREEN 2] 인생 에너지 저널 & 4대 튜브 상세 분석 -->
+    <!-- 📱 [SCREEN 2] 인생 에너지 저널 & 4대 튜브 -->
     <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[720px]">
       <div>
-        <!-- 헤더 -->
         <div class="flex items-center justify-between mb-6">
           <button class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-stone-600 hover:bg-stone-100">
             <i class="fa-solid fa-chevron-left text-xs"></i>
@@ -196,28 +206,25 @@
           </button>
         </div>
 
-        <!-- 중앙 점수 & 멘트 -->
         <div class="text-center mb-6">
-          <div id="txtMainWaveScore" class="text-5xl font-black text-stone-900 tracking-tight mb-1">+45</div>
+          <div id="txtMainWaveScore" class="text-5xl font-black text-stone-900 tracking-tight mb-1">0</div>
           <p id="txtMainComment" class="text-xs font-semibold text-stone-500">
-            주변과 화합하며 중심을 지키는 안정적 도약기입니다
+            생년월일시를 입력하면 실시간 기상도가 계산됩니다.
           </p>
         </div>
 
-        <!-- 4대 핵심 에너지 튜브 (실시간 반영 게이지) -->
+        <!-- 4대 에너지 튜브 -->
         <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-100 mb-5">
           <div class="flex items-center justify-between mb-4">
             <span class="text-xs font-black text-stone-800">4대 핵심 에너지 튜브</span>
-            <span class="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">실시간 균형</span>
+            <span class="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">실시간 연동</span>
           </div>
 
-          <!-- 4개 튜브 컨테이너 -->
           <div class="grid grid-cols-4 gap-3 h-48 items-end justify-items-center pt-4 pb-1">
-            <!-- 사업운 -->
             <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
               <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
-                <div id="tubeCareer" class="tube-fill w-full bg-gradient-to-t from-amber-400 to-amber-500 rounded-full flex items-start justify-center pt-2" style="height: 65%;">
-                  <span id="valCareer" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">65%</span>
+                <div id="tubeCareer" class="tube-fill w-full bg-gradient-to-t from-amber-400 to-amber-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
+                  <span id="valCareer" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                 </div>
               </div>
               <div class="text-center">
@@ -226,11 +233,10 @@
               </div>
             </div>
 
-            <!-- 재물운 -->
             <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
               <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
-                <div id="tubeWealth" class="tube-fill w-full bg-gradient-to-t from-emerald-400 to-teal-500 rounded-full flex items-start justify-center pt-2" style="height: 55%;">
-                  <span id="valWealth" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">55%</span>
+                <div id="tubeWealth" class="tube-fill w-full bg-gradient-to-t from-emerald-400 to-teal-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
+                  <span id="valWealth" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                 </div>
               </div>
               <div class="text-center">
@@ -239,11 +245,10 @@
               </div>
             </div>
 
-            <!-- 심신운 -->
             <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
               <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
-                <div id="tubeMental" class="tube-fill w-full bg-gradient-to-t from-purple-400 to-indigo-500 rounded-full flex items-start justify-center pt-2" style="height: 72%;">
-                  <span id="valMental" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">72%</span>
+                <div id="tubeMental" class="tube-fill w-full bg-gradient-to-t from-purple-400 to-indigo-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
+                  <span id="valMental" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                 </div>
               </div>
               <div class="text-center">
@@ -252,11 +257,10 @@
               </div>
             </div>
 
-            <!-- 연애운 -->
             <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
               <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
-                <div id="tubeLove" class="tube-fill w-full bg-gradient-to-t from-rose-400 to-pink-500 rounded-full flex items-start justify-center pt-2" style="height: 48%;">
-                  <span id="valLove" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">48%</span>
+                <div id="tubeLove" class="tube-fill w-full bg-gradient-to-t from-rose-400 to-pink-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
+                  <span id="valLove" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                 </div>
               </div>
               <div class="text-center">
@@ -267,7 +271,6 @@
           </div>
         </div>
 
-        <!-- 다정한 기상 통찰 카드 -->
         <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-100 mb-6">
           <div class="flex items-start gap-3">
             <div class="w-8 h-8 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 text-amber-600 text-sm font-black">
@@ -276,14 +279,13 @@
             <div>
               <h4 class="text-xs font-black text-stone-800 mb-1">다정한 기상 통찰</h4>
               <p id="txtInsightDesc" class="text-xs text-stone-500 font-medium leading-relaxed">
-                지금은 사업적 추진력(65%)이 탄력을 받는 시기입니다. 밖에서의 전진에 취해 심신 에너지의 충전을 소홀히 하지 마세요.
+                상단에서 사주를 입력하고 분석을 실행하면, 10년 주기 대운과 4대 영역별 맞춤 행동 가이드가 제공됩니다.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 하단 CTA 버튼 -->
       <button class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
         <i class="fa-regular fa-comment-dots text-base"></i>
         <span>오늘 기상도에 대해 대화하기</span>
@@ -293,13 +295,41 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- 클라이언트 JavaScript: API 연동 & Chart.js 렌더링 -->
+  <!-- Firebase 초기화 & API 연동 로직 -->
   <!-- ===================================================================== -->
   <script>
-    let chartInstance = null;
-    let currentData = null;
+    // 1. Firebase 구성 정보 (본인의 Firebase Console 정보로 교체)
+const firebaseConfig = {
+  apiKey: "AIzaSyDhN4RjhOrqYAs3OdJdAfEQqlO60O5qXlQ",
+  authDomain: "saju-grap.firebaseapp.com",
+  projectId: "saju-grap",
+  storageBucket: "saju-grap.firebasestorage.app",
+  messagingSenderId: "498768758041",
+  appId: "1:498768758041:web:aaa2f9ff0b4ffba26ef188",
+  measurementId: "G-FD2WYJZYC1"
+};
 
-    // 1. API 호출 함수
+    // Firebase 초기화 (키가 기본값이 아닐 때만 실제 연결)
+    let auth = null;
+    let db = null;
+    let currentUser = null;
+
+    if (firebaseConfig.apiKey !== "AIzaSyD-YOUR_ACTUAL_API_KEY") {
+      firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.firestore();
+
+      // 익명 로그인 자동 처리
+      auth.signInAnonymously().then(cred => {
+        currentUser = cred.user;
+        loadSavedProfiles();
+      }).catch(err => console.warn('Firebase Auth:', err.message));
+    }
+
+    let chartInstance = null;
+    let currentAnalysisResult = null;
+
+    // 2. Vercel 백엔드 API 호출
     async function fetchSajuAnalysis(payload) {
       const btn = document.getElementById('btnSubmit');
       btn.classList.add('opacity-70', 'pointer-events-none');
@@ -314,73 +344,65 @@
 
         const json = await response.json();
         if (json.success && json.data) {
-          currentData = json.data;
-          renderDashboard(json.data);
+          currentAnalysisResult = json.data;
+          renderDashboard(payload.name || '사용자', json.data);
         } else {
-          alert('사주 분석 실패: ' + (json.message || '오류 발생'));
+          alert('분석 실패: ' + (json.message || '오류 발생'));
         }
       } catch (err) {
         console.error('API Error:', err);
         alert('백엔드 API 서버와 통신할 수 없습니다.');
       } finally {
         btn.classList.remove('opacity-70', 'pointer-events-none');
-        btn.querySelector('span').innerText = '분석 실행';
+        btn.querySelector('span').innerText = '분석';
       }
     }
 
-    // 2. 대시보드 UI 동적 갱신
-    function renderDashboard(data) {
+    // 3. UI 렌더링
+    function renderDashboard(name, data) {
       const { pillars, analysis, daewoonWaves, meta } = data;
       const dayPillar = pillars.day;
       const dayGan = dayPillar.charAt(0);
 
-      // 헤더 사용자 정보 갱신
-      document.getElementById('txtUserPillar').innerText = `${dayPillar}`;
+      document.getElementById('txtUserPillar').innerText = `${name} (${dayPillar})`;
       document.getElementById('txtDayGanBadge').innerText = dayGan;
 
-      // 분석 태그 및 배지
-      document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점) · 오행 유통`;
+      document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점)`;
       document.getElementById('badgeYongsin').innerText = `용신: ${analysis.yongsinProfile.yongsin}`;
       document.getElementById('badgeHeesin').innerText = `희신: ${analysis.yongsinProfile.heesin}`;
+      document.getElementById('badgeDeung').innerText = `득세 ${analysis.scores.deungSe}점`;
       document.getElementById('badgeFlow').innerText = meta.isForward ? '순행 대운' : '역행 대운';
+      document.getElementById('txtCurrentAge').innerText = `만 ${meta.startAge}세 대운 시작`;
 
-      // 4대 에너지 튜브 반영 (현재 나이 구간 또는 대표 대운 기준)
-      const activeWave = daewoonWaves[3] || daewoonWaves[0]; // 4번째 대운(청장년기) 기준
+      const activeWave = daewoonWaves[3] || daewoonWaves[0];
       updateTubes(activeWave.scores);
 
-      // 메인 통찰 코멘트
       document.getElementById('txtMainWaveScore').innerText = (activeWave.scores.total >= 0 ? `+${activeWave.scores.total}` : `${activeWave.scores.total}`);
-      document.getElementById('txtInsightDesc').innerText = `현재 대운(${activeWave.ganZhi})은 사업운(${toPercent(activeWave.scores.career)}%)과 재물운(${toPercent(activeWave.scores.wealth)}%)의 합력이 조화를 이루는 시기입니다. 균형 잡힌 심신 관리를 병행하세요.`;
+      document.getElementById('txtInsightDesc').innerText = `${name}님의 대표 대운(${activeWave.ganZhi})은 사업운(${toPercent(activeWave.scores.career)}%)과 재물운(${toPercent(activeWave.scores.wealth)}%)의 조화가 활성화되는 구간입니다.`;
 
-      // 파동 차트 렌더링
       renderWaveChart(daewoonWaves);
     }
 
-    // -100 ~ +100 점수를 0 ~ 100% 게이지 높이로 환산
     function toPercent(score) {
       return Math.max(10, Math.min(100, Math.round((score + 100) / 2)));
     }
 
     function updateTubes(scores) {
-      const cPct = toPercent(scores.career);
-      const wPct = toPercent(scores.wealth);
-      const mPct = toPercent(scores.mental);
-      const lPct = toPercent(scores.love);
+      const c = toPercent(scores.career);
+      const w = toPercent(scores.wealth);
+      const m = toPercent(scores.mental);
+      const l = toPercent(scores.love);
 
-      document.getElementById('tubeCareer').style.height = `${cPct}%`;
-      document.getElementById('valCareer').innerText = `${cPct}%`;
-
-      document.getElementById('tubeWealth').style.height = `${wPct}%`;
-      document.getElementById('valWealth').innerText = `${wPct}%`;
-
-      document.getElementById('tubeMental').style.height = `${mPct}%`;
-      document.getElementById('valMental').innerText = `${mPct}%`;
-
-      document.getElementById('tubeLove').style.height = `${lPct}%`;
-      document.getElementById('valLove').innerText = `${lPct}%`;
+      document.getElementById('tubeCareer').style.height = `${c}%`;
+      document.getElementById('valCareer').innerText = `${c}%`;
+      document.getElementById('tubeWealth').style.height = `${w}%`;
+      document.getElementById('valWealth').innerText = `${w}%`;
+      document.getElementById('tubeMental').style.height = `${m}%`;
+      document.getElementById('valMental').innerText = `${m}%`;
+      document.getElementById('tubeLove').style.height = `${l}%`;
+      document.getElementById('valLove').innerText = `${l}%`;
     }
 
-    // 3. Chart.js 파동 곡선 렌더링
     function renderWaveChart(waves) {
       const ctx = document.getElementById('daewoonChart').getContext('2d');
       const labels = waves.map(w => `${w.ganZhi}\n(${w.ageRange.start}세)`);
@@ -422,7 +444,6 @@
               pointBorderColor: '#D97706',
               pointBorderWidth: 2,
               pointRadius: 5,
-              pointHoverRadius: 7,
               tension: 0.4
             }
           ]
@@ -430,40 +451,70 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#1C1917',
-              titleFont: { size: 12, weight: 'bold' },
-              bodyFont: { size: 11 },
-              padding: 10,
-              cornerRadius: 12,
-              displayColors: false,
-              callbacks: {
-                label: (ctx) => `에너지 점수: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y}점`
-              }
-            }
-          },
+          plugins: { legend: { display: false } },
           scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 10, weight: '600' }, color: '#78716C' }
-            },
-            y: {
-              min: -100,
-              max: 100,
-              grid: { color: '#F3F4F6' },
-              ticks: { stepSize: 50, font: { size: 9 }, color: '#A8A29E' }
-            }
+            x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' }, color: '#78716C' } },
+            y: { min: -100, max: 100, grid: { color: '#F3F4F6' }, ticks: { stepSize: 50, font: { size: 9 }, color: '#A8A29E' } }
           }
         }
       });
     }
 
-    // 4. 이벤트 바인딩
-    document.getElementById('sajuForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const payload = {
+    // 4. Firebase Firestore 연동 함수
+    async function saveCurrentProfile() {
+      if (!db || !currentUser) {
+        alert('Firebase 설정 후 이용할 수 있습니다. (현재 로컬스토리지에 저장)');
+        const profile = getCurrentPayload();
+        localStorage.setItem('saju_local_profile', JSON.stringify(profile));
+        return;
+      }
+
+      const payload = getCurrentPayload();
+      try {
+        await db.collection('users').doc(currentUser.uid).collection('profiles').add({
+          ...payload,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(`[${payload.name}] 사주가 클라우드에 저장되었습니다.`);
+        loadSavedProfiles();
+      } catch (e) {
+        console.error('Firestore save error:', e);
+      }
+    }
+
+    async function loadSavedProfiles() {
+      if (!db || !currentUser) return;
+      const listEl = document.getElementById('savedProfileList');
+      const snap = await db.collection('users').doc(currentUser.uid).collection('profiles').orderBy('createdAt', 'desc').get();
+
+      if (snap.empty) {
+        listEl.innerHTML = '<span class="text-stone-300 text-xs italic">저장된 사주가 없습니다.</span>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      snap.forEach(doc => {
+        const item = doc.data();
+        const chip = document.createElement('button');
+        chip.className = 'bg-stone-200 hover:bg-stone-300 text-stone-700 px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0';
+        chip.innerText = `${item.name} (${item.year}.${item.month}.${item.day})`;
+        chip.onclick = () => {
+          document.getElementById('inpName').value = item.name;
+          document.getElementById('inpYear').value = item.year;
+          document.getElementById('inpMonth').value = item.month;
+          document.getElementById('inpDay').value = item.day;
+          document.getElementById('inpHour').value = item.hour;
+          document.getElementById('inpMin').value = item.minute;
+          document.getElementById('inpGender').value = item.gender;
+          fetchSajuAnalysis(item);
+        };
+        listEl.appendChild(chip);
+      });
+    }
+
+    function getCurrentPayload() {
+      return {
+        name: document.getElementById('inpName').value || '사용자',
         year: parseInt(document.getElementById('inpYear').value, 10),
         month: parseInt(document.getElementById('inpMonth').value, 10),
         day: parseInt(document.getElementById('inpDay').value, 10),
@@ -471,25 +522,17 @@
         minute: parseInt(document.getElementById('inpMin').value, 10),
         gender: parseInt(document.getElementById('inpGender').value, 10)
       };
-      fetchSajuAnalysis(payload);
+    }
+
+    // 5. 이벤트 바인딩
+    document.getElementById('sajuForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      fetchSajuAnalysis(getCurrentPayload());
     });
 
-    // 필터 칩 토글
-    document.querySelectorAll('.filter-chip').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-chip').forEach(b => {
-          b.classList.remove('bg-stone-800', 'text-white');
-          b.classList.add('bg-stone-100', 'text-stone-600');
-        });
-        btn.classList.add('bg-stone-800', 'text-white');
-        btn.classList.remove('bg-stone-100', 'text-stone-600');
-      });
-    });
+    document.getElementById('btnSaveCloud').addEventListener('click', saveCurrentProfile);
 
-    // 페이지 진입 시 기본값으로 최초 1회 즉시 실행
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('sajuForm').dispatchEvent(new Event('submit'));
-    });
+    // 페이지 첫 로드 시 실행하지 않고 사용자 입력 대기 (클린 상태 유지)
   </script>
 </body>
 </html>
