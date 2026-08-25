@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>사주그랩 // SAJU GRAP - 인생 에너지 기상도</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>사주 Grap - 인생 파동 분석 엔진</title>
   
   <!-- Tailwind CSS, FontAwesome & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,100 +17,100 @@
 
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     
-    /* 화면 전환 페이드 애니메이션 */
+    /* 휠 피커 스크롤 스냅 */
+    .wheel-scroll-container {
+      scroll-snap-type: y mandatory;
+      overscroll-behavior-y: contain;
+    }
+    .wheel-item {
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+    }
+
+    /* 페이드 애니메이션 */
     .fade-in {
       animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
-<body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+<body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-center p-3 md:p-8">
 
   <!-- ===================================================================== -->
-  <!-- 1. [초기 진입 화면] 사주 정보 입력 & 시작 게이트 (Onboarding View)      -->
+  <!-- 1. [온보딩 화면] 화면 정중앙 배치 & 파친코 휠 슬라이더               -->
   <!-- ===================================================================== -->
-  <div id="viewOnboarding" class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-[32px] p-7 md:p-8 shadow-2xl border border-stone-200/80 fade-in">
-    <!-- 브랜드 로고 & 타이틀 -->
-    <div class="text-center mb-8">
+  <div id="viewOnboarding" class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-[36px] p-6 md:p-8 shadow-2xl border border-stone-200/80 fade-in flex flex-col justify-between my-auto">
+    
+    <!-- 브랜드 헤더 -->
+    <div class="text-center mb-6">
       <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-black tracking-wide mb-3">
         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-        SAJU GRAP ENGINE
+        ENGINE CORE v1.0
       </div>
-      <h1 class="text-2xl md:text-3xl font-black text-stone-900 tracking-tight">인생 에너지 기상도</h1>
-      <p class="text-xs md:text-sm text-stone-500 font-medium mt-1">생년월일시를 입력하면 80년 인생 파동이 열립니다</p>
+      <h1 class="text-3xl font-black text-stone-900 tracking-tight">사주 Grap</h1>
+      <p class="text-xs md:text-sm text-stone-500 font-medium mt-1">생년월일시를 입력하면 인생 파동이 열립니다</p>
     </div>
 
-    <!-- 사주 입력 폼 -->
-    <form id="onboardingForm" class="space-y-4">
-      <!-- 1) 이름 -->
-      <div>
-        <label class="block text-xs font-bold text-stone-600 mb-1.5">이름 또는 닉네임</label>
-        <input type="text" id="initName" placeholder="예: 본인, 홍길동" required
-          class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition" />
+    <!-- 사용자 이름 입력 -->
+    <div class="mb-5">
+      <div class="relative">
+        <input type="text" id="initName" placeholder="이름 또는 닉네임 (선택)" value=""
+          class="w-full px-4 py-3 bg-stone-100/80 border border-stone-200 rounded-2xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-sm" />
       </div>
+    </div>
 
-      <!-- 2) 생년월일 -->
-      <div>
-        <label class="block text-xs font-bold text-stone-600 mb-1.5">생년월일 (양력 기준)</label>
-        <div class="grid grid-cols-3 gap-2">
-          <input type="number" id="initYear" placeholder="YYYY" min="1900" max="2100" required
-            class="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition" />
-          <input type="number" id="initMonth" placeholder="MM" min="1" max="12" required
-            class="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition" />
-          <input type="number" id="initDay" placeholder="DD" min="1" max="31" required
-            class="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition" />
-        </div>
+    <!-- 파친코 휠 단계 탭 (년/월/일/시/분/성별) -->
+    <div class="flex items-center justify-between bg-stone-100 p-1.5 rounded-2xl mb-4 text-xs font-bold gap-1">
+      <button type="button" class="step-tab flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition" data-step="0" id="tabYear">1995년</button>
+      <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="1" id="tabMonth">5월</button>
+      <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="2" id="tabDay">15일</button>
+      <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="3" id="tabHour">12시</button>
+      <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="4" id="tabMin">00분</button>
+      <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="5" id="tabGender">남성</button>
+    </div>
+
+    <!-- 파친코 휠 슬롯 컨테이너 -->
+    <div class="relative w-full h-52 bg-stone-900 rounded-3xl overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center mb-6">
+      
+      <!-- 상하 그라데이션 오버레이 (파친코 원통 렌즈 효과) -->
+      <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
+      <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
+      
+      <!-- 중앙 선택 표시 타겟 바 -->
+      <div class="absolute w-[88%] h-12 border-y-2 border-amber-500/80 bg-amber-500/10 rounded-xl pointer-events-none z-0"></div>
+
+      <!-- 동적 롤러 휠 -->
+      <div id="wheelList" class="wheel-scroll-container w-full h-full overflow-y-auto no-scrollbar py-[72px] z-5">
+        <!-- JS로 동적 아이템 생성 -->
       </div>
+    </div>
 
-      <!-- 3) 태어난 시간 & 성별 -->
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-stone-600 mb-1.5">태어난 시각</label>
-          <div class="flex items-center gap-1.5">
-            <input type="number" id="initHour" placeholder="시(0~23)" min="0" max="23" value="12"
-              class="w-full px-2 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-xs" />
-            <span class="text-stone-300 font-bold">:</span>
-            <input type="number" id="initMin" placeholder="분(0~59)" min="0" max="59" value="0"
-              class="w-full px-2 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-xs" />
-          </div>
-        </div>
+    <!-- 파동 보기 시작 버튼 -->
+    <button type="button" id="btnStart"
+      class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
+      <i class="fa-solid fa-chart-line text-sm"></i>
+      <span>파동 보기</span>
+    </button>
 
-        <div>
-          <label class="block text-xs font-bold text-stone-600 mb-1.5">성별</label>
-          <select id="initGender"
-            class="w-full px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition">
-            <option value="1">남성 (乾命)</option>
-            <option value="2">여성 (坤命)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 시작 버튼 (Enter 가능) -->
-      <button type="submit" id="btnStart"
-        class="w-full mt-4 py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-base rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-chart-line text-sm"></i>
-        <span>내 기상도 열기 (Enter)</span>
-      </button>
-    </form>
-
-    <!-- 클라우드 저장된 주소록 빠른 로드 칩 -->
-    <div id="onboardingSavedWrapper" class="mt-6 pt-5 border-t border-stone-100 hidden">
-      <p class="text-[11px] font-bold text-stone-400 mb-2.5"><i class="fa-solid fa-clock-rotate-left mr-1"></i>최근 저장된 사주 선택:</p>
+    <!-- 클라우드 저장 사주 칩 -->
+    <div id="onboardingSavedWrapper" class="mt-5 pt-4 border-t border-stone-100 hidden">
+      <p class="text-[11px] font-bold text-stone-400 mb-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i>저장된 사주 불러오기:</p>
       <div id="onboardingSavedList" class="flex flex-wrap gap-1.5"></div>
     </div>
   </div>
 
 
   <!-- ===================================================================== -->
-  <!-- 2. [메인 대시보드 화면] 기상도 & 80년 대운 파동 분석 (초기 숨김)         -->
+  <!-- 2. [결과 화면] 80년 대운 파동 & 에너지 저널 대시보드 (초기 숨김)         -->
   <!-- ===================================================================== -->
   <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-6 fade-in">
     
@@ -122,7 +122,7 @@
         </div>
         <div>
           <h2 class="font-black text-stone-900 text-sm md:text-base flex items-center gap-1.5">
-            <span id="dashUserName">사용자</span>님의 기상도
+            <span id="dashUserName">사용자</span>님의 인생 파동
             <span id="dashPillarTag" class="text-[11px] font-bold bg-stone-100 text-stone-600 px-2 py-0.5 rounded-md">--</span>
           </h2>
         </div>
@@ -135,7 +135,7 @@
         </button>
         <button id="btnEditInput" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl transition flex items-center gap-1.5">
           <i class="fa-solid fa-rotate-left text-xs"></i>
-          <span>다른 사주 보기</span>
+          <span>다시 입력</span>
         </button>
       </div>
     </header>
@@ -143,12 +143,12 @@
     <!-- 듀얼 카드 레이아웃 -->
     <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       
-      <!-- SCREEN 1: 80년 파동 차트 -->
+      <!-- SCREEN 1: 80년 파동 곡선 -->
       <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[700px] relative overflow-hidden">
         <div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <p class="text-xs font-semibold text-stone-400 mb-0.5">인생 에너지 기상도</p>
+              <p class="text-xs font-semibold text-stone-400 mb-0.5">사주 Grap Life Tracker</p>
               <h3 class="text-xl font-black text-stone-900 flex items-center gap-1.5">
                 반가워요, <span id="txtUserPillar" class="text-amber-600 underline decoration-amber-300 decoration-2 underline-offset-4">분석 완료</span> ☀️
               </h3>
@@ -167,7 +167,7 @@
             <button class="flex-1 py-1.5 rounded-xl transition-all">일봉</button>
           </div>
 
-          <!-- 필터 칩 -->
+          <!-- 영역 필터 칩 -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 pb-1 text-xs font-bold">
             <button class="filter-chip active bg-stone-800 text-white px-3 py-1.5 rounded-full shrink-0 shadow-sm" data-domain="all">ALL</button>
             <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업</button>
@@ -202,7 +202,7 @@
                 <span class="text-xs font-black text-rose-500">용희신 가이드</span>
                 <i class="fa-solid fa-seedling text-emerald-500 text-xs"></i>
               </div>
-              <p id="txtModeDesc" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
+              <p class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
                 나에게 유리한 에너지 흐름
               </p>
               <div class="flex flex-wrap gap-1">
@@ -227,7 +227,6 @@
           </div>
         </div>
 
-        <!-- 하단 네비게이션 탭바 -->
         <nav class="bg-white rounded-2xl px-6 py-3 border border-stone-100 flex items-center justify-between shadow-sm text-stone-400 text-xs font-bold">
           <button class="flex flex-col items-center gap-1 text-amber-600"><i class="fa-solid fa-house text-base"></i><span>홈</span></button>
           <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition"><i class="fa-solid fa-compass text-base"></i><span>기상도</span></button>
@@ -236,7 +235,6 @@
           <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition"><i class="fa-solid fa-user text-base"></i><span>내 정보</span></button>
         </nav>
       </section>
-
 
       <!-- SCREEN 2: 4대 에너지 튜브 & 기상 통찰 -->
       <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[700px]">
@@ -248,7 +246,7 @@
 
           <div class="text-center mb-6">
             <div id="txtMainWaveScore" class="text-5xl font-black text-stone-900 tracking-tight mb-1">0</div>
-            <p id="txtMainComment" class="text-xs font-semibold text-stone-500">
+            <p class="text-xs font-semibold text-stone-500">
               대운 구간별 실시간 에너지 충전율
             </p>
           </div>
@@ -325,10 +323,10 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- Firebase & Client Logic Script                                       -->
+  <!-- Script: 휠 피커 제어 & API 연동                                        -->
   <!-- ===================================================================== -->
   <script>
-    // 1. Firebase 설정 (본인 Firebase 콘솔 키로 교체)
+    // 1. Firebase 구성 정보
     const firebaseConfig = {
       apiKey: "AIzaSyD-YOUR_ACTUAL_API_KEY",
       authDomain: "saju-grap.firebaseapp.com",
@@ -346,14 +344,177 @@
       firebase.initializeApp(firebaseConfig);
       auth = firebase.auth();
       db = firebase.firestore();
-
       auth.signInAnonymously().then(cred => {
         currentUser = cred.user;
         loadSavedProfiles();
       }).catch(err => console.warn('Firebase Auth:', err.message));
     }
 
-    // 2. 화면 전환 함수 (Onboarding <-> Dashboard)
+    // 2. 휠 피커 상태 관리
+    const state = {
+      name: '',
+      year: 1995,
+      month: 5,
+      day: 15,
+      hour: 12,
+      minute: 0,
+      gender: 1,
+      step: 0 // 0:year, 1:month, 2:day, 3:hour, 4:minute, 5:gender
+    };
+
+    const steps = [
+      { id: 'year', label: '년', min: 1940, max: 2030, unit: '년' },
+      { id: 'month', label: '월', min: 1, max: 12, unit: '월' },
+      { id: 'day', label: '일', min: 1, max: 31, unit: '일' },
+      { id: 'hour', label: '시', min: 0, max: 23, unit: '시' },
+      { id: 'minute', label: '분', min: 0, max: 55, stepVal: 5, unit: '분' },
+      { id: 'gender', label: '성별', options: [{ val: 1, text: '남성 (乾命)' }, { val: 2, text: '여성 (坤命)' }] }
+    ];
+
+    let autoNextTimer = null;
+    let isProgrammaticScroll = false;
+
+    // 휠 렌더링
+    function renderWheel(stepIndex) {
+      state.step = stepIndex;
+      const config = steps[stepIndex];
+      const wheelEl = document.getElementById('wheelList');
+      wheelEl.innerHTML = '';
+
+      // 탭 활성화 스타일 갱신
+      document.querySelectorAll('.step-tab').forEach((tab, idx) => {
+        if (idx === stepIndex) {
+          tab.classList.add('bg-amber-500', 'text-white', 'shadow-sm');
+          tab.classList.remove('text-stone-500');
+        } else {
+          tab.classList.remove('bg-amber-500', 'text-white', 'shadow-sm');
+          tab.classList.add('text-stone-500');
+        }
+      });
+
+      let items = [];
+      if (config.options) {
+        items = config.options.map(opt => ({ val: opt.val, text: opt.text }));
+      } else {
+        const stepVal = config.stepVal || 1;
+        for (let v = config.min; v <= config.max; v += stepVal) {
+          items.push({ val: v, text: `${v}${config.unit}` });
+        }
+      }
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'wheel-item h-12 flex items-center justify-center text-lg font-black transition-all cursor-pointer select-none';
+        div.dataset.value = item.val;
+        div.innerText = item.text;
+        
+        // 탭 클릭 시 즉시 선택 & 다음 단계 이동
+        div.onclick = () => {
+          selectWheelItem(div, true);
+        };
+        wheelEl.appendChild(div);
+      });
+
+      // 현재 선택된 값으로 스크롤 위치 이동
+      setTimeout(() => {
+        const currentVal = (stepIndex === 0 ? state.year :
+                           stepIndex === 1 ? state.month :
+                           stepIndex === 2 ? state.day :
+                           stepIndex === 3 ? state.hour :
+                           stepIndex === 4 ? state.minute : state.gender);
+        
+        const targetNode = Array.from(wheelEl.children).find(c => Number(c.dataset.value) === Number(currentVal));
+        if (targetNode) {
+          isProgrammaticScroll = true;
+          targetNode.scrollIntoView({ block: 'center', behavior: 'instant' });
+          highlightCenterItem();
+          setTimeout(() => { isProgrammaticScroll = false; }, 100);
+        }
+      }, 20);
+    }
+
+    // 아이템 선택 처리 및 자동 전환
+    function selectWheelItem(el, shouldAdvance = true) {
+      if (!el) return;
+      isProgrammaticScroll = true;
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+      const val = Number(el.dataset.value);
+      const s = state.step;
+
+      if (s === 0) { state.year = val; document.getElementById('tabYear').innerText = `${val}년`; }
+      else if (s === 1) { state.month = val; document.getElementById('tabMonth').innerText = `${val}월`; }
+      else if (s === 2) { state.day = val; document.getElementById('tabDay').innerText = `${val}일`; }
+      else if (s === 3) { state.hour = val; document.getElementById('tabHour').innerText = `${val}시`; }
+      else if (s === 4) { state.minute = val; document.getElementById('tabMin').innerText = `${String(val).padStart(2, '0')}분`; }
+      else if (s === 5) { state.gender = val; document.getElementById('tabGender').innerText = val === 1 ? '남성' : '여성'; }
+
+      highlightCenterItem();
+
+      clearTimeout(autoNextTimer);
+      if (shouldAdvance && s < steps.length - 1) {
+        autoNextTimer = setTimeout(() => {
+          renderWheel(s + 1);
+        }, 350); // 0.35초 뒤 다음 탭으로 매끄럽게 전환
+      }
+
+      setTimeout(() => { isProgrammaticScroll = false; }, 300);
+    }
+
+    // 스크롤 시 중앙 아이템 하이라이트
+    function highlightCenterItem() {
+      const wheelEl = document.getElementById('wheelList');
+      const containerRect = wheelEl.getBoundingClientRect();
+      const centerY = containerRect.top + containerRect.height / 2;
+
+      let closestEl = null;
+      let minDistance = Infinity;
+
+      Array.from(wheelEl.children).forEach(child => {
+        const childRect = child.getBoundingClientRect();
+        const childCenterY = childRect.top + childRect.height / 2;
+        const dist = Math.abs(centerY - childCenterY);
+
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestEl = child;
+        }
+
+        // 비선택 텍스트 어둡게 처리
+        child.classList.remove('text-amber-400', 'scale-110', 'text-2xl');
+        child.classList.add('text-stone-600', 'text-base');
+      });
+
+      if (closestEl) {
+        closestEl.classList.remove('text-stone-600', 'text-base');
+        closestEl.classList.add('text-amber-400', 'scale-110', 'text-2xl');
+      }
+      return closestEl;
+    }
+
+    // 휠 스크롤 멈춤 감지
+    let scrollEndTimer = null;
+    document.getElementById('wheelList').addEventListener('scroll', () => {
+      highlightCenterItem();
+      if (isProgrammaticScroll) return;
+
+      clearTimeout(scrollEndTimer);
+      scrollEndTimer = setTimeout(() => {
+        const centerEl = highlightCenterItem();
+        if (centerEl) {
+          selectWheelItem(centerEl, true);
+        }
+      }, 150);
+    });
+
+    // 탭 직접 클릭 이벤트
+    document.querySelectorAll('.step-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        renderWheel(Number(tab.dataset.step));
+      });
+    });
+
+    // 3. 화면 전환 및 분석 실행
     function switchView(viewName) {
       const vOnboarding = document.getElementById('viewOnboarding');
       const vDashboard = document.getElementById('viewDashboard');
@@ -369,11 +530,20 @@
       }
     }
 
-    // 3. API 통신 및 분석 실행
-    async function executeAnalysis(payload) {
+    async function executeAnalysis() {
       const btn = document.getElementById('btnStart');
       btn.classList.add('opacity-70', 'pointer-events-none');
       btn.querySelector('span').innerText = '인생 파동 계산 중...';
+
+      const payload = {
+        name: document.getElementById('initName').value.trim() || '사용자',
+        year: state.year,
+        month: state.month,
+        day: state.day,
+        hour: state.hour,
+        minute: state.minute,
+        gender: state.gender
+      };
 
       try {
         const res = await fetch('/api/analyze', {
@@ -395,7 +565,7 @@
         alert('백엔드 서버와 통신할 수 없습니다.');
       } finally {
         btn.classList.remove('opacity-70', 'pointer-events-none');
-        btn.querySelector('span').innerText = '내 기상도 열기 (Enter)';
+        btn.querySelector('span').innerText = '파동 보기';
       }
     }
 
@@ -405,12 +575,10 @@
       const dayPillar = pillars.day;
       const dayGan = dayPillar.charAt(0);
 
-      // 상단 바 정보
       document.getElementById('dashUserName').innerText = name;
       document.getElementById('dashPillarTag').innerText = `${dayPillar}일주`;
       document.getElementById('dashGanBadge').innerText = dayGan;
 
-      // 스크린 1 정보
       document.getElementById('txtUserPillar').innerText = `${name} (${dayPillar})`;
       document.getElementById('txtDayGanBadge').innerText = dayGan;
       document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점)`;
@@ -420,7 +588,6 @@
       document.getElementById('badgeFlow').innerText = meta.isForward ? '순행 대운' : '역행 대운';
       document.getElementById('txtStartAgeInfo').innerText = `만 ${meta.startAge}세 대운 시작`;
 
-      // 4대 튜브 (대표 대운 기준)
       const activeWave = daewoonWaves[3] || daewoonWaves[0];
       updateTubes(activeWave.scores);
 
@@ -507,7 +674,7 @@
       });
     }
 
-    // 5. Firebase 주소록 저장/불러오기
+    // 5. Firebase 저장/불러오기
     async function saveToCloud() {
       if (!currentPayload) return;
       if (!db || !currentUser) {
@@ -549,35 +716,25 @@
         chip.innerHTML = `<i class="fa-regular fa-user text-amber-600"></i> ${item.name} (${item.year}.${item.month}.${item.day})`;
         chip.onclick = () => {
           document.getElementById('initName').value = item.name;
-          document.getElementById('initYear').value = item.year;
-          document.getElementById('initMonth').value = item.month;
-          document.getElementById('initDay').value = item.day;
-          document.getElementById('initHour').value = item.hour;
-          document.getElementById('initMin').value = item.minute;
-          document.getElementById('initGender').value = item.gender;
-          executeAnalysis(item);
+          state.year = item.year;
+          state.month = item.month;
+          state.day = item.day;
+          state.hour = item.hour;
+          state.minute = item.minute;
+          state.gender = item.gender;
+          executeAnalysis();
         };
         listEl.appendChild(chip);
       });
     }
 
     // 6. 이벤트 바인딩
-    document.getElementById('onboardingForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const payload = {
-        name: document.getElementById('initName').value.trim() || '사용자',
-        year: parseInt(document.getElementById('initYear').value, 10),
-        month: parseInt(document.getElementById('initMonth').value, 10),
-        day: parseInt(document.getElementById('initDay').value, 10),
-        hour: parseInt(document.getElementById('initHour').value, 10),
-        minute: parseInt(document.getElementById('initMin').value, 10),
-        gender: parseInt(document.getElementById('initGender').value, 10)
-      };
-      executeAnalysis(payload);
-    });
-
+    document.getElementById('btnStart').addEventListener('click', executeAnalysis);
     document.getElementById('btnSaveToCloud').addEventListener('click', saveToCloud);
     document.getElementById('btnEditInput').addEventListener('click', () => switchView('onboarding'));
+
+    // 초기 0단계(년도 휠) 렌더링
+    renderWheel(0);
   </script>
 </body>
 </html>
