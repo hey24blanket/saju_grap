@@ -3,885 +3,492 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>사주그랩 // SAJU GRAP - 오늘의 인생 기상도</title>
+  <title>사주그랩 // SAJU GRAP - 인생 에너지 기상도</title>
   
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Chart.js CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- GSAP Animation Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            appBg: '#F4EFEB',        // Warm Sand Beige Background
-            appCard: '#FFFFFF',      // Pure White Card
-            brandAmber: '#F7A725',   // Sun Warm Yellow
-            brandDark: '#1E1E1E',    // Soft Charcoal Black
-            brandMuted: '#8E8B85',   // Muted Grey-Brown
-            pastelPeach: '#FDEAE6',
-            pastelMint: '#E4F6ED',
-            pastelPurple: '#EAE6FE',
-            pastelBlue: '#E2F0FD'
-          },
-          fontFamily: {
-            sans: ['"Pretendard"', '"Plus Jakarta Sans"', 'sans-serif'],
-          },
-          boxShadow: {
-            'soft': '0 8px 30px rgba(0, 0, 0, 0.04)',
-            'pill': '0 4px 14px rgba(247, 167, 37, 0.28)'
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
-    body {
-      background-color: #ECE7E1;
-      font-family: 'Pretendard', sans-serif;
-      color: #1E1E1E;
-      user-select: none;
-    }
-
-    /* Swipe Chart Canvas Area */
-    .chart-swipe-container {
-      cursor: grab;
-      touch-action: pan-y;
-      position: relative;
-    }
-    .chart-swipe-container:active {
-      cursor: grabbing;
-    }
-
-    /* Center Guideline Overlay */
-    .center-anchor-line {
-      position: absolute;
-      top: 10%;
-      bottom: 10%;
-      left: 50%;
-      width: 1.5px;
-      transform: translateX(-50%);
-      background: linear-gradient(to bottom, transparent, rgba(247, 167, 37, 0.55), transparent);
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .center-anchor-badge {
-      position: absolute;
-      top: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 11;
-      pointer-events: none;
-    }
-
-    /* Minimalist Number Capsule Buttons */
-    .num-capsule {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .num-capsule.active {
-      background-color: #1E1E1E !important;
-      color: #FFFFFF !important;
-      transform: translateY(-1.5px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-    .num-capsule.active span.badge {
-      background-color: #F7A725 !important;
-      color: #1E1E1E !important;
-    }
-
-    /* Smooth Vertical Tube Capsule Transition */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+    
+    /* 부드러운 스크롤 & 스크롤바 숨김 */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* 에너지 튜브 애니메이션 */
     .tube-fill {
-      transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.08); border-radius: 99px; }
   </style>
 </head>
+<body class="bg-[#F3EFEA] text-stone-800 min-h-screen flex flex-col items-center justify-start p-3 md:p-8">
 
-<body class="min-h-screen p-3 sm:p-6 lg:p-8 flex items-center justify-center">
-
-  <!-- ================= DUAL MOBILE SCREEN CONTAINER (Responsive PC Layout) ================= -->
-  <div class="w-full max-w-[1080px] grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
-    
-    <!-- ================================================================= -->
-    <!-- SCREEN 1: TODAY'S LIFE WEATHER & MASTER WAVE (Left Mobile App)    -->
-    <!-- ================================================================= -->
-    <div class="w-full max-w-[440px] mx-auto bg-appBg rounded-[2.75rem] p-6 shadow-2xl border-[6px] border-white flex flex-col justify-between min-h-[820px] relative overflow-hidden">
+  <!-- ========================================== -->
+  <!-- 0. 상단 실시간 데이터 입력 & 시뮬레이터 바 -->
+  <!-- ========================================== -->
+  <header class="w-full max-w-5xl bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-stone-200/70 p-4 mb-6 transition-all">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
+        <h1 class="font-extrabold text-stone-900 text-lg tracking-tight">SAJU GRAP <span class="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full ml-1">Live Engine</span></h1>
+      </div>
       
-      <!-- Top Mobile Status Bar -->
+      <!-- 입력 폼 -->
+      <form id="sajuForm" class="flex flex-wrap items-center gap-2 text-xs md:text-sm">
+        <input type="number" id="inpYear" value="1985" min="1900" max="2100" class="w-20 px-2.5 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="연도" />
+        <span class="text-stone-400 font-bold">/</span>
+        <input type="number" id="inpMonth" value="10" min="1" max="12" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="월" />
+        <span class="text-stone-400 font-bold">/</span>
+        <input type="number" id="inpDay" value="24" min="1" max="31" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="일" />
+        
+        <input type="number" id="inpHour" value="11" min="0" max="23" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none ml-1" title="시" />
+        <span class="text-stone-400 font-bold">:</span>
+        <input type="number" id="inpMin" value="45" min="0" max="59" class="w-14 px-2 py-1.5 bg-stone-100 border border-stone-300 rounded-lg text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none" title="분" />
+
+        <select id="inpGender" class="px-2.5 py-1.5 bg-stone-100 border border-stone-300 rounded-lg font-bold focus:ring-2 focus:ring-amber-500 outline-none ml-1">
+          <option value="1">남성(1)</option>
+          <option value="2">여성(2)</option>
+        </select>
+
+        <button type="submit" id="btnSubmit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate text-xs"></i>
+          <span>분석 실행</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 메인 모바일 듀얼 레이아웃 컨테이너 -->
+  <!-- ========================================== -->
+  <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    
+    <!-- 📱 [SCREEN 1] 기상도 대시보드 & 대운 파동 그래프 -->
+    <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[720px] relative overflow-hidden">
       <div>
-        <div class="flex items-center justify-between text-xs font-semibold text-brandDark mb-4 px-1">
-          <span>9:41</span>
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="signal" class="w-3.5 h-3.5"></i>
-            <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
-            <i data-lucide="battery-full" class="w-4 h-4"></i>
-          </div>
-        </div>
-
-        <!-- Greeting & Profile -->
-        <div class="flex items-center justify-between mb-5">
+        <!-- 상단 헤더 인사 & 프로필 -->
+        <div class="flex items-center justify-between mb-4">
           <div>
-            <span class="text-xs text-brandMuted font-medium">오늘의 인생 기상도</span>
-            <h1 class="text-2xl font-bold tracking-tight text-brandDark">반가워요, 병신(丙申)님 ☀️</h1>
+            <p class="text-xs font-semibold text-stone-400 mb-0.5">인생 에너지 기상도</p>
+            <h2 class="text-xl font-black text-stone-900 flex items-center gap-1.5">
+              반가워요, <span id="txtUserPillar" class="text-amber-600 underline decoration-amber-300 decoration-2 underline-offset-4">병신(丙申)</span>님 ☀️
+            </h2>
           </div>
-          <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-400 to-rose-400 p-0.5 shadow-sm cursor-pointer">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full" />
-          </div>
-        </div>
-
-        <!-- Timeframe & Day Selector Strip (시봉·일봉·주봉·월봉·연봉) -->
-        <div class="flex items-center justify-between bg-white/70 p-1.5 rounded-2xl shadow-soft mb-4 text-center">
-          <button data-tf="1H" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">시봉</button>
-          <button data-tf="1D" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-bold text-brandDark bg-brandAmber shadow-pill transition-all">일봉</button>
-          <button data-tf="1W" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">주봉</button>
-          <button data-tf="1M" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">월봉</button>
-          <button data-tf="1Y" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">연봉</button>
-        </div>
-
-        <!-- Single-Row Minimalist 1~6 Category Number Capsules -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 no-scrollbar" id="capsule-container">
-          <button data-cat="ALL" class="num-capsule active px-3 py-1.5 rounded-full text-xs font-bold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span>ALL</span>
-          </button>
-          <button data-cat="1" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span class="badge w-4 h-4 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold">1</span>
-            <span>총운</span>
-          </button>
-          <button data-cat="2" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span class="badge w-4 h-4 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-[10px] font-bold">2</span>
-            <span>사업</span>
-          </button>
-          <button data-cat="3" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span class="badge w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">3</span>
-            <span>재물</span>
-          </button>
-          <button data-cat="4" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span class="badge w-4 h-4 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center text-[10px] font-bold">4</span>
-            <span>연애</span>
-          </button>
-          <button data-cat="5" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span class="badge w-4 h-4 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">5</span>
-            <span>심신</span>
-          </button>
-          <button data-cat="6" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
-            <span class="badge w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">6</span>
-            <span>성장</span>
-          </button>
-        </div>
-
-        <!-- Main Chart.js Wave Card (Cozy White Card) -->
-        <div class="bg-appCard rounded-3xl p-4 shadow-soft mb-4 relative overflow-hidden">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-brandAmber animate-pulse"></span>
-              <span id="stat-s1-active" class="text-xs font-bold text-brandDark">전체 파동 궤적</span>
+          <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 p-0.5 shadow-md flex items-center justify-center">
+            <div id="txtDayGanBadge" class="w-full h-full bg-white rounded-full flex items-center justify-center font-black text-stone-800 text-sm">
+              丙
             </div>
-            <span class="text-[11px] font-semibold text-brandMuted" id="center-time-indicator">중심: 14:00</span>
-          </div>
-
-          <!-- Interactive Chart Canvas -->
-          <div class="relative w-full h-[220px] chart-swipe-container" id="container-chart1">
-            <div class="center-anchor-line"></div>
-            <div class="center-anchor-badge text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 shadow-sm">PIVOT</div>
-            <canvas id="chartStyle1"></canvas>
-          </div>
-
-          <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-brandMuted">
-            <span class="flex items-center gap-1"><i data-lucide="hand" class="w-3.5 h-3.5 text-brandAmber"></i> 좌우 스와이프 탐색</span>
-            <span class="font-medium text-slate-400">선택 시 반투명 밴드 활성화</span>
           </div>
         </div>
 
-        <!-- Quick Insight Pastel Cards (Grid) -->
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <!-- Card 1: Deep Work Insight -->
-          <div class="bg-pastelPeach rounded-2xl p-3.5 flex flex-col justify-between">
-            <div class="flex items-center justify-between text-xs text-rose-800 font-bold">
-              <span>내실 심화 모드</span>
-              <span>🌱</span>
+        <!-- 주기 선택 탭 -->
+        <div class="flex items-center gap-1.5 bg-stone-200/60 p-1 rounded-2xl mb-4 text-xs font-bold text-stone-500">
+          <button class="flex-1 py-1.5 rounded-xl transition-all">시봉</button>
+          <button class="flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm font-extrabold">대운(10년)</button>
+          <button class="flex-1 py-1.5 rounded-xl transition-all">연봉</button>
+          <button class="flex-1 py-1.5 rounded-xl transition-all">월봉</button>
+          <button class="flex-1 py-1.5 rounded-xl transition-all">일봉</button>
+        </div>
+
+        <!-- 6대 영역 필터 칩 -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 pb-1 text-xs font-bold">
+          <button class="filter-chip active bg-stone-800 text-white px-3 py-1.5 rounded-full shrink-0 shadow-sm" data-domain="all">ALL</button>
+          <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="total">1 총운</button>
+          <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="career">2 사업</button>
+          <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">3 재물</button>
+          <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="love">4 연애</button>
+          <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="mental">5 심신</button>
+        </div>
+
+        <!-- 파동 캔버스 컨테이너 -->
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-stone-100 mb-4 relative">
+          <div class="flex items-center justify-between text-xs font-bold text-stone-400 mb-2">
+            <span class="flex items-center gap-1.5 text-stone-700">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span> 80년 마스터 파동 궤적
+            </span>
+            <span id="txtCurrentAge" class="text-amber-600 font-extrabold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">현재 대운 구간</span>
+          </div>
+
+          <!-- Chart.js 캔버스 -->
+          <div class="w-full h-56 relative">
+            <canvas id="daewoonChart"></canvas>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-stone-400 mt-2 font-medium">
+            <span>👈 좌우 스와이프로 10년 주기 탐색</span>
+            <span class="text-amber-600 font-semibold">반투명 밴드 = 유동성 마진</span>
+          </div>
+        </div>
+
+        <!-- 하단 상태 카드 2종 -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <!-- 모드 카드 -->
+          <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm">
+            <div class="flex items-center justify-between mb-1">
+              <span id="txtModeTag" class="text-xs font-black text-rose-500">내실 심화 모드</span>
+              <i class="fa-solid fa-seedling text-emerald-500 text-xs"></i>
             </div>
-            <p class="text-[11px] text-rose-950/80 font-medium mt-2 leading-relaxed">
+            <p id="txtModeDesc" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
               지금은 서재에서 다음 10년의 판을 짤 때입니다.
             </p>
-            <div class="mt-2.5 flex items-center justify-between text-[10px] text-rose-700 font-semibold">
-              <span>심신 충전</span>
-              <span class="bg-white/80 px-2 py-0.5 rounded-full">지장간 활성</span>
+            <div class="flex items-center gap-1.5">
+              <span id="badgeYongsin" class="text-[10px] font-extrabold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md border border-rose-100">용신 식상</span>
+              <span id="badgeHeesin" class="text-[10px] font-extrabold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-100">희신 재성</span>
             </div>
           </div>
 
-          <!-- Card 2: Strategic Action -->
-          <div class="bg-pastelPurple rounded-2xl p-3.5 flex flex-col justify-between">
-            <div class="flex items-center justify-between text-xs text-purple-800 font-bold">
-              <span>전략적 행동 지수</span>
-              <span>✨</span>
+          <!-- 전략 지수 카드 -->
+          <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-black text-amber-600">세력 균형 지수</span>
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-xs"></i>
             </div>
-            <p class="text-[11px] text-purple-950/80 font-medium mt-2 leading-relaxed">
-              무리한 확장보다 6대 영역의 밸런스에 집중하세요.
+            <p id="txtStrengthStatus" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
+              중화신강 (55점) · 오행의 유통 원활
             </p>
-            <div class="mt-2.5 flex items-center justify-between text-[10px] text-purple-700 font-semibold">
-              <span>안정 순항</span>
-              <span class="bg-white/80 px-2 py-0.5 rounded-full">풍파 8%</span>
+            <div class="flex items-center gap-1.5">
+              <span id="badgeDeung" class="text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100">득세 우세</span>
+              <span id="badgeFlow" class="text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md border border-purple-100">순행 대운</span>
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- Bottom Floating Nav Bar (White Dock Style) -->
-      <div class="bg-white rounded-2xl p-2.5 px-4 shadow-soft flex items-center justify-between relative mt-2">
-        <button class="flex flex-col items-center gap-1 text-brandDark">
-          <i data-lucide="home" class="w-4 h-4"></i>
-          <span class="text-[10px] font-bold">홈</span>
+      <!-- 모바일 하단 탭바 -->
+      <nav class="bg-white rounded-2xl px-6 py-3 border border-stone-100 flex items-center justify-between shadow-sm text-stone-400 text-xs font-bold">
+        <button class="flex flex-col items-center gap-1 text-amber-600">
+          <i class="fa-solid fa-house text-base"></i>
+          <span>홈</span>
         </button>
-        <button class="flex flex-col items-center gap-1 text-brandMuted hover:text-brandDark">
-          <i data-lucide="compass" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium">기상도</span>
+        <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition">
+          <i class="fa-solid fa-compass text-base"></i>
+          <span>기상도</span>
         </button>
+        <button class="flex flex-col items-center justify-center -mt-6 w-12 h-12 rounded-full bg-amber-500 text-white shadow-lg shadow-amber-500/40">
+          <i class="fa-solid fa-bolt-lightning text-lg"></i>
+        </button>
+        <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition">
+          <i class="fa-solid fa-vault text-base"></i>
+          <span>지장간</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition">
+          <i class="fa-solid fa-user text-base"></i>
+          <span>내 정보</span>
+        </button>
+      </nav>
+    </section>
 
-        <!-- Center Floating Action Button (+) -->
-        <button id="chatbot-trigger-btn" class="w-11 h-11 rounded-full bg-brandAmber text-brandDark flex items-center justify-center shadow-pill -mt-6 hover:scale-105 transition-all">
-          <i data-lucide="sparkles" class="w-5 h-5"></i>
-        </button>
 
-        <button class="flex flex-col items-center gap-1 text-brandMuted hover:text-brandDark">
-          <i data-lucide="layers" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium">지장간</span>
-        </button>
-        <button class="flex flex-col items-center gap-1 text-brandMuted hover:text-brandDark">
-          <i data-lucide="user" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium">내 정보</span>
-        </button>
-      </div>
-
-    </div>
-
-    <!-- ================================================================= -->
-    <!-- SCREEN 2: 4-CORE POLARITY TUBES & LITERARY DIALOG (Right Screen)   -->
-    <!-- ================================================================= -->
-    <div class="w-full max-w-[440px] mx-auto bg-appBg rounded-[2.75rem] p-6 shadow-2xl border-[6px] border-white flex flex-col justify-between min-h-[820px] relative overflow-hidden">
-      
+    <!-- 📱 [SCREEN 2] 인생 에너지 저널 & 4대 튜브 상세 분석 -->
+    <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[720px]">
       <div>
-        <!-- Top Status Bar & Navigation -->
-        <div class="flex items-center justify-between text-xs font-semibold text-brandDark mb-5 px-1">
-          <button class="w-8 h-8 rounded-full bg-white shadow-soft flex items-center justify-center text-brandDark hover:bg-slate-50">
-            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        <!-- 헤더 -->
+        <div class="flex items-center justify-between mb-6">
+          <button class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-stone-600 hover:bg-stone-100">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
           </button>
-          <span class="font-bold text-sm">인생 에너지 저널</span>
-          <button class="w-8 h-8 rounded-full bg-white shadow-soft flex items-center justify-center text-brandDark hover:bg-slate-50">
-            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+          <h3 class="font-extrabold text-stone-800 text-sm tracking-wide">인생 에너지 저널</h3>
+          <button class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-stone-600 hover:bg-stone-100">
+            <i class="fa-solid fa-ellipsis text-xs"></i>
           </button>
         </div>
 
-        <!-- Big Bold State Status (Like "420" in reference) -->
-        <div class="text-center my-4">
-          <div class="text-5xl font-extrabold tracking-tight text-brandDark font-sans flex items-center justify-center gap-1">
-            <span id="score-polarity-sign">+</span><span id="score-big-number">74</span>
-          </div>
-          <p id="score-statement" class="text-xs text-brandMuted font-medium mt-1.5">
-            밖으로 뜻을 펼치는 완연한 발산의 계절입니다
+        <!-- 중앙 점수 & 멘트 -->
+        <div class="text-center mb-6">
+          <div id="txtMainWaveScore" class="text-5xl font-black text-stone-900 tracking-tight mb-1">+45</div>
+          <p id="txtMainComment" class="text-xs font-semibold text-stone-500">
+            주변과 화합하며 중심을 지키는 안정적 도약기입니다
           </p>
         </div>
 
-        <!-- Vertical Capsule Tube Meters (Ref: Emotions Section) -->
-        <div class="bg-appCard rounded-3xl p-5 shadow-soft mb-4">
-          <div class="flex items-center justify-between mb-1">
-            <h2 class="text-sm font-bold text-brandDark">4대 핵심 에너지 튜브</h2>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">실시간 균형</span>
+        <!-- 4대 핵심 에너지 튜브 (실시간 반영 게이지) -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-100 mb-5">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-black text-stone-800">4대 핵심 에너지 튜브</span>
+            <span class="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">실시간 균형</span>
           </div>
-          <p class="text-[11px] text-brandMuted mb-5">현재 피벗 시점의 영역별 추진력과 내실 충전율</p>
 
-          <!-- 4 Capsule Vertical Tubes -->
-          <div class="grid grid-cols-4 gap-3 text-center">
-            
-            <!-- Tube 1: 사업 (Career) -->
-            <div class="flex flex-col items-center">
-              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
-                <div id="tube-career" class="tube-fill w-full rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-bold text-amber-950 pb-2 shadow-sm" style="height: 74%;">
-                  74%
+          <!-- 4개 튜브 컨테이너 -->
+          <div class="grid grid-cols-4 gap-3 h-48 items-end justify-items-center pt-4 pb-1">
+            <!-- 사업운 -->
+            <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
+              <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+                <div id="tubeCareer" class="tube-fill w-full bg-gradient-to-t from-amber-400 to-amber-500 rounded-full flex items-start justify-center pt-2" style="height: 65%;">
+                  <span id="valCareer" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">65%</span>
                 </div>
               </div>
-              <span class="text-xs font-bold text-brandDark mt-2.5">사업운</span>
-              <span class="text-[10px] text-brandMuted">발산(+)</span>
+              <div class="text-center">
+                <p class="text-[11px] font-bold text-stone-800">사업운</p>
+                <p class="text-[9px] text-stone-400 font-medium">추진·발산</p>
+              </div>
             </div>
 
-            <!-- Tube 2: 재물 (Wealth) -->
-            <div class="flex flex-col items-center">
-              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
-                <div id="tube-wealth" class="tube-fill w-full rounded-full bg-emerald-400 flex items-center justify-center text-[10px] font-bold text-emerald-950 pb-2 shadow-sm" style="height: 62%;">
-                  62%
+            <!-- 재물운 -->
+            <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
+              <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+                <div id="tubeWealth" class="tube-fill w-full bg-gradient-to-t from-emerald-400 to-teal-500 rounded-full flex items-start justify-center pt-2" style="height: 55%;">
+                  <span id="valWealth" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">55%</span>
                 </div>
               </div>
-              <span class="text-xs font-bold text-brandDark mt-2.5">재물운</span>
-              <span class="text-[10px] text-brandMuted">결실</span>
+              <div class="text-center">
+                <p class="text-[11px] font-bold text-stone-800">재물운</p>
+                <p class="text-[9px] text-stone-400 font-medium">결실·안정</p>
+              </div>
             </div>
 
-            <!-- Tube 3: 심신 (Mental) -->
-            <div class="flex flex-col items-center">
-              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
-                <div id="tube-mental" class="tube-fill w-full rounded-full bg-purple-400 flex items-center justify-center text-[10px] font-bold text-purple-950 pb-2 shadow-sm" style="height: 38%;">
-                  38%
+            <!-- 심신운 -->
+            <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
+              <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+                <div id="tubeMental" class="tube-fill w-full bg-gradient-to-t from-purple-400 to-indigo-500 rounded-full flex items-start justify-center pt-2" style="height: 72%;">
+                  <span id="valMental" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">72%</span>
                 </div>
               </div>
-              <span class="text-xs font-bold text-brandDark mt-2.5">심신운</span>
-              <span class="text-[10px] text-brandMuted">수렴(-)</span>
+              <div class="text-center">
+                <p class="text-[11px] font-bold text-stone-800">심신운</p>
+                <p class="text-[9px] text-stone-400 font-medium">수렴·내실</p>
+              </div>
             </div>
 
-            <!-- Tube 4: 연애 (Love) -->
-            <div class="flex flex-col items-center">
-              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
-                <div id="tube-love" class="tube-fill w-full rounded-full bg-pink-400 flex items-center justify-center text-[10px] font-bold text-pink-950 pb-2 shadow-sm" style="height: 52%;">
-                  52%
+            <!-- 연애운 -->
+            <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
+              <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+                <div id="tubeLove" class="tube-fill w-full bg-gradient-to-t from-rose-400 to-pink-500 rounded-full flex items-start justify-center pt-2" style="height: 48%;">
+                  <span id="valLove" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">48%</span>
                 </div>
               </div>
-              <span class="text-xs font-bold text-brandDark mt-2.5">연애운</span>
-              <span class="text-[10px] text-brandMuted">화합</span>
+              <div class="text-center">
+                <p class="text-[11px] font-bold text-stone-800">연애운</p>
+                <p class="text-[9px] text-stone-400 font-medium">화합·교류</p>
+              </div>
             </div>
-
-          </div>
-        </div>
-
-        <!-- Literary Saju Weather Note -->
-        <div class="bg-white rounded-2xl p-4 shadow-soft border border-amber-100/80 mb-3 flex items-start gap-3">
-          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-            <i data-lucide="quote" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <span class="text-xs font-bold text-brandDark">다정한 기상 통찰</span>
-            <p id="literary-advice-text" class="text-[11px] text-slate-600 mt-1 leading-relaxed">
-              지금은 사업적 추진력(74%)이 높아 결과를 내기 좋지만, 심신 에너지(38%)가 소모되는 시기입니다. 밖에서의 승리에 취해 내 몸을 돌보는 시간을 잊지 마세요.
-            </p>
           </div>
         </div>
 
+        <!-- 다정한 기상 통찰 카드 -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-100 mb-6">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 text-amber-600 text-sm font-black">
+              💡
+            </div>
+            <div>
+              <h4 class="text-xs font-black text-stone-800 mb-1">다정한 기상 통찰</h4>
+              <p id="txtInsightDesc" class="text-xs text-stone-500 font-medium leading-relaxed">
+                지금은 사업적 추진력(65%)이 탄력을 받는 시기입니다. 밖에서의 전진에 취해 심신 에너지의 충전을 소홀히 하지 마세요.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Action Button (Create New Journal -> Life Guidance) -->
-      <button id="ask-life-weather-btn" class="w-full py-4 rounded-2xl bg-brandAmber text-brandDark font-bold text-sm shadow-pill hover:bg-amber-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-        <i data-lucide="message-circle-heart" class="w-4 h-4"></i>
+      <!-- 하단 CTA 버튼 -->
+      <button class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
+        <i class="fa-regular fa-comment-dots text-base"></i>
         <span>오늘 기상도에 대해 대화하기</span>
       </button>
+    </section>
 
-    </div>
+  </main>
 
-  </div>
-
-  <!-- ================= DIALOG / CHATBOT MODAL (Mindful Gemini Assistant) ================= -->
-  <div id="chat-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-appBg w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl border-4 border-white flex flex-col justify-between max-h-[90vh]">
-      
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between pb-3 border-b border-slate-200/60 mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-brandAmber text-brandDark flex items-center justify-center font-bold">
-            <i data-lucide="sun" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-brandDark">사주그랩 기상캐스터</h3>
-            <span class="text-[10px] text-brandMuted">문과적 감성의 따뜻한 전략 가이드</span>
-          </div>
-        </div>
-        <button id="close-modal-btn" class="w-7 h-7 rounded-full bg-white flex items-center justify-center text-brandDark shadow-sm hover:bg-slate-100">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <!-- Chat Stream -->
-      <div class="flex-1 overflow-y-auto space-y-3 p-1 text-xs leading-relaxed" id="chat-messages">
-        <div class="flex items-start gap-2.5">
-          <div class="w-6 h-6 rounded-full bg-brandAmber text-brandDark flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">☀️</div>
-          <div class="bg-white p-3 rounded-2xl rounded-tl-sm shadow-soft text-slate-700 max-w-[85%]">
-            반가워요! 지금 짚고 계신 시점은 <strong>사업운(74%)</strong>이 왕성하게 뻗어나가는 시기입니다. 혹시 오늘 어떤 선택이나 흐름이 가장 궁금하신가요?
-          </div>
-        </div>
-      </div>
-
-      <!-- Input Bar -->
-      <div class="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-2">
-        <input type="text" id="chat-input" placeholder="예: 지금 이직을 준비해도 괜찮은 시기인가요?" class="flex-1 bg-white px-4 py-2.5 rounded-full text-xs text-brandDark border border-slate-200 focus:outline-none focus:border-brandAmber shadow-inner" />
-        <button id="send-chat-btn" class="w-9 h-9 rounded-full bg-brandAmber text-brandDark flex items-center justify-center shadow-pill hover:scale-105 transition-all">
-          <i data-lucide="send" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ================= CORE JAVASCRIPT ENGINE ================= -->
+  <!-- ===================================================================== -->
+  <!-- 클라이언트 JavaScript: API 연동 & Chart.js 렌더링 -->
+  <!-- ===================================================================== -->
   <script>
-    // ----------------------------------------------------
-    // 1. Definition of 6 Categories (Saju Grap Waves)
-    // ----------------------------------------------------
-    const CATEGORIES = [
-      { id: '1', name: '1. 종합 총운', short: '총운', color: '#F7A725', rgb: '247, 167, 37' },
-      { id: '2', name: '2. 사업/커리어', short: '사업', color: '#06B6D4', rgb: '6, 182, 212' },
-      { id: '3', name: '3. 재물/자산', short: '재물', color: '#10B981', rgb: '16, 185, 129' },
-      { id: '4', name: '4. 연애/관계', short: '연애', color: '#EC4899', rgb: '236, 72, 153' },
-      { id: '5', name: '5. 심신/멘탈', short: '심신', color: '#8B5CF6', rgb: '139, 92, 246' },
-      { id: '6', name: '6. 명예/성장', short: '성장', color: '#3B82F6', rgb: '59, 130, 246' }
-    ];
-
-    const TF_SPAN = { '1H': 14, '1D': 24, '1W': 42, '1M': 64, '1Y': 84 };
-    const TOTAL_BUFFER = 240;
-    const DISPLAY_SLICES = 30;
-
-    let currentTimeframe = '1D';
-    let activeCategory = 'ALL';
-    let centerIndex = Math.floor(TOTAL_BUFFER / 2);
-    let animatedSpan = { value: TF_SPAN['1D'] };
     let chartInstance = null;
+    let currentData = null;
 
-    // ----------------------------------------------------
-    // 2. Master Wave Generator
-    // ----------------------------------------------------
-    function generateContinuousMasterData() {
-      const labels = [];
-      const now = new Date();
-      
-      for (let i = 0; i < TOTAL_BUFFER; i++) {
-        const offsetMin = (i - TOTAL_BUFFER / 2) * 12;
-        const t = new Date(now.getTime() + offsetMin * 60 * 1000);
-        labels.push(`${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`);
-      }
+    // 1. API 호출 함수
+    async function fetchSajuAnalysis(payload) {
+      const btn = document.getElementById('btnSubmit');
+      btn.classList.add('opacity-70', 'pointer-events-none');
+      btn.querySelector('span').innerText = '연산 중...';
 
-      const waveData = {};
-      CATEGORIES.forEach(cat => {
-        const centerWave = [];
-        const upperBand = [];
-        const lowerBand = [];
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-        for (let i = 0; i < TOTAL_BUFFER; i++) {
-          const baseCycle = Math.sin((i / 8) + (parseInt(cat.id) * 0.9)) * 62;
-          const noise = (Math.random() - 0.5) * 14;
-          const centerVal = Math.max(-95, Math.min(95, Math.round(baseCycle + noise)));
-
-          const clashFriction = Math.abs(Math.sin(i / 10)) * 24 + 12;
-          upperBand.push(Math.min(100, centerVal + clashFriction));
-          lowerBand.push(Math.max(-100, centerVal - clashFriction));
-          centerWave.push(centerVal);
-        }
-
-        waveData[cat.id] = { centerWave, upperBand, lowerBand };
-      });
-
-      return { labels, waveData };
-    }
-
-    const masterData = generateContinuousMasterData();
-
-    // Slicing with continuous interpolation
-    function getContinuousViewport(spanValue) {
-      const labels = [];
-      const sampledData = {};
-
-      CATEGORIES.forEach(c => {
-        sampledData[c.id] = { center: [], upper: [], lower: [] };
-      });
-
-      for (let s = 0; s < DISPLAY_SLICES; s++) {
-        const progress = (s / (DISPLAY_SLICES - 1)) - 0.5;
-        const continuousIdx = Math.max(0, Math.min(TOTAL_BUFFER - 1, centerIndex + (progress * spanValue)));
-        const floorIdx = Math.floor(continuousIdx);
-        const ceilIdx = Math.min(TOTAL_BUFFER - 1, floorIdx + 1);
-        const t = continuousIdx - floorIdx;
-
-        if (s === 0 || s === DISPLAY_SLICES - 1 || s === Math.floor(DISPLAY_SLICES / 2) || s % 5 === 0) {
-          labels.push(masterData.labels[floorIdx] || '--:--');
+        const json = await response.json();
+        if (json.success && json.data) {
+          currentData = json.data;
+          renderDashboard(json.data);
         } else {
-          labels.push('');
+          alert('사주 분석 실패: ' + (json.message || '오류 발생'));
         }
-
-        CATEGORIES.forEach(cat => {
-          const stream = masterData.waveData[cat.id];
-          const cVal = (1 - t) * stream.centerWave[floorIdx] + t * stream.centerWave[ceilIdx];
-          const uVal = (1 - t) * stream.upperBand[floorIdx] + t * stream.upperBand[ceilIdx];
-          const lVal = (1 - t) * stream.lowerBand[floorIdx] + t * stream.lowerBand[ceilIdx];
-
-          sampledData[cat.id].center.push(Number(cVal.toFixed(1)));
-          sampledData[cat.id].upper.push(Number(uVal.toFixed(1)));
-          sampledData[cat.id].lower.push(Number(lVal.toFixed(1)));
-        });
+      } catch (err) {
+        console.error('API Error:', err);
+        alert('백엔드 API 서버와 통신할 수 없습니다.');
+      } finally {
+        btn.classList.remove('opacity-70', 'pointer-events-none');
+        btn.querySelector('span').innerText = '분석 실행';
       }
-
-      const centerLabel = masterData.labels[centerIndex];
-      CATEGORIES.forEach(cat => {
-        sampledData[cat.id].pivotValue = masterData.waveData[cat.id].centerWave[centerIndex];
-        sampledData[cat.id].pivotUpper = masterData.waveData[cat.id].upperBand[centerIndex];
-        sampledData[cat.id].pivotLower = masterData.waveData[cat.id].lowerBand[centerIndex];
-      });
-
-      return { labels, sampledData, centerLabel };
     }
 
-    let currentView = getContinuousViewport(animatedSpan.value);
+    // 2. 대시보드 UI 동적 갱신
+    function renderDashboard(data) {
+      const { pillars, analysis, daewoonWaves, meta } = data;
+      const dayPillar = pillars.day;
+      const dayGan = dayPillar.charAt(0);
 
-    // ----------------------------------------------------
-    // 3. Initialize Cozy Chart.js Canvas
-    // ----------------------------------------------------
-    function initMainChart() {
-      const ctx = document.getElementById('chartStyle1').getContext('2d');
-      const datasets = [];
+      // 헤더 사용자 정보 갱신
+      document.getElementById('txtUserPillar').innerText = `${dayPillar}`;
+      document.getElementById('txtDayGanBadge').innerText = dayGan;
 
-      // 6 Category Lines
-      CATEGORIES.forEach(cat => {
-        datasets.push({
-          label: cat.name,
-          catId: cat.id,
-          data: currentView.sampledData[cat.id].center,
-          borderColor: cat.color,
-          borderWidth: 2.2,
-          tension: 0.38,
-          pointRadius: 0,
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: cat.color,
-          pointHoverBorderColor: '#FFFFFF',
-          pointHoverBorderWidth: 2,
-          order: 2
-        });
-      });
+      // 분석 태그 및 배지
+      document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점) · 오행 유통`;
+      document.getElementById('badgeYongsin').innerText = `용신: ${analysis.yongsinProfile.yongsin}`;
+      document.getElementById('badgeHeesin').innerText = `희신: ${analysis.yongsinProfile.heesin}`;
+      document.getElementById('badgeFlow').innerText = meta.isForward ? '순행 대운' : '역행 대운';
 
-      // Translucent Upper Band (Potential)
-      datasets.push({
-        label: 'Upper Potential',
-        isBound: true,
-        data: currentView.sampledData['1'].upper,
-        borderColor: 'transparent',
-        backgroundColor: 'rgba(247, 167, 37, 0.16)',
-        fill: '+1',
-        tension: 0.38,
-        pointRadius: 0,
-        order: 3
-      });
+      // 4대 에너지 튜브 반영 (현재 나이 구간 또는 대표 대운 기준)
+      const activeWave = daewoonWaves[3] || daewoonWaves[0]; // 4번째 대운(청장년기) 기준
+      updateTubes(activeWave.scores);
 
-      // Translucent Lower Band (Floor)
-      datasets.push({
-        label: 'Lower Floor',
-        isBound: true,
-        data: currentView.sampledData['1'].lower,
-        borderColor: 'transparent',
-        backgroundColor: 'transparent',
-        fill: false,
-        tension: 0.38,
-        pointRadius: 0,
-        order: 4
-      });
+      // 메인 통찰 코멘트
+      document.getElementById('txtMainWaveScore').innerText = (activeWave.scores.total >= 0 ? `+${activeWave.scores.total}` : `${activeWave.scores.total}`);
+      document.getElementById('txtInsightDesc').innerText = `현재 대운(${activeWave.ganZhi})은 사업운(${toPercent(activeWave.scores.career)}%)과 재물운(${toPercent(activeWave.scores.wealth)}%)의 합력이 조화를 이루는 시기입니다. 균형 잡힌 심신 관리를 병행하세요.`;
+
+      // 파동 차트 렌더링
+      renderWaveChart(daewoonWaves);
+    }
+
+    // -100 ~ +100 점수를 0 ~ 100% 게이지 높이로 환산
+    function toPercent(score) {
+      return Math.max(10, Math.min(100, Math.round((score + 100) / 2)));
+    }
+
+    function updateTubes(scores) {
+      const cPct = toPercent(scores.career);
+      const wPct = toPercent(scores.wealth);
+      const mPct = toPercent(scores.mental);
+      const lPct = toPercent(scores.love);
+
+      document.getElementById('tubeCareer').style.height = `${cPct}%`;
+      document.getElementById('valCareer').innerText = `${cPct}%`;
+
+      document.getElementById('tubeWealth').style.height = `${wPct}%`;
+      document.getElementById('valWealth').innerText = `${wPct}%`;
+
+      document.getElementById('tubeMental').style.height = `${mPct}%`;
+      document.getElementById('valMental').innerText = `${mPct}%`;
+
+      document.getElementById('tubeLove').style.height = `${lPct}%`;
+      document.getElementById('valLove').innerText = `${lPct}%`;
+    }
+
+    // 3. Chart.js 파동 곡선 렌더링
+    function renderWaveChart(waves) {
+      const ctx = document.getElementById('daewoonChart').getContext('2d');
+      const labels = waves.map(w => `${w.ganZhi}\n(${w.ageRange.start}세)`);
+      const totalData = waves.map(w => w.scores.total);
+      const upperData = waves.map(w => w.band.upper);
+      const lowerData = waves.map(w => w.band.lower);
+
+      if (chartInstance) chartInstance.destroy();
 
       chartInstance = new Chart(ctx, {
         type: 'line',
-        data: { labels: currentView.labels, datasets },
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '유동성 상단',
+              data: upperData,
+              borderColor: 'transparent',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              fill: '+1',
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: '유동성 하단',
+              data: lowerData,
+              borderColor: 'transparent',
+              backgroundColor: 'transparent',
+              pointRadius: 0,
+              tension: 0.4
+            },
+            {
+              label: '마스터 총운',
+              data: totalData,
+              borderColor: '#F59E0B',
+              borderWidth: 3,
+              backgroundColor: 'transparent',
+              pointBackgroundColor: '#FFFFFF',
+              pointBorderColor: '#D97706',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.4
+            }
+          ]
+        },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'nearest', intersect: false },
-          animation: false,
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(30, 30, 30, 0.92)',
-              titleColor: '#FFFFFF',
-              bodyColor: '#E4E4E7',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-              borderWidth: 1,
+              backgroundColor: '#1C1917',
+              titleFont: { size: 12, weight: 'bold' },
+              bodyFont: { size: 11 },
               padding: 10,
-              displayColors: true,
+              cornerRadius: 12,
+              displayColors: false,
               callbacks: {
-                label: ctx => ` ${ctx.dataset.label}: ${ctx.raw > 0 ? '+' : ''}${ctx.raw} (${ctx.raw > 0 ? '발산·실행' : '수렴·딥워크'})`
+                label: (ctx) => `에너지 점수: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y}점`
               }
             }
           },
           scales: {
             x: {
-              grid: { color: 'rgba(0, 0, 0, 0.03)' },
-              ticks: { color: '#8E8B85', font: { size: 9 }, autoSkip: false }
+              grid: { display: false },
+              ticks: { font: { size: 10, weight: '600' }, color: '#78716C' }
             },
             y: {
-              min: -105,
-              max: 105,
-              grid: { color: 'rgba(0, 0, 0, 0.04)' },
-              ticks: {
-                color: '#8E8B85',
-                font: { size: 9 },
-                callback: v => v === 100 ? '+100' : v === 0 ? '0' : v === -100 ? '-100' : ''
-              }
+              min: -100,
+              max: 100,
+              grid: { color: '#F3F4F6' },
+              ticks: { stepSize: 50, font: { size: 9 }, color: '#A8A29E' }
             }
           }
         }
       });
-
-      // Direct Canvas Click to Focus
-      document.getElementById('container-chart1').addEventListener('click', (e) => {
-        const points = chartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
-        if (points.length) {
-          const dsIdx = points[0].datasetIndex;
-          if (dsIdx < 6) {
-            const selectedCat = CATEGORIES[dsIdx].id;
-            setActiveCategory(activeCategory === selectedCat ? 'ALL' : selectedCat);
-          }
-        }
-      });
     }
 
-    // ----------------------------------------------------
-    // 4. Update Frame & Sync Tube Meters
-    // ----------------------------------------------------
-    function renderFrame() {
-      currentView = getContinuousViewport(animatedSpan.value);
+    // 4. 이벤트 바인딩
+    document.getElementById('sajuForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const payload = {
+        year: parseInt(document.getElementById('inpYear').value, 10),
+        month: parseInt(document.getElementById('inpMonth').value, 10),
+        day: parseInt(document.getElementById('inpDay').value, 10),
+        hour: parseInt(document.getElementById('inpHour').value, 10),
+        minute: parseInt(document.getElementById('inpMin').value, 10),
+        gender: parseInt(document.getElementById('inpGender').value, 10)
+      };
+      fetchSajuAnalysis(payload);
+    });
 
-      document.getElementById('center-time-indicator').textContent = `중심: ${currentView.centerLabel}`;
-
-      // Update Chart.js Lines
-      if (chartInstance) {
-        chartInstance.data.labels = currentView.labels;
-        CATEGORIES.forEach((cat, i) => {
-          chartInstance.data.datasets[i].data = currentView.sampledData[cat.id].center;
+    // 필터 칩 토글
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(b => {
+          b.classList.remove('bg-stone-800', 'text-white');
+          b.classList.add('bg-stone-100', 'text-stone-600');
         });
-
-        const targetCatId = activeCategory === 'ALL' ? '1' : activeCategory;
-        const targetCat = CATEGORIES.find(c => c.id === targetCatId);
-
-        chartInstance.data.datasets[6].data = currentView.sampledData[targetCatId].upper;
-        chartInstance.data.datasets[6].backgroundColor = `rgba(${targetCat.rgb}, 0.18)`;
-        chartInstance.data.datasets[7].data = currentView.sampledData[targetCatId].lower;
-
-        chartInstance.update('none');
-      }
-
-      // Sync 4 Capsule Tubes (Right Screen)
-      const carVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['2'].pivotValue + 100) / 2)));
-      const weaVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['3'].pivotValue + 100) / 2)));
-      const menVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['5'].pivotValue + 100) / 2)));
-      const lovVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['4'].pivotValue + 100) / 2)));
-
-      document.getElementById('tube-career').style.height = `${carVal}%`;
-      document.getElementById('tube-career').textContent = `${carVal}%`;
-
-      document.getElementById('tube-wealth').style.height = `${weaVal}%`;
-      document.getElementById('tube-wealth').textContent = `${weaVal}%`;
-
-      document.getElementById('tube-mental').style.height = `${menVal}%`;
-      document.getElementById('tube-mental').textContent = `${menVal}%`;
-
-      document.getElementById('tube-love').style.height = `${lovVal}%`;
-      document.getElementById('tube-love').textContent = `${lovVal}%`;
-
-      // Update Big Number Score
-      const focusId = activeCategory === 'ALL' ? '1' : activeCategory;
-      const rawPivot = currentView.sampledData[focusId].pivotValue;
-      document.getElementById('score-polarity-sign').textContent = rawPivot >= 0 ? '+' : '';
-      document.getElementById('score-big-number').textContent = Math.abs(rawPivot);
-
-      if (rawPivot >= 35) {
-        document.getElementById('score-statement').textContent = "밖으로 뜻을 펼치는 완연한 발산의 계절입니다";
-      } else if (rawPivot <= -30) {
-        document.getElementById('score-statement').textContent = "내실을 다지며 기획과 지식을 축적할 때입니다";
-      } else {
-        document.getElementById('score-statement').textContent = "주변과 화합하며 중심을 지키는 전환기입니다";
-      }
-    }
-
-    // ----------------------------------------------------
-    // 5. Category Selection & Dimming
-    // ----------------------------------------------------
-    function setActiveCategory(catId) {
-      activeCategory = catId;
-
-      document.querySelectorAll('.num-capsule').forEach(btn => {
-        if (btn.dataset.cat === catId) btn.classList.add('active');
-        else btn.classList.remove('active');
+        btn.classList.add('bg-stone-800', 'text-white');
+        btn.classList.remove('bg-stone-100', 'text-stone-600');
       });
+    });
 
-      const s1Label = document.getElementById('stat-s1-active');
-      if (catId === 'ALL') {
-        s1Label.textContent = '전체 파동 궤적';
-      } else {
-        const found = CATEGORIES.find(c => c.id === catId);
-        s1Label.textContent = `포커스: ${found.name}`;
-      }
-
-      if (chartInstance) {
-        CATEGORIES.forEach((cat, i) => {
-          const ds = chartInstance.data.datasets[i];
-          const isTarget = (catId === 'ALL') || (cat.id === catId);
-          ds.borderColor = isTarget ? cat.color : 'rgba(0, 0, 0, 0.08)';
-          ds.borderWidth = isTarget ? (catId !== 'ALL' ? 3.5 : 2.2) : 1;
-        });
-      }
-
-      renderFrame();
-    }
-
-    // ----------------------------------------------------
-    // 6. Timeframe Switcher
-    // ----------------------------------------------------
-    function switchTimeframe(tf) {
-      if (currentTimeframe === tf) return;
-      currentTimeframe = tf;
-
-      document.querySelectorAll('.tf-btn').forEach(btn => {
-        if (btn.dataset.tf === tf) {
-          btn.className = 'tf-btn flex-1 py-1.5 rounded-xl text-xs font-bold text-brandDark bg-brandAmber shadow-pill transition-all';
-        } else {
-          btn.className = 'tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all';
-        }
-      });
-
-      const targetSpan = TF_SPAN[tf];
-      gsap.to(animatedSpan, {
-        value: targetSpan,
-        duration: 0.6,
-        ease: 'power3.out',
-        onUpdate: renderFrame
-      });
-    }
-
-    // ----------------------------------------------------
-    // 7. Swipe & Pan Listeners
-    // ----------------------------------------------------
-    function setupSwipeListeners() {
-      const container = document.getElementById('container-chart1');
-      let isDragging = false;
-      let startX = 0;
-      let initialCenter = centerIndex;
-
-      container.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.clientX;
-        initialCenter = centerIndex;
-      });
-
-      container.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          isDragging = true;
-          startX = e.touches[0].clientX;
-          initialCenter = centerIndex;
-        }
-      }, { passive: true });
-
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const deltaX = e.clientX - startX;
-        const tickDelta = Math.round(deltaX / 14);
-        const newCenter = initialCenter - tickDelta;
-
-        const halfSpan = Math.floor(animatedSpan.value / 2);
-        if (newCenter >= halfSpan && newCenter <= TOTAL_BUFFER - halfSpan && newCenter !== centerIndex) {
-          centerIndex = newCenter;
-          renderFrame();
-        }
-      });
-
-      window.addEventListener('touchmove', (e) => {
-        if (!isDragging || e.touches.length !== 1) return;
-        const deltaX = e.touches[0].clientX - startX;
-        const tickDelta = Math.round(deltaX / 14);
-        const newCenter = initialCenter - tickDelta;
-
-        const halfSpan = Math.floor(animatedSpan.value / 2);
-        if (newCenter >= halfSpan && newCenter <= TOTAL_BUFFER - halfSpan && newCenter !== centerIndex) {
-          centerIndex = newCenter;
-          renderFrame();
-        }
-      }, { passive: true });
-
-      window.addEventListener('mouseup', () => { isDragging = false; });
-      window.addEventListener('touchend', () => { isDragging = false; });
-    }
-
-    // ----------------------------------------------------
-    // 8. Dialog & Chatbot Interactivity
-    // ----------------------------------------------------
-    function setupChatModal() {
-      const modal = document.getElementById('chat-modal');
-      const openBtn1 = document.getElementById('chatbot-trigger-btn');
-      const openBtn2 = document.getElementById('ask-life-weather-btn');
-      const closeBtn = document.getElementById('close-modal-btn');
-      const sendBtn = document.getElementById('send-chat-btn');
-      const input = document.getElementById('chat-input');
-      const msgContainer = document.getElementById('chat-messages');
-
-      function openModal() {
-        modal.classList.remove('hidden');
-        setTimeout(() => modal.classList.remove('opacity-0'), 10);
-      }
-
-      function closeModal() {
-        modal.classList.add('opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 300);
-      }
-
-      openBtn1.addEventListener('click', openModal);
-      openBtn2.addEventListener('click', openModal);
-      closeBtn.addEventListener('click', closeModal);
-
-      function sendMessage() {
-        const text = input.value.trim();
-        if (!text) return;
-
-        // Append User Bubble
-        const userDiv = document.createElement('div');
-        userDiv.className = 'flex items-start justify-end gap-2';
-        userDiv.innerHTML = `<div class="bg-brandDark text-white p-3 rounded-2xl rounded-tr-sm text-xs max-w-[85%]">${text}</div>`;
-        msgContainer.appendChild(userDiv);
-        input.value = '';
-
-        // Simulate Warm Saju Coach Response
-        setTimeout(() => {
-          const aiDiv = document.createElement('div');
-          aiDiv.className = 'flex items-start gap-2.5';
-          aiDiv.innerHTML = `
-            <div class="w-6 h-6 rounded-full bg-brandAmber text-brandDark flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">☀️</div>
-            <div class="bg-white p-3 rounded-2xl rounded-tl-sm shadow-soft text-slate-700 max-w-[85%]">
-              지금 짚어주신 시점은 <strong>사업운(+74%)</strong>이 상단을 달리고 있어 새로운 제안이나 기회를 맞이하기에 매우 좋습니다. 다만, 서두르지 마시고 지장간에 묻힌 신금(申金)의 치밀한 분석력을 발휘해 조건을 꼼꼼히 조율해보세요.
-            </div>
-          `;
-          msgContainer.appendChild(aiDiv);
-          msgContainer.scrollTop = msgContainer.scrollHeight;
-        }, 600);
-
-        msgContainer.scrollTop = msgContainer.scrollHeight;
-      }
-
-      sendBtn.addEventListener('click', sendMessage);
-      input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-    }
-
-    // ----------------------------------------------------
-    // 9. Document Load
-    // ----------------------------------------------------
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-
-      initMainChart();
-      renderFrame();
-      setupSwipeListeners();
-      setupChatModal();
-
-      // Capsule click listeners
-      document.getElementById('capsule-container').addEventListener('click', (e) => {
-        const btn = e.target.closest('.num-capsule');
-        if (btn) setActiveCategory(btn.dataset.cat);
-      });
-
-      // Timeframe buttons
-      document.querySelectorAll('.tf-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchTimeframe(btn.dataset.tf));
-      });
-
-      // GSAP Entrance
-      gsap.from('body > div', { opacity: 0, y: 20, duration: 0.7, ease: 'power3.out' });
+    // 페이지 진입 시 기본값으로 최초 1회 즉시 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('sajuForm').dispatchEvent(new Event('submit'));
     });
   </script>
 </body>
