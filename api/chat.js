@@ -52,7 +52,6 @@ export default async function handler(req, res) {
     let contents = [];
 
     if (mode === 'insight') {
-      // 용/희/기/구신 단독 해설 요청
       contents = [
         {
           role: 'user',
@@ -64,7 +63,6 @@ export default async function handler(req, res) {
         }
       ];
     } else {
-      // 챗봇 대화 모드 (대화 이력 포함)
       contents = history.map(h => ({
         role: h.role === 'user' ? 'user' : 'model',
         parts: [{ text: h.text }]
@@ -75,9 +73,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Gemini 2.5 Flash API 호출
+    // Gemini 1.5 Flash 공식 모델 호출
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
