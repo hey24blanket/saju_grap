@@ -129,6 +129,7 @@
           class="w-full px-4 py-3.5 liquid-card-inner rounded-2xl font-bold text-center text-stone-800 focus:bg-white/80 focus:ring-2 focus:ring-amber-500/50 outline-none transition text-sm shadow-sm" />
       </div>
 
+      <!-- 생년월일시 그리드 -->
       <div class="space-y-2.5 mb-6">
         <label class="block text-[11px] font-black text-stone-500 ml-1">생년월일시 및 성별</label>
         
@@ -175,7 +176,7 @@
   </div>
 
 
-  <!-- 2. 슬라이더 휠 피커 모달 -->
+  <!-- 2. 슬라이더 휠 피커 모달 (배경 투명) -->
   <div id="modalWheelPicker" class="fixed inset-0 z-50 bg-transparent hidden items-center justify-center p-4 fade-in">
     <div class="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl relative flex flex-col justify-between border border-stone-200">
       <div>
@@ -255,7 +256,7 @@
             <button class="cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm" data-cycle="daewoon">대운(10년)</button>
           </div>
 
-          <!-- 5대 영역 칩 -->
+          <!-- 5대 영역 필터 칩 (터치 시 그래프 선만 변경) -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 text-xs font-bold">
             <button class="domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0" data-domain="all">총운</button>
             <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
@@ -264,7 +265,7 @@
             <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
           </div>
 
-          <!-- Chart.js 캔버스 -->
+          <!-- Chart.js 캔버스 (터치 시 0초 팝업) -->
           <div id="chartContainerBox" class="liquid-card-inner rounded-[28px] p-3 mb-4 relative cursor-pointer group hover:ring-2 ring-amber-400/60 transition" title="터치하여 현재 파동의 행동 전략 확인">
             <div class="w-full h-56 relative overflow-hidden pointer-events-none">
               <canvas id="daewoonChart"></canvas>
@@ -508,6 +509,7 @@
     const domainTitles = { all: '총운', career: '사업운', wealth: '재물운', mental: '심신운', love: '연애운' };
     const cycleTitles = { daewoon: '100년 대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
     
+    // 메모리 캐시
     const dynamicAiCache = {};
     let chatHistory = [];
 
@@ -712,6 +714,9 @@
           document.getElementById('viewOnboarding').classList.add('hidden');
           document.getElementById('viewDashboard').classList.remove('hidden');
           document.getElementById('viewDashboard').classList.add('flex');
+
+          // 대시보드 진입 즉시 5대 운 백그라운드 프리페치 실행
+          prefetchCycleStrategies(currentCycle);
         } else {
           alert('분석 실패: ' + (json.message || '입력값을 확인하세요.'));
         }
@@ -746,6 +751,42 @@
       currentCycle = 'daewoon';
       currentDomainIndex = 0;
       renderWaveChart(currentCycle, 'all');
+    }
+
+    // 백그라운드 5대 운 프리페치 (상용 앱 핵심 기법)
+    async function prefetchCycleStrategies(cycleKey) {
+      const cycleScores = currentAnalysisData.cyclesData[cycleKey];
+      const scoresPayload = {
+        all: cycleScores.total?.[3] ?? cycleScores.total?.[0] ?? 0,
+        career: cycleScores.career?.[3] ?? cycleScores.career?.[0] ?? 0,
+        wealth: cycleScores.wealth?.[3] ?? cycleScores.wealth?.[0] ?? 0,
+        mental: cycleScores.mental?.[3] ?? cycleScores.mental?.[0] ?? 0,
+        love: cycleScores.love?.[3] ?? cycleScores.love?.[0] ?? 0
+      };
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'prefetch',
+            cycle: cycleTitles[cycleKey],
+            cycleScores: scoresPayload,
+            sajuContext: {
+              name: currentPayload?.name,
+              pillars: currentAnalysisData?.pillars,
+              dayPillar: currentAnalysisData?.pillars?.day,
+              dayHanja: currentAnalysisData?.pillars?.dayHanja
+            }
+          })
+        });
+        const json = await res.json();
+        if (json.success && json.data) {
+          Object.keys(json.data).forEach(dKey => {
+            dynamicAiCache[`${cycleKey}_${dKey}`] = json.data[dKey];
+          });
+        }
+      } catch (err) {}
     }
 
     function renderWaveChart(cycleKey, highlightDomain = 'all') {
@@ -796,6 +837,7 @@
       });
     }
 
+    // 주기 탭 전환 시 그래프 변경 + 백그라운드 프리페치 동시 가동
     document.querySelectorAll('.cycle-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         playTickSound();
@@ -806,10 +848,13 @@
         currentCycle = tab.dataset.cycle;
         document.getElementById('txtCycleGuide').innerText = `👈 ${cycleTitles[currentCycle]} 파동 분석`;
         renderWaveChart(currentCycle, domainKeys[currentDomainIndex]);
+
+        // 새 주기의 5대 운 미리 로드
+        prefetchCycleStrategies(currentCycle);
       });
     });
 
-    // 5대 영역 전환 (터치 시 팝업 없이 그래프 선만 즉시 변경)
+    // 5대 영역 전환
     function setDomain(index) {
       currentDomainIndex = (index + domainKeys.length) % domainKeys.length;
       const domainKey = domainKeys[currentDomainIndex];
@@ -836,7 +881,7 @@
       });
     });
 
-    // 그래프 터치 시에만 팝업 실행
+    // 그래프 캔버스 터치 시 즉시 300자 팝업 실행
     document.getElementById('chartContainerBox').addEventListener('click', () => {
       openScenarioModal(domainKeys[currentDomainIndex]);
     });
@@ -882,13 +927,14 @@
       }
     });
 
-    // 주기별 영역 고유 전략 팝업
+    // 주기별 영역 고유 전략 팝업 (0초 즉시 출력)
     async function openScenarioModal(domainKey) {
       const domainName = domainTitles[domainKey];
       const cycleName = cycleTitles[currentCycle];
       const title = `${cycleName} · ${domainName} 전략`;
       const cacheKey = `${currentCycle}_${domainKey}`;
 
+      // 이미 백그라운드에서 프리페치 완료된 경우 0초 즉시 출력
       if (dynamicAiCache[cacheKey]) {
         openUnifiedModal(title, dynamicAiCache[cacheKey]);
         return;
@@ -896,7 +942,6 @@
 
       openUnifiedModal(title, '', true);
 
-      // 현재 선택된 주기의 대표 점수 계산
       const cycleScores = currentAnalysisData.cyclesData[currentCycle];
       const activeScore = cycleScores[domainKey === 'all' ? 'total' : domainKey]?.[3] ?? cycleScores.total?.[0] ?? 0;
 
@@ -913,8 +958,7 @@
               name: currentPayload?.name,
               pillars: currentAnalysisData?.pillars,
               dayPillar: currentAnalysisData?.pillars?.day,
-              dayHanja: currentAnalysisData?.pillars?.dayHanja,
-              yongsinProfile: currentAnalysisData?.analysis?.yongsinProfile
+              dayHanja: currentAnalysisData?.pillars?.dayHanja
             }
           })
         });
@@ -929,7 +973,7 @@
           dynamicAiCache[cacheKey] = json.reply;
           contentEl.innerText = json.reply;
         } else {
-          contentEl.innerText = `${currentPayload?.name || '내담자'}님의 ${cycleName} ${domainName} 파동(에너지 지수: ${activeScore}점)에 맞춘 전략입니다. 현재 구간의 행동 모드를 확인하고 실행하세요.`;
+          contentEl.innerText = `${currentPayload?.name || '내담자'}님의 ${cycleName} ${domainName} 파동 흐름입니다. 현재 국면은 외부 확장보다 내부 프로세스를 점검하고 핵심 자원을 정돈하기에 적합합니다.`;
         }
       } catch (err) {
         document.getElementById('modalAiLoading').classList.add('hidden');
@@ -957,7 +1001,7 @@
       });
     });
 
-    // 자세히 보기 (비동기 심층 리포트)
+    // 자세히 보기 (1,500자 비동기 심층 리포트)
     document.getElementById('btnFetchDetail').addEventListener('click', async () => {
       playTickSound();
       const domainKey = domainKeys[currentDomainIndex];
