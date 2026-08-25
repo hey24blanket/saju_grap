@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>사주그랩 // SAJU GRAP - Life Wave & Polarity Engine</title>
+  <title>사주그랩 // SAJU GRAP - 오늘의 인생 기상도</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- GSAP Animation Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -20,23 +20,25 @@
 
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            bgDark: '#07090E',
-            cardDark: 'rgba(13, 18, 30, 0.78)',
-            borderDark: 'rgba(255, 255, 255, 0.07)',
-            cTotal: '#F59E0B',   // 1. 총운 (Gold)
-            cCareer: '#06B6D4',  // 2. 사업/커리어 (Cyan)
-            cWealth: '#10B981',  // 3. 재물/자산 (Emerald)
-            cLove: '#EC4899',    // 4. 연애/관계 (Pink)
-            cMental: '#8B5CF6',  // 5. 심신/멘탈 (Violet)
-            cGrowth: '#3B82F6'   // 6. 명예/성장 (Blue)
+            appBg: '#F4EFEB',        // Warm Sand Beige Background
+            appCard: '#FFFFFF',      // Pure White Card
+            brandAmber: '#F7A725',   // Sun Warm Yellow
+            brandDark: '#1E1E1E',    // Soft Charcoal Black
+            brandMuted: '#8E8B85',   // Muted Grey-Brown
+            pastelPeach: '#FDEAE6',
+            pastelMint: '#E4F6ED',
+            pastelPurple: '#EAE6FE',
+            pastelBlue: '#E2F0FD'
           },
           fontFamily: {
             sans: ['"Pretendard"', '"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"Fira Code"', 'monospace']
+          },
+          boxShadow: {
+            'soft': '0 8px 30px rgba(0, 0, 0, 0.04)',
+            'pill': '0 4px 14px rgba(247, 167, 37, 0.28)'
           }
         }
       }
@@ -45,29 +47,13 @@
 
   <style>
     body {
-      background-color: #07090E;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.07) 0px, transparent 45%),
-        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 45%),
-        radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 55%);
-      color: #E2E8F0;
-      min-height: 100vh;
+      background-color: #ECE7E1;
+      font-family: 'Pretendard', sans-serif;
+      color: #1E1E1E;
       user-select: none;
     }
-    
-    .glass-panel {
-      background: rgba(13, 18, 30, 0.78);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
 
-    .glass-panel:hover {
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-
-    /* Interactive Chart Swipe Surface */
+    /* Swipe Chart Canvas Area */
     .chart-swipe-container {
       cursor: grab;
       touch-action: pan-y;
@@ -77,15 +63,15 @@
       cursor: grabbing;
     }
 
-    /* Center Pivot Guideline */
+    /* Center Guideline Overlay */
     .center-anchor-line {
       position: absolute;
-      top: 8%;
-      bottom: 8%;
+      top: 10%;
+      bottom: 10%;
       left: 50%;
-      width: 1px;
+      width: 1.5px;
       transform: translateX(-50%);
-      background: linear-gradient(to bottom, transparent, rgba(6, 182, 212, 0.45), transparent);
+      background: linear-gradient(to bottom, transparent, rgba(247, 167, 37, 0.55), transparent);
       pointer-events: none;
       z-index: 10;
     }
@@ -99,372 +85,374 @@
       pointer-events: none;
     }
 
-    /* Magnetic Slider Styles */
-    .magnetic-slider-track {
-      position: relative;
-      cursor: pointer;
-    }
-
-    .magnetic-thumb {
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      transition: box-shadow 0.2s ease;
-      box-shadow: 0 0 16px rgba(6, 182, 212, 0.6);
-      will-change: left, transform;
-    }
-
     /* Minimalist Number Capsule Buttons */
     .num-capsule {
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .num-capsule.active {
-      transform: translateY(-2px);
-      box-shadow: 0 0 18px var(--glow-color);
-      border-color: var(--border-color) !important;
-      background: rgba(30, 41, 59, 0.9) !important;
+      background-color: #1E1E1E !important;
+      color: #FFFFFF !important;
+      transform: translateY(-1.5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+    .num-capsule.active span.badge {
+      background-color: #F7A725 !important;
+      color: #1E1E1E !important;
     }
 
-    @keyframes pulse-glow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(1.25); }
+    /* Smooth Vertical Tube Capsule Transition */
+    .tube-fill {
+      transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .live-dot { animation: pulse-glow 2.2s infinite ease-in-out; }
 
     ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: rgba(13, 18, 30, 0.6); }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.08); border-radius: 99px; }
   </style>
 </head>
 
-<body class="font-sans antialiased text-slate-200 p-3 sm:p-5 lg:p-6 flex flex-col justify-between">
+<body class="min-h-screen p-3 sm:p-6 lg:p-8 flex items-center justify-center">
 
-  <!-- ================= TOP HEADER: BRAND, TIME SLIDER & 1-ROW CAPSULES ================= -->
-  <header class="w-full max-w-[1760px] mx-auto mb-4">
-    <div class="glass-panel rounded-2xl p-3.5 sm:p-4 shadow-2xl flex flex-col gap-3.5">
+  <!-- ================= DUAL MOBILE SCREEN CONTAINER (Responsive PC Layout) ================= -->
+  <div class="w-full max-w-[1080px] grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+    
+    <!-- ================================================================= -->
+    <!-- SCREEN 1: TODAY'S LIFE WEATHER & MASTER WAVE (Left Mobile App)    -->
+    <!-- ================================================================= -->
+    <div class="w-full max-w-[440px] mx-auto bg-appBg rounded-[2.75rem] p-6 shadow-2xl border-[6px] border-white flex flex-col justify-between min-h-[820px] relative overflow-hidden">
       
-      <!-- Top Row: Logo & Magnetic Notch Time Slider -->
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        
-        <!-- Brand / Identity -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <i data-lucide="waves" class="w-5 h-5 text-white"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2 font-mono">
-                SAJU GRAP <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">WAVE v2.0</span>
-              </h1>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span>
-                CENTER MORPHING
-              </span>
-            </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">인생 주파수 & 6대 파동 유동성 바운더리 멘탈 나침반</p>
-          </div>
-        </div>
-
-        <!-- Magnetic Notch Time Slider (봉 단위 연속 줌) -->
-        <div class="flex items-center bg-slate-950/90 px-3 py-1.5 rounded-xl border border-white/10 shadow-inner w-full md:w-auto min-w-[320px] max-w-[420px]">
-          <span class="text-[10px] font-mono text-cyan-400 pr-2 uppercase tracking-wider hidden sm:inline-block">Zoom</span>
-          <div id="magnetic-slider-box" class="magnetic-slider-track flex-1 h-8 flex items-center px-3 relative select-none">
-            <!-- Connecting Line -->
-            <div class="absolute left-4 right-4 h-1 bg-slate-800 rounded-full"></div>
-            <!-- Active Fill -->
-            <div id="magnetic-active-fill" class="absolute left-4 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-amber-500 rounded-full transition-all" style="width: 25%;"></div>
-
-            <!-- 5 Step Notch Points -->
-            <div class="relative w-full flex justify-between items-center z-10">
-              <div class="step-point cursor-pointer flex flex-col items-center" data-step="0">
-                <div class="w-2 h-2 rounded-full bg-slate-600 border border-slate-400/40"></div>
-                <span class="step-label text-[9px] font-mono text-slate-400 mt-0.5 font-semibold">시봉(1H)</span>
-              </div>
-              <div class="step-point cursor-pointer flex flex-col items-center" data-step="1">
-                <div class="w-2 h-2 rounded-full bg-cyan-400 border border-white shadow-sm"></div>
-                <span class="step-label text-[9px] font-mono text-cyan-300 mt-0.5 font-bold">일봉(1D)</span>
-              </div>
-              <div class="step-point cursor-pointer flex flex-col items-center" data-step="2">
-                <div class="w-2 h-2 rounded-full bg-slate-600 border border-slate-400/40"></div>
-                <span class="step-label text-[9px] font-mono text-slate-400 mt-0.5 font-semibold">주봉(1W)</span>
-              </div>
-              <div class="step-point cursor-pointer flex flex-col items-center" data-step="3">
-                <div class="w-2 h-2 rounded-full bg-slate-600 border border-slate-400/40"></div>
-                <span class="step-label text-[9px] font-mono text-slate-400 mt-0.5 font-semibold">월봉(1M)</span>
-              </div>
-              <div class="step-point cursor-pointer flex flex-col items-center" data-step="4">
-                <div class="w-2 h-2 rounded-full bg-slate-600 border border-slate-400/40"></div>
-                <span class="step-label text-[9px] font-mono text-slate-400 mt-0.5 font-semibold">연봉(1Y)</span>
-              </div>
-            </div>
-
-            <!-- Floating Snap Thumb -->
-            <div id="magnetic-thumb" class="magnetic-thumb w-6 h-6 rounded-lg bg-cyan-400 flex items-center justify-center cursor-grab active:cursor-grabbing border border-white text-slate-950 font-bold z-20 shadow-lg">
-              <i data-lucide="chevrons-left-right" class="w-3 h-3"></i>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Bottom Row: Single-Row 1-6 Minimalist Number Capsules + ALL -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-white/5">
-        <div class="flex items-center gap-1.5 flex-wrap flex-1" id="capsule-container">
-          
-          <!-- ALL Button -->
-          <button data-cat="ALL" class="num-capsule active px-3 py-1 rounded-lg text-xs font-mono font-bold bg-slate-800/90 border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(6,182,212,0.3); --border-color: #06B6D4;">
-            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-            <span>ALL (전체)</span>
-          </button>
-
-          <!-- 1: 총운 -->
-          <button data-cat="1" class="num-capsule px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(245,158,11,0.35); --border-color: #F59E0B;">
-            <span class="w-4 h-4 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-[10px] font-bold">1</span>
-            <span class="text-[11px] hidden sm:inline">총운</span>
-          </button>
-
-          <!-- 2: 사업/커리어 -->
-          <button data-cat="2" class="num-capsule px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(6,182,212,0.35); --border-color: #06B6D4;">
-            <span class="w-4 h-4 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center text-[10px] font-bold">2</span>
-            <span class="text-[11px] hidden sm:inline">사업</span>
-          </button>
-
-          <!-- 3: 재물/자산 -->
-          <button data-cat="3" class="num-capsule px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(16,185,129,0.35); --border-color: #10B981;">
-            <span class="w-4 h-4 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center justify-center text-[10px] font-bold">3</span>
-            <span class="text-[11px] hidden sm:inline">재물</span>
-          </button>
-
-          <!-- 4: 연애/관계 -->
-          <button data-cat="4" class="num-capsule px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(236,72,153,0.35); --border-color: #EC4899;">
-            <span class="w-4 h-4 rounded-md bg-pink-500/20 text-pink-300 border border-pink-500/40 flex items-center justify-center text-[10px] font-bold">4</span>
-            <span class="text-[11px] hidden sm:inline">연애</span>
-          </button>
-
-          <!-- 5: 심신/멘탈 -->
-          <button data-cat="5" class="num-capsule px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(139,92,246,0.35); --border-color: #8B5CF6;">
-            <span class="w-4 h-4 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center justify-center text-[10px] font-bold">5</span>
-            <span class="text-[11px] hidden sm:inline">심신</span>
-          </button>
-
-          <!-- 6: 명예/성장 -->
-          <button data-cat="6" class="num-capsule px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center gap-1.5" style="--glow-color: rgba(59,130,246,0.35); --border-color: #3B82F6;">
-            <span class="w-4 h-4 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center justify-center text-[10px] font-bold">6</span>
-            <span class="text-[11px] hidden sm:inline">성장</span>
-          </button>
-
-        </div>
-
-        <div class="flex items-center gap-2 text-[11px] font-mono text-slate-400">
-          <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5 text-cyan-400"></i>
-          <span>그래프 선을 직접 클릭해도 포커스됩니다</span>
-        </div>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- ================= MAIN CONTENT: 4 GRAPH PANELS ================= -->
-  <main class="w-full max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
-    
-    <!-- --------------------------------------------------------------- -->
-    <!-- GRAPH 01: Master Life Polarity Wave + Translucent Boundary Band -->
-    <!-- --------------------------------------------------------------- -->
-    <section class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-      <div class="flex items-center justify-between pb-2.5 mb-1.5 border-b border-white/5">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-xs font-bold font-mono">01</span>
-          <div>
-            <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              인생 극성 파동 & 유동성 바운더리
-              <span class="text-[10px] font-mono text-slate-400 font-normal">Polarity & Translucent Band</span>
-            </h2>
-            <p class="text-[11px] text-slate-400">발산(+100 실행) vs 수렴(-100 딥워크) 기저선과 외적 풍파(±ΔW) 잠재 밴드</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-900/60 px-2.5 py-1 rounded-md border border-white/5">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
-          <span id="stat-s1-active" class="font-bold text-cyan-400">ALL WAVES</span>
-        </div>
-      </div>
-
-      <div class="relative w-full h-[300px] md:h-[330px] chart-swipe-container" id="container-chart1">
-        <div class="center-anchor-line"></div>
-        <div class="center-anchor-badge text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">CENTER PIVOT</div>
-        <canvas id="chartStyle1"></canvas>
-      </div>
-
-      <div class="mt-2.5 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i> 반투명 밴드: 상단(도약 포텐셜) ~ 하단(심리 방어선)</span>
-        <span class="text-slate-500" id="s1-range-info">Span: 24 Ticks</span>
-      </div>
-    </section>
-
-    <!-- --------------------------------------------------------------- -->
-    <!-- GRAPH 02: 12-Stage Cycle & Hidden Stem Resource Envelope        -->
-    <!-- --------------------------------------------------------------- -->
-    <section class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-      <div class="flex items-center justify-between pb-2.5 mb-1.5 border-b border-white/5">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs font-bold font-mono">02</span>
-          <div>
-            <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              12운성 배터리 & 지장간 자원 활성화
-              <span class="text-[10px] font-mono text-slate-400 font-normal">12-Phase Cycle & Hidden Stems</span>
-            </h2>
-            <p class="text-[11px] text-slate-400">내부 체력 충전 주기(장생~제왕~묘절)와 땅속 묻힌 잠재 자원 채굴 궤적</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-1.5 bg-slate-900/60 px-2.5 py-1 rounded-md border border-white/5 text-xs font-mono">
-          <span class="w-2 h-2 rounded-full" id="s2-target-dot" style="background-color: #F59E0B;"></span>
-          <span id="s2-target-name" class="font-bold text-white">1. 종합 총운</span>
-        </div>
-      </div>
-
-      <div class="relative w-full h-[300px] md:h-[330px] chart-swipe-container" id="container-chart2">
-        <div class="center-anchor-line"></div>
-        <div class="center-anchor-badge text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">CENTER PIVOT</div>
-        <canvas id="chartStyle2"></canvas>
-      </div>
-
-      <div class="mt-2.5 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="pickaxe" class="w-3.5 h-3.5 text-emerald-400"></i> 묘·절(바닥) 구간은 리셋과 가장 순수한 기획의 시기</span>
-        <span class="text-slate-500">Resource Pulse</span>
-      </div>
-    </section>
-
-    <!-- --------------------------------------------------------------- -->
-    <!-- GRAPH 03: 5-Element Energy Stream (오행 유동성 스트림)          -->
-    <!-- --------------------------------------------------------------- -->
-    <section class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-      <div class="flex items-center justify-between pb-2.5 mb-1.5 border-b border-white/5">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center text-xs font-bold font-mono">03</span>
-          <div>
-            <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              오행 에너지 연속 흐름 & 기운 조화
-              <span class="text-[10px] font-mono text-slate-400 font-normal">5-Element Stream</span>
-            </h2>
-            <p class="text-[11px] text-slate-400">목(나무)·화(불)·토(흙)·금(쇠)·수(물) 상생상극 자원 분포 곡면</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 text-xs font-mono text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-md border border-purple-500/20">
-          <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-          <span>ELEMENT HARMONY</span>
-        </div>
-      </div>
-
-      <div class="relative w-full h-[300px] md:h-[330px] chart-swipe-container" id="container-chart3">
-        <div class="center-anchor-line"></div>
-        <div class="center-anchor-badge text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">CENTER PIVOT</div>
-        <canvas id="chartStyle3"></canvas>
-      </div>
-
-      <div class="mt-2.5 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> 특정 기운 쏠림/부족 시 보완 오행 가이드 동기화</span>
-        <span class="text-slate-500">Bézier Spline</span>
-      </div>
-    </section>
-
-    <!-- --------------------------------------------------------------- -->
-    <!-- GRAPH 04: Center-Point Polarity & Divergence Radar              -->
-    <!-- --------------------------------------------------------------- -->
-    <section class="glass-panel rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
-      <div class="flex items-center justify-between pb-2.5 mb-1.5 border-b border-white/5">
-        <div class="flex items-center gap-2.5">
-          <span class="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center text-xs font-bold font-mono">04</span>
-          <div>
-            <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              중앙 시점 6대 운세 밸런스 & 다이버전스
-              <span class="text-[10px] font-mono text-slate-400 font-normal">State Divergence</span>
-            </h2>
-            <p class="text-[11px] text-slate-400">현재 피벗 시점의 영역별 성취 vs 충전 상태 분기 비교</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 text-xs font-mono text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">
-          <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
-          <span id="center-time-indicator">PIVOT: --:--</span>
-        </div>
-      </div>
-
-      <div class="relative w-full h-[300px] md:h-[330px]">
-        <canvas id="chartStyle4"></canvas>
-      </div>
-
-      <div class="mt-2.5 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span class="flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5 text-rose-400"></i> 한 영역의 하강에 인생 전체가 매몰되지 않도록 중심 지탱</span>
-        <span class="text-slate-500">Zero-Center</span>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ================= BOTTOM STRATEGIC WEATHER FORECAST ================= -->
-  <footer class="w-full max-w-[1760px] mx-auto mt-4 glass-panel rounded-2xl p-3.5 px-5 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-        <i data-lucide="compass" class="w-4 h-4"></i>
-      </div>
+      <!-- Top Mobile Status Bar -->
       <div>
-        <div class="flex items-center gap-2 text-xs font-mono">
-          <span class="text-cyan-400 font-bold">인생 기상 리포트</span>
-          <span class="text-slate-500">|</span>
-          <span id="weather-phase-badge" class="text-emerald-400 font-semibold">내실 충전기 (Deep Work Phase)</span>
+        <div class="flex items-center justify-between text-xs font-semibold text-brandDark mb-4 px-1">
+          <span>9:41</span>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+            <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+            <i data-lucide="battery-full" class="w-4 h-4"></i>
+          </div>
         </div>
-        <p id="weather-desc" class="text-xs text-slate-300 mt-0.5">
-          현재 시점은 에너지가 안으로 깊어지는 수렴기입니다. 외부 마찰이 적어 차분히 기획과 지식을 축적하기 가장 적합한 때입니다.
-        </p>
-      </div>
-    </div>
-    
-    <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
-      <span class="hidden md:inline">KASI 팩트 엔진 기반 • 0.01s 클라이언트 연산</span>
-      <span class="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-white/10 text-slate-300">병신(丙申) 일주 시뮬레이션</span>
-    </div>
-  </footer>
 
-  <!-- ================= CORE INTERACTIVE ENGINE ================= -->
+        <!-- Greeting & Profile -->
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <span class="text-xs text-brandMuted font-medium">오늘의 인생 기상도</span>
+            <h1 class="text-2xl font-bold tracking-tight text-brandDark">반가워요, 병신(丙申)님 ☀️</h1>
+          </div>
+          <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-400 to-rose-400 p-0.5 shadow-sm cursor-pointer">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full" />
+          </div>
+        </div>
+
+        <!-- Timeframe & Day Selector Strip (시봉·일봉·주봉·월봉·연봉) -->
+        <div class="flex items-center justify-between bg-white/70 p-1.5 rounded-2xl shadow-soft mb-4 text-center">
+          <button data-tf="1H" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">시봉</button>
+          <button data-tf="1D" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-bold text-brandDark bg-brandAmber shadow-pill transition-all">일봉</button>
+          <button data-tf="1W" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">주봉</button>
+          <button data-tf="1M" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">월봉</button>
+          <button data-tf="1Y" class="tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all">연봉</button>
+        </div>
+
+        <!-- Single-Row Minimalist 1~6 Category Number Capsules -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 no-scrollbar" id="capsule-container">
+          <button data-cat="ALL" class="num-capsule active px-3 py-1.5 rounded-full text-xs font-bold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span>ALL</span>
+          </button>
+          <button data-cat="1" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span class="badge w-4 h-4 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold">1</span>
+            <span>총운</span>
+          </button>
+          <button data-cat="2" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span class="badge w-4 h-4 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-[10px] font-bold">2</span>
+            <span>사업</span>
+          </button>
+          <button data-cat="3" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span class="badge w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">3</span>
+            <span>재물</span>
+          </button>
+          <button data-cat="4" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span class="badge w-4 h-4 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center text-[10px] font-bold">4</span>
+            <span>연애</span>
+          </button>
+          <button data-cat="5" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span class="badge w-4 h-4 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold">5</span>
+            <span>심신</span>
+          </button>
+          <button data-cat="6" class="num-capsule px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-brandDark shadow-soft flex items-center gap-1 shrink-0">
+            <span class="badge w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">6</span>
+            <span>성장</span>
+          </button>
+        </div>
+
+        <!-- Main Chart.js Wave Card (Cozy White Card) -->
+        <div class="bg-appCard rounded-3xl p-4 shadow-soft mb-4 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-brandAmber animate-pulse"></span>
+              <span id="stat-s1-active" class="text-xs font-bold text-brandDark">전체 파동 궤적</span>
+            </div>
+            <span class="text-[11px] font-semibold text-brandMuted" id="center-time-indicator">중심: 14:00</span>
+          </div>
+
+          <!-- Interactive Chart Canvas -->
+          <div class="relative w-full h-[220px] chart-swipe-container" id="container-chart1">
+            <div class="center-anchor-line"></div>
+            <div class="center-anchor-badge text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 shadow-sm">PIVOT</div>
+            <canvas id="chartStyle1"></canvas>
+          </div>
+
+          <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-brandMuted">
+            <span class="flex items-center gap-1"><i data-lucide="hand" class="w-3.5 h-3.5 text-brandAmber"></i> 좌우 스와이프 탐색</span>
+            <span class="font-medium text-slate-400">선택 시 반투명 밴드 활성화</span>
+          </div>
+        </div>
+
+        <!-- Quick Insight Pastel Cards (Grid) -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <!-- Card 1: Deep Work Insight -->
+          <div class="bg-pastelPeach rounded-2xl p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-rose-800 font-bold">
+              <span>내실 심화 모드</span>
+              <span>🌱</span>
+            </div>
+            <p class="text-[11px] text-rose-950/80 font-medium mt-2 leading-relaxed">
+              지금은 서재에서 다음 10년의 판을 짤 때입니다.
+            </p>
+            <div class="mt-2.5 flex items-center justify-between text-[10px] text-rose-700 font-semibold">
+              <span>심신 충전</span>
+              <span class="bg-white/80 px-2 py-0.5 rounded-full">지장간 활성</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Strategic Action -->
+          <div class="bg-pastelPurple rounded-2xl p-3.5 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-purple-800 font-bold">
+              <span>전략적 행동 지수</span>
+              <span>✨</span>
+            </div>
+            <p class="text-[11px] text-purple-950/80 font-medium mt-2 leading-relaxed">
+              무리한 확장보다 6대 영역의 밸런스에 집중하세요.
+            </p>
+            <div class="mt-2.5 flex items-center justify-between text-[10px] text-purple-700 font-semibold">
+              <span>안정 순항</span>
+              <span class="bg-white/80 px-2 py-0.5 rounded-full">풍파 8%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Floating Nav Bar (White Dock Style) -->
+      <div class="bg-white rounded-2xl p-2.5 px-4 shadow-soft flex items-center justify-between relative mt-2">
+        <button class="flex flex-col items-center gap-1 text-brandDark">
+          <i data-lucide="home" class="w-4 h-4"></i>
+          <span class="text-[10px] font-bold">홈</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-brandMuted hover:text-brandDark">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium">기상도</span>
+        </button>
+
+        <!-- Center Floating Action Button (+) -->
+        <button id="chatbot-trigger-btn" class="w-11 h-11 rounded-full bg-brandAmber text-brandDark flex items-center justify-center shadow-pill -mt-6 hover:scale-105 transition-all">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </button>
+
+        <button class="flex flex-col items-center gap-1 text-brandMuted hover:text-brandDark">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium">지장간</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-brandMuted hover:text-brandDark">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium">내 정보</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SCREEN 2: 4-CORE POLARITY TUBES & LITERARY DIALOG (Right Screen)   -->
+    <!-- ================================================================= -->
+    <div class="w-full max-w-[440px] mx-auto bg-appBg rounded-[2.75rem] p-6 shadow-2xl border-[6px] border-white flex flex-col justify-between min-h-[820px] relative overflow-hidden">
+      
+      <div>
+        <!-- Top Status Bar & Navigation -->
+        <div class="flex items-center justify-between text-xs font-semibold text-brandDark mb-5 px-1">
+          <button class="w-8 h-8 rounded-full bg-white shadow-soft flex items-center justify-center text-brandDark hover:bg-slate-50">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <span class="font-bold text-sm">인생 에너지 저널</span>
+          <button class="w-8 h-8 rounded-full bg-white shadow-soft flex items-center justify-center text-brandDark hover:bg-slate-50">
+            <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Big Bold State Status (Like "420" in reference) -->
+        <div class="text-center my-4">
+          <div class="text-5xl font-extrabold tracking-tight text-brandDark font-sans flex items-center justify-center gap-1">
+            <span id="score-polarity-sign">+</span><span id="score-big-number">74</span>
+          </div>
+          <p id="score-statement" class="text-xs text-brandMuted font-medium mt-1.5">
+            밖으로 뜻을 펼치는 완연한 발산의 계절입니다
+          </p>
+        </div>
+
+        <!-- Vertical Capsule Tube Meters (Ref: Emotions Section) -->
+        <div class="bg-appCard rounded-3xl p-5 shadow-soft mb-4">
+          <div class="flex items-center justify-between mb-1">
+            <h2 class="text-sm font-bold text-brandDark">4대 핵심 에너지 튜브</h2>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">실시간 균형</span>
+          </div>
+          <p class="text-[11px] text-brandMuted mb-5">현재 피벗 시점의 영역별 추진력과 내실 충전율</p>
+
+          <!-- 4 Capsule Vertical Tubes -->
+          <div class="grid grid-cols-4 gap-3 text-center">
+            
+            <!-- Tube 1: 사업 (Career) -->
+            <div class="flex flex-col items-center">
+              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
+                <div id="tube-career" class="tube-fill w-full rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-bold text-amber-950 pb-2 shadow-sm" style="height: 74%;">
+                  74%
+                </div>
+              </div>
+              <span class="text-xs font-bold text-brandDark mt-2.5">사업운</span>
+              <span class="text-[10px] text-brandMuted">발산(+)</span>
+            </div>
+
+            <!-- Tube 2: 재물 (Wealth) -->
+            <div class="flex flex-col items-center">
+              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
+                <div id="tube-wealth" class="tube-fill w-full rounded-full bg-emerald-400 flex items-center justify-center text-[10px] font-bold text-emerald-950 pb-2 shadow-sm" style="height: 62%;">
+                  62%
+                </div>
+              </div>
+              <span class="text-xs font-bold text-brandDark mt-2.5">재물운</span>
+              <span class="text-[10px] text-brandMuted">결실</span>
+            </div>
+
+            <!-- Tube 3: 심신 (Mental) -->
+            <div class="flex flex-col items-center">
+              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
+                <div id="tube-mental" class="tube-fill w-full rounded-full bg-purple-400 flex items-center justify-center text-[10px] font-bold text-purple-950 pb-2 shadow-sm" style="height: 38%;">
+                  38%
+                </div>
+              </div>
+              <span class="text-xs font-bold text-brandDark mt-2.5">심신운</span>
+              <span class="text-[10px] text-brandMuted">수렴(-)</span>
+            </div>
+
+            <!-- Tube 4: 연애 (Love) -->
+            <div class="flex flex-col items-center">
+              <div class="w-14 h-44 rounded-full bg-slate-100 relative p-1 flex flex-col justify-end overflow-hidden shadow-inner">
+                <div id="tube-love" class="tube-fill w-full rounded-full bg-pink-400 flex items-center justify-center text-[10px] font-bold text-pink-950 pb-2 shadow-sm" style="height: 52%;">
+                  52%
+                </div>
+              </div>
+              <span class="text-xs font-bold text-brandDark mt-2.5">연애운</span>
+              <span class="text-[10px] text-brandMuted">화합</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Literary Saju Weather Note -->
+        <div class="bg-white rounded-2xl p-4 shadow-soft border border-amber-100/80 mb-3 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="quote" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-brandDark">다정한 기상 통찰</span>
+            <p id="literary-advice-text" class="text-[11px] text-slate-600 mt-1 leading-relaxed">
+              지금은 사업적 추진력(74%)이 높아 결과를 내기 좋지만, 심신 에너지(38%)가 소모되는 시기입니다. 밖에서의 승리에 취해 내 몸을 돌보는 시간을 잊지 마세요.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Button (Create New Journal -> Life Guidance) -->
+      <button id="ask-life-weather-btn" class="w-full py-4 rounded-2xl bg-brandAmber text-brandDark font-bold text-sm shadow-pill hover:bg-amber-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+        <i data-lucide="message-circle-heart" class="w-4 h-4"></i>
+        <span>오늘 기상도에 대해 대화하기</span>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- ================= DIALOG / CHATBOT MODAL (Mindful Gemini Assistant) ================= -->
+  <div id="chat-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-appBg w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl border-4 border-white flex flex-col justify-between max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200/60 mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-brandAmber text-brandDark flex items-center justify-center font-bold">
+            <i data-lucide="sun" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-brandDark">사주그랩 기상캐스터</h3>
+            <span class="text-[10px] text-brandMuted">문과적 감성의 따뜻한 전략 가이드</span>
+          </div>
+        </div>
+        <button id="close-modal-btn" class="w-7 h-7 rounded-full bg-white flex items-center justify-center text-brandDark shadow-sm hover:bg-slate-100">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Chat Stream -->
+      <div class="flex-1 overflow-y-auto space-y-3 p-1 text-xs leading-relaxed" id="chat-messages">
+        <div class="flex items-start gap-2.5">
+          <div class="w-6 h-6 rounded-full bg-brandAmber text-brandDark flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">☀️</div>
+          <div class="bg-white p-3 rounded-2xl rounded-tl-sm shadow-soft text-slate-700 max-w-[85%]">
+            반가워요! 지금 짚고 계신 시점은 <strong>사업운(74%)</strong>이 왕성하게 뻗어나가는 시기입니다. 혹시 오늘 어떤 선택이나 흐름이 가장 궁금하신가요?
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-2">
+        <input type="text" id="chat-input" placeholder="예: 지금 이직을 준비해도 괜찮은 시기인가요?" class="flex-1 bg-white px-4 py-2.5 rounded-full text-xs text-brandDark border border-slate-200 focus:outline-none focus:border-brandAmber shadow-inner" />
+        <button id="send-chat-btn" class="w-9 h-9 rounded-full bg-brandAmber text-brandDark flex items-center justify-center shadow-pill hover:scale-105 transition-all">
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= CORE JAVASCRIPT ENGINE ================= -->
   <script>
     // ----------------------------------------------------
-    // 1. Definition of 6 Life Categories (사주그랩 6대 운세)
+    // 1. Definition of 6 Categories (Saju Grap Waves)
     // ----------------------------------------------------
     const CATEGORIES = [
-      { id: '1', key: 'total', name: '1. 종합 총운', short: '총운', color: '#F59E0B', rgb: '245, 158, 11', bias: 0.0002 },
-      { id: '2', key: 'career', name: '2. 사업/커리어', short: '사업', color: '#06B6D4', rgb: '6, 182, 212', bias: 0.0006 },
-      { id: '3', key: 'wealth', name: '3. 재물/자산', short: '재물', color: '#10B981', rgb: '16, 185, 129', bias: -0.0003 },
-      { id: '4', key: 'love', name: '4. 연애/관계', short: '연애', color: '#EC4899', rgb: '236, 72, 153', bias: 0.0004 },
-      { id: '5', key: 'mental', name: '5. 심신/멘탈', short: '심신', color: '#8B5CF6', rgb: '139, 92, 246', bias: -0.0005 },
-      { id: '6', key: 'growth', name: '6. 명예/성장', short: '성장', color: '#3B82F6', rgb: '59, 130, 246', bias: 0.0003 }
+      { id: '1', name: '1. 종합 총운', short: '총운', color: '#F7A725', rgb: '247, 167, 37' },
+      { id: '2', name: '2. 사업/커리어', short: '사업', color: '#06B6D4', rgb: '6, 182, 212' },
+      { id: '3', name: '3. 재물/자산', short: '재물', color: '#10B981', rgb: '16, 185, 129' },
+      { id: '4', name: '4. 연애/관계', short: '연애', color: '#EC4899', rgb: '236, 72, 153' },
+      { id: '5', name: '5. 심신/멘탈', short: '심신', color: '#8B5CF6', rgb: '139, 92, 246' },
+      { id: '6', name: '6. 명예/성장', short: '성장', color: '#3B82F6', rgb: '59, 130, 246' }
     ];
 
-    // Magnetic Notches (1H to 1Y)
-    const NOTCHES = [
-      { id: '1H', name: '시봉(1H)', span: 14, color: '#06B6D4' },
-      { id: '1D', name: '일봉(1D)', span: 26, color: '#06B6D4' },
-      { id: '1W', name: '주봉(1W)', span: 44, color: '#10B981' },
-      { id: '1M', name: '월봉(1M)', span: 64, color: '#8B5CF6' },
-      { id: '1Y', name: '연봉(1Y)', span: 86, color: '#F59E0B' }
-    ];
-
+    const TF_SPAN = { '1H': 14, '1D': 24, '1W': 42, '1M': 64, '1Y': 84 };
     const TOTAL_BUFFER = 240;
-    const DISPLAY_SLICES = 32;
+    const DISPLAY_SLICES = 30;
 
-    let currentNotchIndex = 1; // Default: 1D
-    let activeCategory = 'ALL'; // 'ALL' or '1' ~ '6'
-    let charts = {};
-
+    let currentTimeframe = '1D';
+    let activeCategory = 'ALL';
     let centerIndex = Math.floor(TOTAL_BUFFER / 2);
-    let animatedSpan = { value: NOTCHES[currentNotchIndex].span };
+    let animatedSpan = { value: TF_SPAN['1D'] };
+    let chartInstance = null;
 
     // ----------------------------------------------------
-    // 2. Master Saju Wave Dataset Generation
+    // 2. Master Wave Generator
     // ----------------------------------------------------
     function generateContinuousMasterData() {
       const labels = [];
       const now = new Date();
       
       for (let i = 0; i < TOTAL_BUFFER; i++) {
-        const offsetMin = (i - TOTAL_BUFFER / 2) * 10;
+        const offsetMin = (i - TOTAL_BUFFER / 2) * 12;
         const t = new Date(now.getTime() + offsetMin * 60 * 1000);
         labels.push(`${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`);
       }
@@ -474,26 +462,19 @@
         const centerWave = [];
         const upperBand = [];
         const lowerBand = [];
-        const rawValues = [];
 
         for (let i = 0; i < TOTAL_BUFFER; i++) {
-          // Polarity cycle between +100 (Expansion) and -100 (Deep Work)
-          const baseCycle = Math.sin((i / 7.5) + (parseInt(cat.id) * 0.85)) * 65;
-          const noise = (Math.random() - 0.49 + cat.bias) * 18;
+          const baseCycle = Math.sin((i / 8) + (parseInt(cat.id) * 0.9)) * 62;
+          const noise = (Math.random() - 0.5) * 14;
           const centerVal = Math.max(-95, Math.min(95, Math.round(baseCycle + noise)));
 
-          // Volatility Band Width (±ΔW based on clash/friction)
-          const clashFriction = Math.abs(Math.sin(i / 11)) * 26 + 12; // 12% to 38%
-          const upper = Math.min(100, centerVal + clashFriction);
-          const lower = Math.max(-100, centerVal - clashFriction);
-
+          const clashFriction = Math.abs(Math.sin(i / 10)) * 24 + 12;
+          upperBand.push(Math.min(100, centerVal + clashFriction));
+          lowerBand.push(Math.max(-100, centerVal - clashFriction));
           centerWave.push(centerVal);
-          upperBand.push(upper);
-          lowerBand.push(lower);
-          rawValues.push(centerVal);
         }
 
-        waveData[cat.id] = { centerWave, upperBand, lowerBand, rawValues };
+        waveData[cat.id] = { centerWave, upperBand, lowerBand };
       });
 
       return { labels, waveData };
@@ -501,9 +482,7 @@
 
     const masterData = generateContinuousMasterData();
 
-    // ----------------------------------------------------
-    // 3. Continuous Slicing with Lerp (Morphing Zoom)
-    // ----------------------------------------------------
+    // Slicing with continuous interpolation
     function getContinuousViewport(spanValue) {
       const labels = [];
       const sampledData = {};
@@ -515,12 +494,11 @@
       for (let s = 0; s < DISPLAY_SLICES; s++) {
         const progress = (s / (DISPLAY_SLICES - 1)) - 0.5;
         const continuousIdx = Math.max(0, Math.min(TOTAL_BUFFER - 1, centerIndex + (progress * spanValue)));
-        
         const floorIdx = Math.floor(continuousIdx);
         const ceilIdx = Math.min(TOTAL_BUFFER - 1, floorIdx + 1);
         const t = continuousIdx - floorIdx;
 
-        if (s === 0 || s === DISPLAY_SLICES - 1 || s === Math.floor(DISPLAY_SLICES / 2) || s % 6 === 0) {
+        if (s === 0 || s === DISPLAY_SLICES - 1 || s === Math.floor(DISPLAY_SLICES / 2) || s % 5 === 0) {
           labels.push(masterData.labels[floorIdx] || '--:--');
         } else {
           labels.push('');
@@ -551,45 +529,44 @@
     let currentView = getContinuousViewport(animatedSpan.value);
 
     // ----------------------------------------------------
-    // 4. Chart 01: Polarity Waves & Translucent Boundary
+    // 3. Initialize Cozy Chart.js Canvas
     // ----------------------------------------------------
-    function initChart1() {
+    function initMainChart() {
       const ctx = document.getElementById('chartStyle1').getContext('2d');
-      
       const datasets = [];
 
-      // 6 Category Center Lines
+      // 6 Category Lines
       CATEGORIES.forEach(cat => {
         datasets.push({
           label: cat.name,
           catId: cat.id,
           data: currentView.sampledData[cat.id].center,
           borderColor: cat.color,
-          borderWidth: 2,
-          tension: 0.35,
+          borderWidth: 2.2,
+          tension: 0.38,
           pointRadius: 0,
-          pointHoverRadius: 6,
+          pointHoverRadius: 5,
           pointHoverBackgroundColor: cat.color,
-          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderColor: '#FFFFFF',
           pointHoverBorderWidth: 2,
           order: 2
         });
       });
 
-      // Translucent Upper Boundary for focused line
+      // Translucent Upper Band (Potential)
       datasets.push({
         label: 'Upper Potential',
         isBound: true,
         data: currentView.sampledData['1'].upper,
         borderColor: 'transparent',
-        backgroundColor: 'rgba(245, 158, 11, 0.14)',
+        backgroundColor: 'rgba(247, 167, 37, 0.16)',
         fill: '+1',
-        tension: 0.35,
+        tension: 0.38,
         pointRadius: 0,
         order: 3
       });
 
-      // Translucent Lower Boundary for focused line
+      // Translucent Lower Band (Floor)
       datasets.push({
         label: 'Lower Floor',
         isBound: true,
@@ -597,12 +574,12 @@
         borderColor: 'transparent',
         backgroundColor: 'transparent',
         fill: false,
-        tension: 0.35,
+        tension: 0.38,
         pointRadius: 0,
         order: 4
       });
 
-      charts.style1 = new Chart(ctx, {
+      chartInstance = new Chart(ctx, {
         type: 'line',
         data: { labels: currentView.labels, datasets },
         options: {
@@ -613,35 +590,40 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(13, 18, 30, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.15)',
+              backgroundColor: 'rgba(30, 30, 30, 0.92)',
+              titleColor: '#FFFFFF',
+              bodyColor: '#E4E4E7',
+              borderColor: 'rgba(255, 255, 255, 0.1)',
               borderWidth: 1,
-              titleFont: { family: 'Fira Code' },
-              bodyFont: { family: 'Fira Code' },
+              padding: 10,
+              displayColors: true,
               callbacks: {
                 label: ctx => ` ${ctx.dataset.label}: ${ctx.raw > 0 ? '+' : ''}${ctx.raw} (${ctx.raw > 0 ? '발산·실행' : '수렴·딥워크'})`
               }
             }
           },
           scales: {
-            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, autoSkip: false } },
+            x: {
+              grid: { color: 'rgba(0, 0, 0, 0.03)' },
+              ticks: { color: '#8E8B85', font: { size: 9 }, autoSkip: false }
+            },
             y: {
               min: -105,
               max: 105,
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              grid: { color: 'rgba(0, 0, 0, 0.04)' },
               ticks: {
-                color: '#64748B',
-                font: { family: 'Fira Code', size: 10 },
-                callback: v => v === 100 ? '+100 발산' : v === 0 ? '0 중립' : v === -100 ? '-100 수렴' : ''
+                color: '#8E8B85',
+                font: { size: 9 },
+                callback: v => v === 100 ? '+100' : v === 0 ? '0' : v === -100 ? '-100' : ''
               }
             }
           }
         }
       });
 
-      // Direct Canvas Click to Focus Line!
+      // Direct Canvas Click to Focus
       document.getElementById('container-chart1').addEventListener('click', (e) => {
-        const points = charts.style1.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
+        const points = chartInstance.getElementsAtEventForMode(e, 'nearest', { intersect: false }, true);
         if (points.length) {
           const dsIdx = points[0].datasetIndex;
           if (dsIdx < 6) {
@@ -653,300 +635,88 @@
     }
 
     // ----------------------------------------------------
-    // 5. Chart 02: 12-Phase Cycle & Hidden Stem Envelope
-    // ----------------------------------------------------
-    function initChart2() {
-      const ctx = document.getElementById('chartStyle2').getContext('2d');
-      const targetCatId = activeCategory === 'ALL' ? '1' : activeCategory;
-      const targetData = currentView.sampledData[targetCatId];
-      const targetCat = CATEGORIES.find(c => c.id === targetCatId);
-
-      charts.style2 = new Chart(ctx, {
-        data: {
-          labels: currentView.labels,
-          datasets: [
-            {
-              type: 'line',
-              label: `${targetCat.name} 기저선`,
-              data: targetData.center,
-              borderColor: targetCat.color,
-              borderWidth: 2.5,
-              tension: 0.3,
-              pointRadius: 0
-            },
-            {
-              type: 'line',
-              label: '상단 포텐셜',
-              data: targetData.upper,
-              borderColor: 'transparent',
-              backgroundColor: `${targetCat.color}15`,
-              fill: '+1',
-              tension: 0.3,
-              pointRadius: 0
-            },
-            {
-              type: 'line',
-              label: '하단 방어선',
-              data: targetData.lower,
-              borderColor: 'transparent',
-              fill: false,
-              tension: 0.3,
-              pointRadius: 0
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, autoSkip: false } },
-            y: { min: -105, max: 105, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 10 } } }
-          }
-        }
-      });
-    }
-
-    // ----------------------------------------------------
-    // 6. Chart 03: 5-Element Energy Stream
-    // ----------------------------------------------------
-    function initChart3() {
-      const ctx = document.getElementById('chartStyle3').getContext('2d');
-      const datasets = CATEGORIES.slice(1, 6).map(cat => ({
-        label: cat.name,
-        catId: cat.id,
-        data: currentView.sampledData[cat.id].center.map(v => Math.max(0, v + 100)),
-        borderColor: cat.color,
-        backgroundColor: (context) => {
-          const { ctx, chartArea } = context.chart;
-          if (!chartArea) return null;
-          const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          g.addColorStop(0, `rgba(${cat.rgb}, 0.45)`);
-          g.addColorStop(1, `rgba(${cat.rgb}, 0.02)`);
-          return g;
-        },
-        fill: true,
-        borderWidth: 2,
-        tension: 0.4,
-        pointRadius: 0
-      }));
-
-      charts.style3 = new Chart(ctx, {
-        type: 'line',
-        data: { labels: currentView.labels, datasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 }, autoSkip: false } },
-            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748B', font: { family: 'Fira Code', size: 10 } } }
-          }
-        }
-      });
-    }
-
-    // ----------------------------------------------------
-    // 7. Chart 04: Center-Point Polarity & Divergence Radar
-    // ----------------------------------------------------
-    function initChart4() {
-      const ctx = document.getElementById('chartStyle4').getContext('2d');
-      const pivotVals = CATEGORIES.map(c => currentView.sampledData[c.id].pivotValue);
-
-      charts.style4 = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: CATEGORIES.map(c => c.short),
-          datasets: [{
-            data: pivotVals,
-            backgroundColor: CATEGORIES.map((cat, i) => pivotVals[i] >= 0 ? cat.color : 'rgba(139, 92, 246, 0.85)'),
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: 'rgba(255, 255, 255, 0.15)'
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => ` ${ctx.raw > 0 ? '발산/실행 (+)' : '수렴/충전 (-)'}: ${ctx.raw}`
-              }
-            }
-          },
-          scales: {
-            x: {
-              min: -100,
-              max: 100,
-              grid: { color: 'rgba(255, 255, 255, 0.08)', zeroLineColor: '#CBD5E1' },
-              ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 10 }, callback: v => `${v > 0 ? '+' : ''}${v}` }
-            },
-            y: { grid: { display: false }, ticks: { color: '#E2E8F0', font: { weight: 'bold', size: 11 } } }
-          }
-        }
-      });
-    }
-
-    // ----------------------------------------------------
-    // 8. Dynamic Frame Render & Literary Insight Engine
+    // 4. Update Frame & Sync Tube Meters
     // ----------------------------------------------------
     function renderFrame() {
       currentView = getContinuousViewport(animatedSpan.value);
 
-      document.getElementById('center-time-indicator').textContent = `PIVOT: ${currentView.centerLabel}`;
-      document.getElementById('s1-range-info').textContent = `Span: ${Math.round(animatedSpan.value)} Ticks`;
+      document.getElementById('center-time-indicator').textContent = `중심: ${currentView.centerLabel}`;
 
-      // 1. Update Chart 1
-      if (charts.style1) {
-        charts.style1.data.labels = currentView.labels;
+      // Update Chart.js Lines
+      if (chartInstance) {
+        chartInstance.data.labels = currentView.labels;
         CATEGORIES.forEach((cat, i) => {
-          charts.style1.data.datasets[i].data = currentView.sampledData[cat.id].center;
+          chartInstance.data.datasets[i].data = currentView.sampledData[cat.id].center;
         });
 
         const targetCatId = activeCategory === 'ALL' ? '1' : activeCategory;
         const targetCat = CATEGORIES.find(c => c.id === targetCatId);
-        
-        // Update Translucent Upper/Lower Bands
-        charts.style1.data.datasets[6].data = currentView.sampledData[targetCatId].upper;
-        charts.style1.data.datasets[6].backgroundColor = `rgba(${targetCat.rgb}, 0.16)`;
-        charts.style1.data.datasets[7].data = currentView.sampledData[targetCatId].lower;
 
-        charts.style1.update('none');
+        chartInstance.data.datasets[6].data = currentView.sampledData[targetCatId].upper;
+        chartInstance.data.datasets[6].backgroundColor = `rgba(${targetCat.rgb}, 0.18)`;
+        chartInstance.data.datasets[7].data = currentView.sampledData[targetCatId].lower;
+
+        chartInstance.update('none');
       }
 
-      // 2. Update Chart 2
-      if (charts.style2) {
-        charts.style2.data.labels = currentView.labels;
-        const targetCatId = activeCategory === 'ALL' ? '1' : activeCategory;
-        const targetData = currentView.sampledData[targetCatId];
-        charts.style2.data.datasets[0].data = targetData.center;
-        charts.style2.data.datasets[1].data = targetData.upper;
-        charts.style2.data.datasets[2].data = targetData.lower;
-        charts.style2.update('none');
-      }
+      // Sync 4 Capsule Tubes (Right Screen)
+      const carVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['2'].pivotValue + 100) / 2)));
+      const weaVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['3'].pivotValue + 100) / 2)));
+      const menVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['5'].pivotValue + 100) / 2)));
+      const lovVal = Math.round(Math.max(10, Math.min(100, (currentView.sampledData['4'].pivotValue + 100) / 2)));
 
-      // 3. Update Chart 3
-      if (charts.style3) {
-        charts.style3.data.labels = currentView.labels;
-        CATEGORIES.slice(1, 6).forEach((cat, i) => {
-          charts.style3.data.datasets[i].data = currentView.sampledData[cat.id].center.map(v => Math.max(0, v + 100));
-        });
-        charts.style3.update('none');
-      }
+      document.getElementById('tube-career').style.height = `${carVal}%`;
+      document.getElementById('tube-career').textContent = `${carVal}%`;
 
-      // 4. Update Chart 4
-      if (charts.style4) {
-        const pivotVals = CATEGORIES.map(c => currentView.sampledData[c.id].pivotValue);
-        charts.style4.data.datasets[0].data = pivotVals;
-        charts.style4.data.datasets[0].backgroundColor = CATEGORIES.map((cat, i) => {
-          const isTarget = (activeCategory === 'ALL') || (cat.id === activeCategory);
-          if (!isTarget) return 'rgba(255, 255, 255, 0.08)';
-          return pivotVals[i] >= 0 ? cat.color : 'rgba(139, 92, 246, 0.85)';
-        });
-        charts.style4.update('none');
-      }
+      document.getElementById('tube-wealth').style.height = `${weaVal}%`;
+      document.getElementById('tube-wealth').textContent = `${weaVal}%`;
 
-      // 5. Update Literary Strategic Weather Report
-      updateWeatherReport();
-    }
+      document.getElementById('tube-mental').style.height = `${menVal}%`;
+      document.getElementById('tube-mental').textContent = `${menVal}%`;
 
-    // Literary Weather Engine (문과적 인생 기상 캐스터 언어)
-    function updateWeatherReport() {
-      const targetCatId = activeCategory === 'ALL' ? '1' : activeCategory;
-      const targetCat = CATEGORIES.find(c => c.id === targetCatId);
-      const pVal = currentView.sampledData[targetCatId].pivotValue;
-      const friction = currentView.sampledData[targetCatId].pivotUpper - pVal;
+      document.getElementById('tube-love').style.height = `${lovVal}%`;
+      document.getElementById('tube-love').textContent = `${lovVal}%`;
 
-      const badge = document.getElementById('weather-phase-badge');
-      const desc = document.getElementById('weather-desc');
+      // Update Big Number Score
+      const focusId = activeCategory === 'ALL' ? '1' : activeCategory;
+      const rawPivot = currentView.sampledData[focusId].pivotValue;
+      document.getElementById('score-polarity-sign').textContent = rawPivot >= 0 ? '+' : '';
+      document.getElementById('score-big-number').textContent = Math.abs(rawPivot);
 
-      if (pVal >= 40) {
-        badge.className = 'text-amber-400 font-bold';
-        badge.textContent = `도약 및 발산기 (${targetCat.short} 모드 +${pVal})`;
-        desc.textContent = `현재는 에너지가 밖으로 뻗어나가는 계절입니다. 품고 있던 생각과 기획을 주도적으로 실행하고 세상에 드러내기에 최적의 타이밍입니다.`;
-      } else if (pVal <= -30) {
-        badge.className = 'text-purple-400 font-bold';
-        badge.textContent = `내실 충전 및 심화기 (${targetCat.short} 모드 ${pVal})`;
-        desc.textContent = `기운이 안으로 깊어지는 서재의 시간입니다. 밖으로의 확장을 서두르기보다, 지장간에 묻힌 통찰을 차분히 정리하고 멘탈의 중심을 잡을 때입니다.`;
+      if (rawPivot >= 35) {
+        document.getElementById('score-statement').textContent = "밖으로 뜻을 펼치는 완연한 발산의 계절입니다";
+      } else if (rawPivot <= -30) {
+        document.getElementById('score-statement').textContent = "내실을 다지며 기획과 지식을 축적할 때입니다";
       } else {
-        badge.className = 'text-cyan-400 font-bold';
-        badge.textContent = `균형 및 전환기 (${targetCat.short} 모드 ${pVal > 0 ? '+' : ''}${pVal})`;
-        desc.textContent = `흐름의 방향을 바꾸는 완만한 환절기입니다. 주변의 변화에 휩쓸리지 않고 6대 영역의 균형을 점검하며 순항하기 좋은 구간입니다.`;
+        document.getElementById('score-statement').textContent = "주변과 화합하며 중심을 지키는 전환기입니다";
       }
     }
 
     // ----------------------------------------------------
-    // 9. Interactive Category Focus Engine
+    // 5. Category Selection & Dimming
     // ----------------------------------------------------
     function setActiveCategory(catId) {
       activeCategory = catId;
 
-      // Update Single-Row Number Capsules UI
       document.querySelectorAll('.num-capsule').forEach(btn => {
-        if (btn.dataset.cat === catId) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
+        if (btn.dataset.cat === catId) btn.classList.add('active');
+        else btn.classList.remove('active');
       });
 
-      // Update Panel Badges
       const s1Label = document.getElementById('stat-s1-active');
-      const s2TargetDot = document.getElementById('s2-target-dot');
-      const s2TargetName = document.getElementById('s2-target-name');
-
       if (catId === 'ALL') {
-        s1Label.textContent = 'ALL 6 WAVES';
-        s1Label.className = 'font-bold text-cyan-400';
-        s2TargetDot.style.backgroundColor = '#F59E0B';
-        s2TargetName.textContent = '1. 종합 총운';
+        s1Label.textContent = '전체 파동 궤적';
       } else {
         const found = CATEGORIES.find(c => c.id === catId);
-        s1Label.textContent = `FOCUS: ${found.name}`;
-        s1Label.style.color = found.color;
-        s2TargetDot.style.backgroundColor = found.color;
-        s2TargetName.textContent = found.name;
+        s1Label.textContent = `포커스: ${found.name}`;
       }
 
-      // Dim non-focused curves in Chart 1
-      if (charts.style1) {
+      if (chartInstance) {
         CATEGORIES.forEach((cat, i) => {
-          const ds = charts.style1.data.datasets[i];
+          const ds = chartInstance.data.datasets[i];
           const isTarget = (catId === 'ALL') || (cat.id === catId);
-          ds.borderColor = isTarget ? cat.color : 'rgba(255, 255, 255, 0.08)';
-          ds.borderWidth = isTarget ? (catId !== 'ALL' ? 3.5 : 2) : 1;
-        });
-
-        // Rebind Translucent Boundaries
-        const targetCatId = catId === 'ALL' ? '1' : catId;
-        const targetCat = CATEGORIES.find(c => c.id === targetCatId);
-        charts.style1.data.datasets[6].data = currentView.sampledData[targetCatId].upper;
-        charts.style1.data.datasets[6].backgroundColor = `rgba(${targetCat.rgb}, 0.16)`;
-        charts.style1.data.datasets[7].data = currentView.sampledData[targetCatId].lower;
-      }
-
-      // Rebind Chart 2
-      if (charts.style2) {
-        const targetCatId = catId === 'ALL' ? '1' : catId;
-        const targetCat = CATEGORIES.find(c => c.id === targetCatId);
-        charts.style2.data.datasets[0].label = `${targetCat.name} 기저선`;
-        charts.style2.data.datasets[0].borderColor = targetCat.color;
-        charts.style2.data.datasets[1].backgroundColor = `${targetCat.color}15`;
-      }
-
-      // Dim area in Chart 3
-      if (charts.style3) {
-        CATEGORIES.slice(1, 6).forEach((cat, i) => {
-          const ds = charts.style3.data.datasets[i];
-          const isTarget = (catId === 'ALL') || (cat.id === catId);
-          ds.borderWidth = isTarget ? 2.5 : 0.5;
-          ds.borderColor = isTarget ? cat.color : 'rgba(255, 255, 255, 0.05)';
+          ds.borderColor = isTarget ? cat.color : 'rgba(0, 0, 0, 0.08)';
+          ds.borderWidth = isTarget ? (catId !== 'ALL' ? 3.5 : 2.2) : 1;
         });
       }
 
@@ -954,152 +724,56 @@
     }
 
     // ----------------------------------------------------
-    // 10. Magnetic Slider Interaction
+    // 6. Timeframe Switcher
     // ----------------------------------------------------
-    function setupMagneticSlider() {
-      const box = document.getElementById('magnetic-slider-box');
-      const thumb = document.getElementById('magnetic-thumb');
-      const activeFill = document.getElementById('magnetic-active-fill');
-      const stepPoints = document.querySelectorAll('.step-point');
+    function switchTimeframe(tf) {
+      if (currentTimeframe === tf) return;
+      currentTimeframe = tf;
 
-      let isDragging = false;
-      const notchCount = NOTCHES.length;
-
-      function updateThumbVisual(notchIdx, animate = true) {
-        const pct = (notchIdx / (notchCount - 1)) * 100;
-        const targetColor = NOTCHES[notchIdx].color;
-
-        if (animate) {
-          gsap.to(thumb, { left: `${pct}%`, backgroundColor: targetColor, duration: 0.45, ease: 'back.out(1.6)' });
-          gsap.to(activeFill, { width: `${pct}%`, duration: 0.45, ease: 'power2.out' });
+      document.querySelectorAll('.tf-btn').forEach(btn => {
+        if (btn.dataset.tf === tf) {
+          btn.className = 'tf-btn flex-1 py-1.5 rounded-xl text-xs font-bold text-brandDark bg-brandAmber shadow-pill transition-all';
         } else {
-          thumb.style.left = `${pct}%`;
-          thumb.style.backgroundColor = targetColor;
-          activeFill.style.width = `${pct}%`;
+          btn.className = 'tf-btn flex-1 py-1.5 rounded-xl text-xs font-semibold text-brandMuted transition-all';
         }
-
-        stepPoints.forEach((sp, idx) => {
-          const dot = sp.querySelector('div');
-          const label = sp.querySelector('span');
-          if (idx === notchIdx) {
-            dot.className = 'w-2.5 h-2.5 rounded-full border-2 border-white shadow-md';
-            dot.style.backgroundColor = targetColor;
-            label.className = 'step-label text-[9px] font-mono mt-0.5 font-bold text-white scale-105';
-          } else {
-            dot.className = 'w-2 h-2 rounded-full bg-slate-600 border border-slate-400/30';
-            dot.style.backgroundColor = '';
-            label.className = 'step-label text-[9px] font-mono text-slate-400 mt-0.5 font-semibold';
-          }
-        });
-      }
-
-      function snapToNotch(notchIdx) {
-        if (notchIdx < 0 || notchIdx >= notchCount) return;
-        currentNotchIndex = notchIdx;
-        const targetSpan = NOTCHES[notchIdx].span;
-
-        updateThumbVisual(notchIdx, true);
-
-        gsap.killTweensOf(animatedSpan);
-        gsap.to(animatedSpan, {
-          value: targetSpan,
-          duration: 0.65,
-          ease: 'power3.out',
-          onUpdate: renderFrame
-        });
-
-        gsap.fromTo('.center-anchor-line', { opacity: 0.9, scaleY: 1.1 }, { opacity: 0.45, scaleY: 1, duration: 0.45 });
-      }
-
-      box.addEventListener('click', (e) => {
-        if (isDragging) return;
-        const rect = box.getBoundingClientRect();
-        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        snapToNotch(Math.round(ratio * (notchCount - 1)));
       });
 
-      thumb.addEventListener('mousedown', (e) => { isDragging = true; e.stopPropagation(); });
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const rect = box.getBoundingClientRect();
-        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        thumb.style.left = `${ratio * 100}%`;
-        activeFill.style.width = `${ratio * 100}%`;
+      const targetSpan = TF_SPAN[tf];
+      gsap.to(animatedSpan, {
+        value: targetSpan,
+        duration: 0.6,
+        ease: 'power3.out',
+        onUpdate: renderFrame
       });
-      window.addEventListener('mouseup', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        const rect = box.getBoundingClientRect();
-        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        snapToNotch(Math.round(ratio * (notchCount - 1)));
-      });
-
-      // Mobile Touch
-      thumb.addEventListener('touchstart', () => { isDragging = true; }, { passive: true });
-      window.addEventListener('touchmove', (e) => {
-        if (!isDragging || e.touches.length !== 1) return;
-        const rect = box.getBoundingClientRect();
-        const ratio = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-        thumb.style.left = `${ratio * 100}%`;
-        activeFill.style.width = `${ratio * 100}%`;
-      }, { passive: true });
-      window.addEventListener('touchend', (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        const rect = box.getBoundingClientRect();
-        const dropX = (e.changedTouches[0]?.clientX || 0) - rect.left;
-        snapToNotch(Math.round(Math.max(0, Math.min(1, dropX / rect.width)) * (notchCount - 1)));
-      });
-
-      updateThumbVisual(currentNotchIndex, false);
     }
 
     // ----------------------------------------------------
-    // 11. Synchronized Swipe & Pan Listeners
+    // 7. Swipe & Pan Listeners
     // ----------------------------------------------------
-    function setupSwipeAndPanListeners() {
-      const swipeContainers = [
-        document.getElementById('container-chart1'),
-        document.getElementById('container-chart2'),
-        document.getElementById('container-chart3')
-      ];
-
+    function setupSwipeListeners() {
+      const container = document.getElementById('container-chart1');
       let isDragging = false;
       let startX = 0;
       let initialCenter = centerIndex;
 
-      swipeContainers.forEach(container => {
-        container.addEventListener('mousedown', (e) => {
-          isDragging = true;
-          startX = e.clientX;
-          initialCenter = centerIndex;
-        });
-
-        container.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 1) {
-            isDragging = true;
-            startX = e.touches[0].clientX;
-            initialCenter = centerIndex;
-          }
-        }, { passive: true });
-
-        container.addEventListener('wheel', (e) => {
-          e.preventDefault();
-          if (e.deltaY < 0 && currentNotchIndex > 0) currentNotchIndex--;
-          else if (e.deltaY > 0 && currentNotchIndex < NOTCHES.length - 1) currentNotchIndex++;
-          
-          const targetSpan = NOTCHES[currentNotchIndex].span;
-          gsap.to(animatedSpan, { value: targetSpan, duration: 0.5, ease: 'power3.out', onUpdate: renderFrame });
-          const thumb = document.getElementById('magnetic-thumb');
-          const pct = (currentNotchIndex / (NOTCHES.length - 1)) * 100;
-          gsap.to(thumb, { left: `${pct}%`, duration: 0.4, ease: 'back.out(1.5)' });
-        }, { passive: false });
+      container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        initialCenter = centerIndex;
       });
+
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          startX = e.touches[0].clientX;
+          initialCenter = centerIndex;
+        }
+      }, { passive: true });
 
       window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         const deltaX = e.clientX - startX;
-        const tickDelta = Math.round(deltaX / 12);
+        const tickDelta = Math.round(deltaX / 14);
         const newCenter = initialCenter - tickDelta;
 
         const halfSpan = Math.floor(animatedSpan.value / 2);
@@ -1112,7 +786,7 @@
       window.addEventListener('touchmove', (e) => {
         if (!isDragging || e.touches.length !== 1) return;
         const deltaX = e.touches[0].clientX - startX;
-        const tickDelta = Math.round(deltaX / 12);
+        const tickDelta = Math.round(deltaX / 14);
         const newCenter = initialCenter - tickDelta;
 
         const halfSpan = Math.floor(animatedSpan.value / 2);
@@ -1127,29 +801,87 @@
     }
 
     // ----------------------------------------------------
-    // 12. Initialization
+    // 8. Dialog & Chatbot Interactivity
+    // ----------------------------------------------------
+    function setupChatModal() {
+      const modal = document.getElementById('chat-modal');
+      const openBtn1 = document.getElementById('chatbot-trigger-btn');
+      const openBtn2 = document.getElementById('ask-life-weather-btn');
+      const closeBtn = document.getElementById('close-modal-btn');
+      const sendBtn = document.getElementById('send-chat-btn');
+      const input = document.getElementById('chat-input');
+      const msgContainer = document.getElementById('chat-messages');
+
+      function openModal() {
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+      }
+
+      function closeModal() {
+        modal.classList.add('opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+      }
+
+      openBtn1.addEventListener('click', openModal);
+      openBtn2.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+
+      function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Append User Bubble
+        const userDiv = document.createElement('div');
+        userDiv.className = 'flex items-start justify-end gap-2';
+        userDiv.innerHTML = `<div class="bg-brandDark text-white p-3 rounded-2xl rounded-tr-sm text-xs max-w-[85%]">${text}</div>`;
+        msgContainer.appendChild(userDiv);
+        input.value = '';
+
+        // Simulate Warm Saju Coach Response
+        setTimeout(() => {
+          const aiDiv = document.createElement('div');
+          aiDiv.className = 'flex items-start gap-2.5';
+          aiDiv.innerHTML = `
+            <div class="w-6 h-6 rounded-full bg-brandAmber text-brandDark flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">☀️</div>
+            <div class="bg-white p-3 rounded-2xl rounded-tl-sm shadow-soft text-slate-700 max-w-[85%]">
+              지금 짚어주신 시점은 <strong>사업운(+74%)</strong>이 상단을 달리고 있어 새로운 제안이나 기회를 맞이하기에 매우 좋습니다. 다만, 서두르지 마시고 지장간에 묻힌 신금(申金)의 치밀한 분석력을 발휘해 조건을 꼼꼼히 조율해보세요.
+            </div>
+          `;
+          msgContainer.appendChild(aiDiv);
+          msgContainer.scrollTop = msgContainer.scrollHeight;
+        }, 600);
+
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+      }
+
+      sendBtn.addEventListener('click', sendMessage);
+      input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    }
+
+    // ----------------------------------------------------
+    // 9. Document Load
     // ----------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
 
-      initChart1();
-      initChart2();
-      initChart3();
-      initChart4();
-
+      initMainChart();
       renderFrame();
-      setupMagneticSlider();
-      setupSwipeAndPanListeners();
+      setupSwipeListeners();
+      setupChatModal();
 
-      // Number Capsule Button Listeners
+      // Capsule click listeners
       document.getElementById('capsule-container').addEventListener('click', (e) => {
         const btn = e.target.closest('.num-capsule');
         if (btn) setActiveCategory(btn.dataset.cat);
       });
 
-      // GSAP Entry Reveal
-      gsap.from('header', { opacity: 0, y: -16, duration: 0.55, ease: 'power3.out' });
-      gsap.from('main > section', { opacity: 0, scale: 0.97, duration: 0.6, stagger: 0.08, delay: 0.1, ease: 'power3.out' });
+      // Timeframe buttons
+      document.querySelectorAll('.tf-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTimeframe(btn.dataset.tf));
+      });
+
+      // GSAP Entrance
+      gsap.from('body > div', { opacity: 0, y: 20, duration: 0.7, ease: 'power3.out' });
     });
   </script>
 </body>
