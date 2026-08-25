@@ -1,4 +1,6 @@
 // api/analyze.js
+import { ANALYZE_SYSTEM } from '../lib/sajuRulebook.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,6 +11,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method Not Allowed' });
 
   const { name = '사용자', year = 1995, month = 5, day = 15, hour = 12, minute = 0, gender = 1 } = req.body || {};
+  const apiKey = process.env.GEMINI_API_KEY;
 
   try {
     const ganHanja = { '갑':'甲', '을':'乙', '병':'丙', '정':'丁', '무':'戊', '기':'己', '경':'庚', '신':'辛', '임':'壬', '계':'癸' };
@@ -80,6 +83,86 @@ export default async function handler(req, res) {
       }
     };
 
+    let aiPack = null;
+    if (apiKey) {
+      const prompt = `
+내담자: ${name} (일간: ${dayGanHanja} ${dayElemKor}, 사주: ${yearGan}${yearZhi}년 ${monthGan}${monthZhi}월 ${dayGan}${dayZhi}일 ${hourGan}${hourZhi}시)
+
+요구사항:
+1. 4대 운성(yongsin, heesin, gisin, gusin), 세력균형(strength), 대운흐름(flow)에 대해 완결된 문장으로 명리 해설을 작성하세요.
+2. 5대 주기(daewoon, year, month, day, hour)와 5대 영역(all, career, wealth, mental, love)에 대한 25개 시나리오 행동 전략을 모두 작성하세요.
+3. 글자가 중간에 잘리지 않도록 완결된 문장으로 끝맺으세요.
+
+반드시 아래 JSON Schema 규격으로만 응답하세요:
+{
+  "yongsin": "용신 심층 해설 (완결된 문장)",
+  "heesin": "희신 심층 해설 (완결된 문장)",
+  "gisin": "기신 심층 해설 (완결된 문장)",
+  "gusin": "구신 심층 해설 (완결된 문장)",
+  "strength": "세력균형 분석 (완결된 문장)",
+  "flow": "대운흐름 가이드 (완결된 문장)",
+  "scenarios": {
+    "daewoon": { "all": "문장", "career": "문장", "wealth": "문장", "mental": "문장", "love": "문장" },
+    "year": { "all": "문장", "career": "문장", "wealth": "문장", "mental": "문장", "love": "문장" },
+    "month": { "all": "문장", "career": "문장", "wealth": "문장", "mental": "문장", "love": "문장" },
+    "day": { "all": "문장", "career": "문장", "wealth": "문장", "mental": "문장", "love": "문장" },
+    "hour": { "all": "문장", "career": "문장", "wealth": "문장", "mental": "문장", "love": "문장" }
+  },
+  "masterInsight": "대표 대운 총평 요약"
+}
+`;
+
+      try {
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: ANALYZE_SYSTEM }] },
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.7,
+                maxOutputTokens: 6000
+              }
+            })
+          }
+        );
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            aiPack = JSON.parse(cleaned);
+          }
+        }
+      } catch (e) {
+        console.warn('AI 일괄 생성 통신 실패 (Fallback 생성):', e.message);
+      }
+    }
+
+    if (!aiPack || !aiPack.scenarios) {
+      const makeScenario = (domain, cycleName) => `${name}님의 ${cycleName} ${domain} 파동 흐름을 분석한 결과입니다. 현재 구간은 무리한 외부 확장보다 내부 시스템을 점검하고 핵심 역량을 정돈하기에 적합합니다. 조급함을 내려놓고 지속 가능한 루틴을 설계하여 다음 상승 국면의 도약 발판을 마련하세요.`;
+      aiPack = {
+        yongsin: `${name}님을 살게 하는 중심 에너지는 식상의 기운입니다. 머릿속 생각을 구체적인 산출물로 실행할 때 파동이 가장 크게 도약합니다. 완벽주의를 내려놓고 작은 실험부터 시작하는 태도가 유리합니다.`,
+        heesin: `용신을 든든하게 받쳐주는 재성의 기운입니다. 추진한 일들의 결과를 객관적인 시스템으로 안착시키고 협업 관계를 형성하는 데 강력한 조력자로 작용합니다.`,
+        gisin: `에너지가 한쪽으로 쏠릴 때 발생하는 과열을 경계해야 하는 기운입니다. 무리한 확장보다는 누수를 점검하고 감정 소모를 줄이는 원칙 중심의 태도가 필요합니다.`,
+        gusin: `집중력을 분산시키는 요소를 정리해야 하는 기운입니다. 불필요한 인간관계와 프로젝트를 필터링하고 본질에 집중할 때 멘탈 리셋이 완성됩니다.`,
+        strength: `원국의 주도권이 명확하여 스스로 판을 짜고 이끌어가는 주도형 전략이 유리합니다. 다만 과속으로 인한 피로를 방지하기 위해 정기적인 회복 슬롯을 확보하세요.`,
+        flow: `시간의 큰 물결이 순리대로 흐르는 구간입니다. 결과에 일희일비하지 않고 파동의 리듬에 맞춰 한 걸음씩 나아갈 때 장기적인 안정성을 확보할 수 있습니다.`,
+        scenarios: {
+          daewoon: { all: makeScenario('총운', '100년 대운'), career: makeScenario('사업운', '100년 대운'), wealth: makeScenario('재물운', '100년 대운'), mental: makeScenario('심신운', '100년 대운'), love: makeScenario('연애운', '100년 대운') },
+          year: { all: makeScenario('총운', '연운'), career: makeScenario('사업운', '연운'), wealth: makeScenario('재물운', '연운'), mental: makeScenario('심신운', '연운'), love: makeScenario('연애운', '연운') },
+          month: { all: makeScenario('총운', '월운'), career: makeScenario('사업운', '월운'), wealth: makeScenario('재물운', '월운'), mental: makeScenario('심신운', '월운'), love: makeScenario('연애운', '월운') },
+          day: { all: makeScenario('총운', '일운'), career: makeScenario('사업운', '일운'), wealth: makeScenario('재물운', '일운'), mental: makeScenario('심신운', '일운'), love: makeScenario('연애운', '일운') },
+          hour: { all: makeScenario('총운', '시운'), career: makeScenario('사업운', '시운'), wealth: makeScenario('재물운', '시운'), mental: makeScenario('심신운', '시운'), love: makeScenario('연애운', '시운') }
+        },
+        masterInsight: `${name}님의 현재 대운은 수렴과 발산이 조화를 이루는 구간입니다. 파동의 방향을 믿고 주도적으로 설계하세요.`
+      };
+    }
+
     return res.status(200).json({
       success: true,
       data: {
@@ -98,7 +181,8 @@ export default async function handler(req, res) {
           yongsinProfile: { yongsin: '토(식상)', heesin: '금(재성)', gisin: '수(관살)', gusin: '화(비겁)' }
         },
         cyclesData,
-        meta: { isForward: parseInt(gender, 10) === 1, startAge: 4 }
+        meta: { isForward: parseInt(gender, 10) === 1, startAge: 4 },
+        aiPack
       }
     });
 
