@@ -1,4 +1,4 @@
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -29,7 +29,7 @@ html_content = """<!DOCTYPE html>
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .tube-fill { transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     
-    /* 휠 피커: X축 고정 및 초고속 관성 가속 스크롤 */
+    /* 휠 피커: X축 고정 및 가속 관성 스크롤 */
     .wheel-scroll-container {
       scroll-snap-type: y mandatory;
       -webkit-overflow-scrolling: touch;
@@ -45,12 +45,11 @@ html_content = """<!DOCTYPE html>
       -webkit-user-select: none;
     }
 
-    /* 페이드 애니메이션 */
     .fade-in {
-      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(14px); }
+      from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
@@ -78,7 +77,7 @@ html_content = """<!DOCTYPE html>
         class="w-full px-4 py-3 bg-stone-100/80 border border-stone-200 rounded-2xl font-bold text-center text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition text-sm" />
     </div>
 
-    <!-- 파친코 휠 단계 탭 (상단 클릭으로 즉시 이동) -->
+    <!-- 파친코 휠 단계 탭 -->
     <div class="flex items-center justify-between bg-stone-100 p-1.5 rounded-2xl mb-4 text-xs font-bold gap-1">
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm transition" data-step="0" id="tabYear">1995년</button>
       <button type="button" class="step-tab flex-1 py-1.5 rounded-xl text-stone-500 hover:text-stone-800 transition" data-step="1" id="tabMonth">5월</button>
@@ -90,32 +89,22 @@ html_content = """<!DOCTYPE html>
 
     <!-- 드래그 패널 (좌우 화살표 + 정밀 수직 휠) -->
     <div class="relative w-full mb-6 flex items-center">
-      
-      <!-- 좌측 이전 단계 화살표 -->
       <button type="button" id="btnPrevStep" class="absolute -left-3 md:-left-4 z-20 w-9 h-9 rounded-full bg-white/95 shadow-md border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-amber-500 hover:text-white transition active:scale-90 opacity-30 pointer-events-none" title="이전 단계">
         <i class="fa-solid fa-chevron-left text-xs"></i>
       </button>
 
-      <!-- 우측 다음 단계 화살표 -->
       <button type="button" id="btnNextStep" class="absolute -right-3 md:-right-4 z-20 w-9 h-9 rounded-full bg-white/95 shadow-md border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-amber-500 hover:text-white transition active:scale-90" title="다음 단계">
         <i class="fa-solid fa-chevron-right text-xs"></i>
       </button>
 
-      <!-- 휠 박스 (X축 완전 고정) -->
       <div id="wheelContainer" class="relative w-full h-52 bg-stone-900 rounded-3xl overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center">
-        <!-- 상하 렌즈 그라데이션 -->
         <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
         <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
-        
-        <!-- 중앙 선택 표시 타겟 바 -->
         <div class="absolute w-[86%] h-12 border-y-2 border-amber-500/80 bg-amber-500/10 rounded-xl pointer-events-none z-0"></div>
-
-        <!-- 롤러 휠 -->
         <div id="wheelList" class="wheel-scroll-container w-full h-full overflow-y-auto no-scrollbar py-[72px] z-5"></div>
       </div>
     </div>
 
-    <!-- 스와이프 안내 문구 -->
     <div class="flex items-center justify-center gap-1.5 text-[11px] text-stone-400 font-medium mb-5 -mt-3">
       <i class="fa-solid fa-arrows-left-right text-amber-600"></i>
       <span>좌우 스와이프 또는 화살표로 탭 이동</span>
@@ -137,9 +126,9 @@ html_content = """<!DOCTYPE html>
 
 
   <!-- ===================================================================== -->
-  <!-- 2. [결과 화면] 80년 대운 파동 & 에너지 저널 대시보드 (초기 숨김)         -->
+  <!-- 2. [결과 화면] 100년 대운 파동 & 에너지 저널 대시보드                  -->
   <!-- ===================================================================== -->
-  <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-6 fade-in">
+  <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-6 fade-in pb-12">
     
     <!-- 대시보드 상단 제어 바 -->
     <header class="w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-sm border border-stone-200/70 p-3.5 px-5 flex flex-wrap items-center justify-between gap-3">
@@ -170,7 +159,7 @@ html_content = """<!DOCTYPE html>
     <!-- 듀얼 카드 레이아웃 -->
     <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       
-      <!-- SCREEN 1: 80년 파동 곡선 -->
+      <!-- SCREEN 1: 100년 파동 곡선 및 다중 오행 레이어 -->
       <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[700px] relative overflow-hidden">
         <div>
           <div class="flex items-center justify-between mb-4">
@@ -185,100 +174,161 @@ html_content = """<!DOCTYPE html>
             </div>
           </div>
 
-          <!-- 주기 탭 -->
-          <div class="flex items-center gap-1.5 bg-stone-200/60 p-1 rounded-2xl mb-4 text-xs font-bold text-stone-500">
-            <button class="flex-1 py-1.5 rounded-xl transition-all">시봉</button>
+          <!-- 간소화된 주기 탭: 시 / 일 / 월 / 연 / 대운(10년) -->
+          <div class="flex items-center gap-1 bg-stone-200/60 p-1 rounded-2xl mb-3 text-xs font-bold text-stone-500">
+            <button class="flex-1 py-1.5 rounded-xl hover:text-stone-800 transition">시</button>
+            <button class="flex-1 py-1.5 rounded-xl hover:text-stone-800 transition">일</button>
+            <button class="flex-1 py-1.5 rounded-xl hover:text-stone-800 transition">월</button>
+            <button class="flex-1 py-1.5 rounded-xl hover:text-stone-800 transition">연</button>
             <button class="flex-1 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm font-extrabold">대운(10년)</button>
-            <button class="flex-1 py-1.5 rounded-xl transition-all">연봉</button>
-            <button class="flex-1 py-1.5 rounded-xl transition-all">월봉</button>
-            <button class="flex-1 py-1.5 rounded-xl transition-all">일봉</button>
           </div>
 
-          <!-- 영역 필터 칩 -->
+          <!-- 4대 영역 필터 칩 (클릭 시 해당 파동 하이라이트) -->
           <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 pb-1 text-xs font-bold">
-            <button class="filter-chip active bg-stone-800 text-white px-3 py-1.5 rounded-full shrink-0 shadow-sm" data-domain="all">ALL</button>
-            <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업</button>
-            <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">재물</button>
-            <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애</button>
-            <button class="filter-chip bg-stone-100 text-stone-600 hover:bg-stone-200 px-3 py-1.5 rounded-full shrink-0 transition" data-domain="mental">심신</button>
+            <button class="filter-chip active bg-stone-800 text-white px-3 py-1.5 rounded-full shrink-0 shadow-sm" data-domain="all">ALL (전체 오버레이)</button>
+            <button class="filter-chip bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-full shrink-0 transition flex items-center gap-1" data-domain="career">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>사업운
+            </button>
+            <button class="filter-chip bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-full shrink-0 transition flex items-center gap-1" data-domain="wealth">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>재물운
+            </button>
+            <button class="filter-chip bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-full shrink-0 transition flex items-center gap-1" data-domain="mental">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span>심신운
+            </button>
+            <button class="filter-chip bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-full shrink-0 transition flex items-center gap-1" data-domain="love">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>연애운
+            </button>
           </div>
 
-          <!-- Chart.js 캔버스 -->
+          <!-- Chart.js 캔버스 & 줌인/줌아웃 컨트롤러 -->
           <div class="bg-white rounded-3xl p-4 shadow-sm border border-stone-100 mb-4 relative">
             <div class="flex items-center justify-between text-xs font-bold text-stone-400 mb-2">
               <span class="flex items-center gap-1.5 text-stone-700">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span> 80년 마스터 파동 궤적
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span> 100년 마스터 파동 궤적
               </span>
-              <span id="txtStartAgeInfo" class="text-amber-600 font-extrabold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">-</span>
+              
+              <!-- 줌 컨트롤 버튼 바 -->
+              <div class="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
+                <button id="btnZoomIn" class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-stone-700 hover:bg-amber-500 hover:text-white transition active:scale-90" title="그래프 확대">
+                  <i class="fa-solid fa-plus text-[10px]"></i>
+                </button>
+                <button id="btnZoomOut" class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-stone-700 hover:bg-amber-500 hover:text-white transition active:scale-90" title="그래프 축소">
+                  <i class="fa-solid fa-minus text-[10px]"></i>
+                </button>
+                <button id="btnZoomReset" class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-stone-700 hover:bg-amber-500 hover:text-white transition active:scale-90" title="원래대로">
+                  <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                </button>
+              </div>
             </div>
 
-            <div class="w-full h-56 relative">
+            <div class="w-full h-56 relative overflow-hidden">
               <canvas id="daewoonChart"></canvas>
             </div>
 
             <div class="flex items-center justify-between text-[11px] text-stone-400 mt-2 font-medium">
-              <span>👈 10년 주기 대운 흐름 탐색</span>
-              <span class="text-amber-600 font-semibold">반투명 영역 = 유동성 마진</span>
+              <span>👈 0세~100세 10대 대운 흐름</span>
+              <span class="text-amber-600 font-semibold">각 색상 = 4대 에너지 30% 레이어</span>
             </div>
           </div>
 
-          <!-- 상태 카드 2종 -->
-          <div class="grid grid-cols-2 gap-3 mb-4">
+          <!-- 상태 카드 2종 (용·희·기·구신 전체 표기) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <!-- 4대 운성 가이드 -->
             <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-black text-rose-500">용희신 가이드</span>
-                <i class="fa-solid fa-seedling text-emerald-500 text-xs"></i>
+                <span class="text-xs font-black text-amber-700 flex items-center gap-1">
+                  <i class="fa-solid fa-sparkles text-amber-500"></i>4대 운성 (클릭 시 AI 해설)
+                </span>
+                <span class="text-[10px] text-stone-400 font-bold">터치</span>
               </div>
               <p class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
-                나에게 유리한 에너지 흐름
+                나를 살리고 돕는 에너지와 주의할 요소
               </p>
-              <div class="flex flex-wrap gap-1">
-                <span id="badgeYongsin" class="text-[10px] font-extrabold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md border border-rose-100">용신 -</span>
-                <span id="badgeHeesin" class="text-[10px] font-extrabold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-100">희신 -</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button type="button" id="badgeYongsin" class="ai-insight-btn text-[10px] font-extrabold bg-rose-50 hover:bg-rose-100 text-rose-700 px-2 py-1 rounded-lg border border-rose-200 text-left transition truncate" data-role="용신">
+                  용신: -
+                </button>
+                <button type="button" id="badgeHeesin" class="ai-insight-btn text-[10px] font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-lg border border-amber-200 text-left transition truncate" data-role="희신">
+                  희신: -
+                </button>
+                <button type="button" id="badgeGisin" class="ai-insight-btn text-[10px] font-extrabold bg-stone-100 hover:bg-stone-200 text-stone-700 px-2 py-1 rounded-lg border border-stone-200 text-left transition truncate" data-role="기신">
+                  기신: -
+                </button>
+                <button type="button" id="badgeGusin" class="ai-insight-btn text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded-lg border border-blue-200 text-left transition truncate" data-role="구신">
+                  구신: -
+                </button>
               </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-black text-amber-600">세력 균형 지수</span>
-                <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-xs"></i>
+            <!-- 세력 균형 지수 카드 -->
+            <div class="bg-white rounded-2xl p-3.5 border border-stone-100 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-black text-amber-600">세력 균형 지수</span>
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-xs"></i>
+                </div>
+                <p id="txtStrengthStatus" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
+                  -
+                </p>
               </div>
-              <p id="txtStrengthStatus" class="text-[11px] text-stone-500 font-medium leading-tight mb-2.5">
-                -
-              </p>
-              <div class="flex flex-wrap gap-1">
-                <span id="badgeDeung" class="text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md border border-blue-100">-</span>
-                <span id="badgeFlow" class="text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-md border border-purple-100">-</span>
+              <div class="flex items-center gap-1.5">
+                <span id="badgeDeung" class="text-[10px] font-extrabold bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100">-</span>
+                <span id="badgeFlow" class="text-[10px] font-extrabold bg-purple-50 text-purple-600 px-2 py-1 rounded-md border border-purple-100">-</span>
               </div>
             </div>
           </div>
         </div>
 
-        <nav class="bg-white rounded-2xl px-6 py-3 border border-stone-100 flex items-center justify-between shadow-sm text-stone-400 text-xs font-bold">
-          <button class="flex flex-col items-center gap-1 text-amber-600"><i class="fa-solid fa-house text-base"></i><span>홈</span></button>
-          <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition"><i class="fa-solid fa-compass text-base"></i><span>기상도</span></button>
-          <button class="flex flex-col items-center justify-center -mt-6 w-12 h-12 rounded-full bg-amber-500 text-white shadow-lg shadow-amber-500/40"><i class="fa-solid fa-bolt-lightning text-lg"></i></button>
-          <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition"><i class="fa-solid fa-vault text-base"></i><span>지장간</span></button>
-          <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition"><i class="fa-solid fa-user text-base"></i><span>내 정보</span></button>
+        <!-- 하단 내비게이션 바 (지장간 -> 상세 분석 / 센터 -> 대화 아이콘) -->
+        <nav class="bg-white rounded-2xl px-5 py-2.5 border border-stone-100 flex items-center justify-between shadow-sm text-stone-400 text-xs font-bold">
+          <button class="flex flex-col items-center gap-1 text-amber-600">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="text-[10px]">홈</span>
+          </button>
+          
+          <!-- 기상도: 실시간 24절기/일진 에너지 기상 예보 -->
+          <button id="navWeatherTab" class="flex flex-col items-center gap-1 hover:text-stone-700 transition" title="실시간 일진/절기 에너지 기상도">
+            <i class="fa-solid fa-cloud-sun text-base"></i>
+            <span class="text-[10px]">기상도</span>
+          </button>
+          
+          <!-- 중앙 대화 아이콘 플로팅 버튼 -->
+          <button id="btnCenterChat" class="flex flex-col items-center justify-center -mt-6 w-12 h-12 rounded-full bg-amber-500 text-white shadow-lg shadow-amber-500/40 hover:bg-amber-600 active:scale-95 transition" title="오늘 기상도에 대해 대화하기">
+            <i class="fa-solid fa-comment-dots text-lg"></i>
+          </button>
+          
+          <!-- 상세 분석 (기존 지장간 용어 개선) -->
+          <button id="navDetailTab" class="flex flex-col items-center gap-1 hover:text-stone-700 transition" title="신살 및 지장간 심층 분석">
+            <i class="fa-solid fa-magnifying-glass-chart text-base"></i>
+            <span class="text-[10px]">상세 분석</span>
+          </button>
+          
+          <button class="flex flex-col items-center gap-1 hover:text-stone-700 transition">
+            <i class="fa-solid fa-user text-base"></i>
+            <span class="text-[10px]">내 정보</span>
+          </button>
         </nav>
       </section>
 
-      <!-- SCREEN 2: 4대 에너지 튜브 & 기상 통찰 -->
-      <section class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[700px]">
+      <!-- SCREEN 2: 4대 에너지 튜브 & 기상 통찰 (인생 에너지 저널) -->
+      <section id="sectionJournal" class="bg-[#FAFAF8] rounded-[36px] p-6 shadow-xl border border-stone-200/80 flex flex-col justify-between min-h-[700px] transition-all">
         <div>
           <div class="flex items-center justify-between mb-6">
-            <h4 class="font-extrabold text-stone-800 text-sm tracking-wide">인생 에너지 저널</h4>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <h4 class="font-extrabold text-stone-800 text-sm tracking-wide">인생 에너지 저널</h4>
+            </div>
             <span class="text-[11px] font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">대표 대운</span>
           </div>
 
           <div class="text-center mb-6">
             <div id="txtMainWaveScore" class="text-5xl font-black text-stone-900 tracking-tight mb-1">0</div>
             <p class="text-xs font-semibold text-stone-500">
-              대운 구간별 실시간 에너지 충전율
+              대운 구간별 실시간 4대 에너지 충전율
             </p>
           </div>
 
-          <!-- 4대 에너지 튜브 -->
+          <!-- 4대 에너지 튜브 (클릭 시 해당 파동만 단독 하이라이트) -->
           <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-100 mb-5">
             <div class="flex items-center justify-between mb-4">
               <span class="text-xs font-black text-stone-800">4대 핵심 에너지 튜브</span>
@@ -286,8 +336,9 @@ html_content = """<!DOCTYPE html>
             </div>
 
             <div class="grid grid-cols-4 gap-3 h-48 items-end justify-items-center pt-4 pb-1">
-              <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
-                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+              <!-- 사업운 -->
+              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="career">
+                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner group-hover:ring-2 ring-amber-400 transition">
                   <div id="tubeCareer" class="tube-fill w-full bg-gradient-to-t from-amber-400 to-amber-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
                     <span id="valCareer" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                   </div>
@@ -295,8 +346,9 @@ html_content = """<!DOCTYPE html>
                 <div class="text-center"><p class="text-[11px] font-bold text-stone-800">사업운</p><p class="text-[9px] text-stone-400 font-medium">추진·발산</p></div>
               </div>
 
-              <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
-                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+              <!-- 재물운 -->
+              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="wealth">
+                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner group-hover:ring-2 ring-emerald-400 transition">
                   <div id="tubeWealth" class="tube-fill w-full bg-gradient-to-t from-emerald-400 to-teal-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
                     <span id="valWealth" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                   </div>
@@ -304,8 +356,9 @@ html_content = """<!DOCTYPE html>
                 <div class="text-center"><p class="text-[11px] font-bold text-stone-800">재물운</p><p class="text-[9px] text-stone-400 font-medium">결실·안정</p></div>
               </div>
 
-              <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
-                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+              <!-- 심신운 -->
+              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="mental">
+                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner group-hover:ring-2 ring-purple-400 transition">
                   <div id="tubeMental" class="tube-fill w-full bg-gradient-to-t from-purple-400 to-indigo-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
                     <span id="valMental" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                   </div>
@@ -313,8 +366,9 @@ html_content = """<!DOCTYPE html>
                 <div class="text-center"><p class="text-[11px] font-bold text-stone-800">심신운</p><p class="text-[9px] text-stone-400 font-medium">수렴·내실</p></div>
               </div>
 
-              <div class="flex flex-col items-center gap-2 h-full justify-end w-full">
-                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner">
+              <!-- 연애운 -->
+              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="love">
+                <div class="w-12 h-36 bg-stone-100 rounded-full p-1 flex flex-col justify-end relative overflow-hidden shadow-inner group-hover:ring-2 ring-rose-400 transition">
                   <div id="tubeLove" class="tube-fill w-full bg-gradient-to-t from-rose-400 to-pink-500 rounded-full flex items-start justify-center pt-2" style="height: 50%;">
                     <span id="valLove" class="text-[10px] font-black text-white bg-black/20 px-1 rounded-full">50%</span>
                   </div>
@@ -340,8 +394,8 @@ html_content = """<!DOCTYPE html>
           </div>
         </div>
 
-        <button class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
-          <i class="fa-regular fa-comment-dots text-base"></i>
+        <button id="btnOpenChatFromJournal" class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-amber-500/30 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-comment-dots text-base"></i>
           <span>오늘 기상도에 대해 대화하기</span>
         </button>
       </section>
@@ -349,21 +403,93 @@ html_content = """<!DOCTYPE html>
     </main>
   </div>
 
+
   <!-- ===================================================================== -->
-  <!-- Script: Web Audio Sound FX + 휠 피커 제어 & API 연동                 -->
+  <!-- 3. [모달 1] 제미나이 AI 용희기구신 심층 해설 팝업                      -->
+  <!-- ===================================================================== -->
+  <div id="modalAiInsight" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
+    <div class="w-full max-w-md bg-white rounded-[32px] p-6 shadow-2xl border border-stone-200 relative overflow-hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+          <h4 id="modalAiTitle" class="text-base font-black text-stone-900">용신(用神) AI 해설</h4>
+        </div>
+        <button id="btnCloseAiModal" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 mb-4">
+        <p id="modalAiSubtitle" class="text-xs font-black text-amber-900 mb-1">당신을 살게 해주는 오행의 기운</p>
+        <p id="modalAiContent" class="text-xs text-stone-700 leading-relaxed font-medium">
+          흙(土)의 기운은 만물을 감싸 안고 중심을 잡아주는 대지의 힘입니다. 외부의 시련 속에서도 나만의 단단한 기반과 루틴을 형성할 때 가장 강력한 운의 상승을 경험하게 됩니다.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] text-stone-400 font-medium">
+        <span>✨ Gemini AI 사주 전문 엔진 분석</span>
+        <button id="btnAskMoreAi" class="text-amber-600 font-extrabold hover:underline">이 기운 더 질문하기 →</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===================================================================== -->
+  <!-- 4. [모달 2] AI 기상도 실시간 대화창 (제미나이 챗봇 준비)               -->
+  <!-- ===================================================================== -->
+  <div id="modalChatDrawer" class="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm hidden items-end md:items-center justify-center p-0 md:p-4 fade-in">
+    <div class="w-full max-w-lg bg-white rounded-t-[36px] md:rounded-[36px] p-6 shadow-2xl border border-stone-200 h-[80vh] flex flex-col justify-between">
+      
+      <!-- 챗봇 헤더 -->
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-md">
+            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-black text-stone-900">사주 Grap AI 상담사</h4>
+            <p class="text-[10px] text-stone-400 font-medium">인생 파동 기반 맞춤 대화</p>
+          </div>
+        </div>
+        <button id="btnCloseChatDrawer" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- 대화 메시지 영역 -->
+      <div id="chatMessageList" class="flex-1 overflow-y-auto no-scrollbar py-4 space-y-3 text-xs">
+        <div class="flex items-start gap-2">
+          <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 font-bold">AI</div>
+          <div class="bg-stone-100 text-stone-800 p-3 rounded-2xl rounded-tl-none max-w-[80%] leading-relaxed font-medium">
+            반가워요! 오늘의 에너지 흐름이나 특정 시기의 사업·재물·심신 파동에 대해 무엇이든 편하게 물어보세요.
+          </div>
+        </div>
+      </div>
+
+      <!-- 입력창 -->
+      <form id="chatInputForm" class="pt-3 border-t border-stone-100 flex items-center gap-2">
+        <input type="text" id="chatInputText" placeholder="궁금한 시기나 운세를 물어보세요..."
+          class="flex-1 px-4 py-3 bg-stone-100 border border-stone-200 rounded-2xl font-bold text-xs text-stone-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition" />
+        <button type="submit" class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center hover:bg-amber-600 transition shadow-md">
+          <i class="fa-solid fa-arrow-up text-sm"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ===================================================================== -->
+  <!-- Script: Chart.js 100년 오버레이 & 줌 & AI 연동                         -->
   <!-- ===================================================================== -->
   <script>
-    // 0. Web Audio API 기반 Sound FX 엔진
+    // 0. Web Audio API Sound FX
     let audioCtx = null;
-
     function getAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (AudioContextClass) audioCtx = new AudioContextClass();
       }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       return audioCtx;
     }
 
@@ -371,37 +497,31 @@ html_content = """<!DOCTYPE html>
       try {
         const ctx = getAudioContext();
         if (!ctx) return;
-
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         const now = ctx.currentTime;
-
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(700, now);
         osc.frequency.exponentialRampToValueAtTime(180, now + 0.022);
-
         gain.gain.setValueAtTime(0.09, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
-
         osc.connect(gain);
         gain.connect(ctx.destination);
-
         osc.start(now);
         osc.stop(now + 0.022);
-
-        if (navigator.vibrate) {
-          navigator.vibrate(3);
-        }
+        if (navigator.vibrate) navigator.vibrate(3);
       } catch (e) {}
     }
 
     window.addEventListener('touchstart', () => getAudioContext(), { once: true, passive: true });
     window.addEventListener('mousedown', () => getAudioContext(), { once: true });
 
-    // 1. Firebase 초기화 (firebase-config.js에서 주입된 window.firebaseConfig 사용)
+    // 1. Firebase 초기화
     let auth = null, db = null, currentUser = null;
     let chartInstance = null;
     let currentPayload = null;
+    let currentAnalysisData = null;
+    let activeDomainFilter = 'all';
 
     if (window.firebaseConfig && window.firebaseConfig.apiKey && !window.firebaseConfig.apiKey.includes('YOUR_ACTUAL_API_KEY')) {
       try {
@@ -417,7 +537,7 @@ html_content = """<!DOCTYPE html>
       }
     }
 
-    // 2. 휠 피커 상태 관리
+    // 2. 휠 피커 상태
     const state = {
       name: '',
       year: 1995,
@@ -442,26 +562,17 @@ html_content = """<!DOCTYPE html>
     let lastHighlightedValue = null;
 
     function goToStep(nextStep) {
-      if (nextStep >= 0 && nextStep < steps.length) {
-        renderWheel(nextStep);
-      }
+      if (nextStep >= 0 && nextStep < steps.length) renderWheel(nextStep);
     }
 
     function updateNavButtons() {
       const btnPrev = document.getElementById('btnPrevStep');
       const btnNext = document.getElementById('btnNextStep');
+      if (state.step === 0) btnPrev.classList.add('opacity-30', 'pointer-events-none');
+      else btnPrev.classList.remove('opacity-30', 'pointer-events-none');
 
-      if (state.step === 0) {
-        btnPrev.classList.add('opacity-30', 'pointer-events-none');
-      } else {
-        btnPrev.classList.remove('opacity-30', 'pointer-events-none');
-      }
-
-      if (state.step === steps.length - 1) {
-        btnNext.classList.add('opacity-30', 'pointer-events-none');
-      } else {
-        btnNext.classList.remove('opacity-30', 'pointer-events-none');
-      }
+      if (state.step === steps.length - 1) btnNext.classList.add('opacity-30', 'pointer-events-none');
+      else btnNext.classList.remove('opacity-30', 'pointer-events-none');
     }
 
     function renderWheel(stepIndex) {
@@ -497,10 +608,7 @@ html_content = """<!DOCTYPE html>
         div.className = 'wheel-item h-12 flex items-center justify-center text-lg font-black transition-all cursor-pointer select-none';
         div.dataset.value = item.val;
         div.innerText = item.text;
-        
-        div.onclick = () => {
-          selectWheelItem(div);
-        };
+        div.onclick = () => selectWheelItem(div);
         wheelEl.appendChild(div);
       });
 
@@ -528,7 +636,6 @@ html_content = """<!DOCTYPE html>
 
       const val = Number(el.dataset.value);
       const s = state.step;
-
       if (s === 0) { state.year = val; document.getElementById('tabYear').innerText = `${val}년`; }
       else if (s === 1) { state.month = val; document.getElementById('tabMonth').innerText = `${val}월`; }
       else if (s === 2) { state.day = val; document.getElementById('tabDay').innerText = `${val}일`; }
@@ -606,36 +713,28 @@ html_content = """<!DOCTYPE html>
     document.getElementById('btnPrevStep').addEventListener('click', () => { playTickSound(); goToStep(state.step - 1); });
     document.getElementById('btnNextStep').addEventListener('click', () => { playTickSound(); goToStep(state.step + 1); });
 
-    let touchStartX = 0;
-    let touchStartY = 0;
+    // 스와이프 제스처
+    let touchStartX = 0, touchStartY = 0;
     const wheelContainer = document.getElementById('wheelContainer');
-
     wheelContainer.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
 
     wheelContainer.addEventListener('touchend', (e) => {
-      const touchEndX = e.changedTouches[0].screenX;
-      const touchEndY = e.changedTouches[0].screenY;
-      const diffX = touchEndX - touchStartX;
-      const diffY = touchEndY - touchStartY;
-
+      const diffX = e.changedTouches[0].screenX - touchStartX;
+      const diffY = e.changedTouches[0].screenY - touchStartY;
       if (Math.abs(diffX) > 60 && Math.abs(diffY) < 30) {
         playTickSound();
-        if (diffX < 0) {
-          goToStep(state.step + 1);
-        } else {
-          goToStep(state.step - 1);
-        }
+        if (diffX < 0) goToStep(state.step + 1);
+        else goToStep(state.step - 1);
       }
     }, { passive: true });
 
-    // 3. 화면 전환 및 분석 실행
+    // 3. 화면 전환 & 분석 실행
     function switchView(viewName) {
       const vOnboarding = document.getElementById('viewOnboarding');
       const vDashboard = document.getElementById('viewDashboard');
-
       if (viewName === 'dashboard') {
         vOnboarding.classList.add('hidden');
         vDashboard.classList.remove('hidden');
@@ -673,6 +772,7 @@ html_content = """<!DOCTYPE html>
         const json = await res.json();
         if (json.success && json.data) {
           currentPayload = payload;
+          currentAnalysisData = json.data;
           renderDashboard(payload.name, json.data);
           switchView('dashboard');
         } else {
@@ -687,7 +787,7 @@ html_content = """<!DOCTYPE html>
       }
     }
 
-    // 4. 결과 렌더링
+    // 4. 결과 대시보드 렌더링
     function renderDashboard(name, data) {
       const { pillars, analysis, daewoonWaves, meta } = data;
       const dayPillar = pillars.day;
@@ -700,11 +800,15 @@ html_content = """<!DOCTYPE html>
       document.getElementById('txtUserPillar').innerText = `${name} (${dayPillar})`;
       document.getElementById('txtDayGanBadge').innerText = dayGan;
       document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점)`;
-      document.getElementById('badgeYongsin').innerText = `용신: ${analysis.yongsinProfile.yongsin}`;
-      document.getElementById('badgeHeesin').innerText = `희신: ${analysis.yongsinProfile.heesin}`;
       document.getElementById('badgeDeung').innerText = `득세 ${analysis.scores.deungSe}점`;
       document.getElementById('badgeFlow').innerText = meta.isForward ? '순행 대운' : '역행 대운';
-      document.getElementById('txtStartAgeInfo').innerText = `만 ${meta.startAge}세 대운 시작`;
+
+      // 4대 운성 (용/희/기/구신) 갱신
+      const p = analysis.yongsinProfile || {};
+      document.getElementById('badgeYongsin').innerText = `용신: ${p.yongsin || '토(식상)'}`;
+      document.getElementById('badgeHeesin').innerText = `희신: ${p.heesin || '금(재성)'}`;
+      document.getElementById('badgeGisin').innerText = `기신: ${p.gisin || '수(관살)'}`;
+      document.getElementById('badgeGusin').innerText = `구신: ${p.gusin || '화(비겁)'}`;
 
       const activeWave = daewoonWaves[3] || daewoonWaves[0];
       updateTubes(activeWave.scores);
@@ -712,7 +816,7 @@ html_content = """<!DOCTYPE html>
       document.getElementById('txtMainWaveScore').innerText = (activeWave.scores.total >= 0 ? `+${activeWave.scores.total}` : `${activeWave.scores.total}`);
       document.getElementById('txtInsightDesc').innerText = `${name}님의 대표 대운(${activeWave.ganZhi})은 사업운(${toPercent(activeWave.scores.career)}%)과 재물운(${toPercent(activeWave.scores.wealth)}%)이 조화를 이루는 구간입니다.`;
 
-      renderWaveChart(daewoonWaves);
+      renderWaveChart(daewoonWaves, 'all');
     }
 
     function toPercent(score) {
@@ -735,64 +839,252 @@ html_content = """<!DOCTYPE html>
       document.getElementById('valLove').innerText = `${l}%`;
     }
 
-    function renderWaveChart(waves) {
+    // 5. 100년 파동 곡선 & 4대 에너지 30% 레이어 렌더링
+    function renderWaveChart(waves, highlightDomain = 'all') {
       const ctx = document.getElementById('daewoonChart').getContext('2d');
+      
+      // 100년 (10개 대운) 데이터 매핑
       const labels = waves.map(w => `${w.ganZhi}\n(${w.ageRange.start}세)`);
       const totalData = waves.map(w => w.scores.total);
-      const upperData = waves.map(w => w.band.upper);
-      const lowerData = waves.map(w => w.band.lower);
+      const careerData = waves.map(w => w.scores.career);
+      const wealthData = waves.map(w => w.scores.wealth);
+      const mentalData = waves.map(w => w.scores.mental);
+      const loveData = waves.map(w => w.scores.love);
+      const upperData = waves.map(w => w.band ? w.band.upper : w.scores.total + 10);
+      const lowerData = waves.map(w => w.band ? w.band.lower : w.scores.total - 10);
 
       if (chartInstance) chartInstance.destroy();
 
+      // 도메인별 투명도 및 선 두께 동적 설정
+      const getStyle = (domain, activeColor, faintColor) => {
+        if (highlightDomain === 'all') {
+          return { color: faintColor, width: 2, pointRadius: 3 };
+        } else if (highlightDomain === domain) {
+          return { color: activeColor, width: 3.5, pointRadius: 5 };
+        } else {
+          return { color: 'rgba(200, 200, 200, 0.1)', width: 1, pointRadius: 0 };
+        }
+      };
+
+      const careerStyle = getStyle('career', '#F59E0B', 'rgba(245, 158, 11, 0.35)');
+      const wealthStyle = getStyle('wealth', '#10B981', 'rgba(16, 185, 129, 0.35)');
+      const mentalStyle = getStyle('mental', '#8B5CF6', 'rgba(139, 92, 246, 0.35)');
+      const loveStyle = getStyle('love', '#F43F5E', 'rgba(244, 63, 94, 0.35)');
+
+      const datasets = [
+        // 1) 마스터 총운 (기본 금빛 곡선)
+        {
+          label: '마스터 총운',
+          data: totalData,
+          borderColor: highlightDomain === 'all' ? '#D97706' : 'rgba(217, 119, 6, 0.25)',
+          borderWidth: highlightDomain === 'all' ? 3.5 : 1.5,
+          backgroundColor: 'transparent',
+          pointBackgroundColor: '#FFFFFF',
+          pointBorderColor: '#D97706',
+          pointBorderWidth: 2,
+          pointRadius: highlightDomain === 'all' ? 5 : 0,
+          tension: 0.4,
+          order: 1
+        },
+        // 2) 사업운 곡선 (30% 앰버)
+        {
+          label: '사업운',
+          data: careerData,
+          borderColor: careerStyle.color,
+          borderWidth: careerStyle.width,
+          pointRadius: careerStyle.pointRadius,
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          order: 2
+        },
+        // 3) 재물운 곡선 (30% 에메랄드)
+        {
+          label: '재물운',
+          data: wealthData,
+          borderColor: wealthStyle.color,
+          borderWidth: wealthStyle.width,
+          pointRadius: wealthStyle.pointRadius,
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          order: 3
+        },
+        // 4) 심신운 곡선 (30% 퍼플)
+        {
+          label: '심신운',
+          data: mentalData,
+          borderColor: mentalStyle.color,
+          borderWidth: mentalStyle.width,
+          pointRadius: mentalStyle.pointRadius,
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          order: 4
+        },
+        // 5) 연애운 곡선 (30% 로즈)
+        {
+          label: '연애운',
+          data: loveData,
+          borderColor: loveStyle.color,
+          borderWidth: loveStyle.width,
+          pointRadius: loveStyle.pointRadius,
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          order: 5
+        }
+      ];
+
       chartInstance = new Chart(ctx, {
         type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: '유동성 상단',
-              data: upperData,
-              borderColor: 'transparent',
-              backgroundColor: 'rgba(245, 158, 11, 0.12)',
-              fill: '+1',
-              pointRadius: 0,
-              tension: 0.4
-            },
-            {
-              label: '유동성 하단',
-              data: lowerData,
-              borderColor: 'transparent',
-              backgroundColor: 'transparent',
-              pointRadius: 0,
-              tension: 0.4
-            },
-            {
-              label: '마스터 총운',
-              data: totalData,
-              borderColor: '#F59E0B',
-              borderWidth: 3,
-              backgroundColor: 'transparent',
-              pointBackgroundColor: '#FFFFFF',
-              pointBorderColor: '#D97706',
-              pointBorderWidth: 2,
-              pointRadius: 5,
-              tension: 0.4
-            }
-          ]
-        },
+        data: { labels, datasets },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1C1917',
+              titleFont: { size: 12, weight: 'bold' },
+              padding: 10,
+              cornerRadius: 12,
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y}점`
+              }
+            }
+          },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' }, color: '#78716C' } },
-            y: { min: -100, max: 100, grid: { color: '#F3F4F6' }, ticks: { stepSize: 50, font: { size: 9 }, color: '#A8A29E' } }
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10, weight: '600' }, color: '#78716C' }
+            },
+            y: {
+              min: -100,
+              max: 100,
+              grid: { color: '#F3F4F6' },
+              ticks: { stepSize: 50, font: { size: 9 }, color: '#A8A29E' }
+            }
           }
         }
       });
     }
 
-    // 5. Firebase 저장/불러오기
+    // 6. 필터 칩 & 튜브 클릭 하이라이트 이벤트
+    function setHighlightDomain(domain) {
+      activeDomainFilter = domain;
+      document.querySelectorAll('.filter-chip').forEach(btn => {
+        if (btn.dataset.domain === domain) {
+          btn.classList.add('bg-stone-800', 'text-white');
+          btn.classList.remove('bg-amber-50', 'bg-emerald-50', 'bg-purple-50', 'bg-rose-50');
+        } else {
+          btn.classList.remove('bg-stone-800', 'text-white');
+        }
+      });
+
+      if (currentAnalysisData) {
+        renderWaveChart(currentAnalysisData.daewoonWaves, domain);
+      }
+    }
+
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => setHighlightDomain(btn.dataset.domain));
+    });
+
+    document.querySelectorAll('.tube-btn').forEach(tube => {
+      tube.addEventListener('click', () => setHighlightDomain(tube.dataset.domain));
+    });
+
+    // 7. 차트 줌 컨트롤
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      if (!chartInstance) return;
+      const yAxis = chartInstance.scales.y;
+      yAxis.options.min = Math.max(-100, yAxis.min + 20);
+      yAxis.options.max = Math.min(100, yAxis.max - 20);
+      chartInstance.update();
+    });
+
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      if (!chartInstance) return;
+      const yAxis = chartInstance.scales.y;
+      yAxis.options.min = -100;
+      yAxis.options.max = 100;
+      chartInstance.update();
+    });
+
+    document.getElementById('btnZoomReset').addEventListener('click', () => {
+      if (!chartInstance) return;
+      chartInstance.scales.y.options.min = -100;
+      chartInstance.scales.y.options.max = 100;
+      chartInstance.update();
+    });
+
+    // 8. 제미나이 AI 용희기구신 해설 팝업
+    const aiInsightDescriptions = {
+      '용신': {
+        title: '용신(用神) AI 해설',
+        subtitle: '당신을 살게 하고 성공을 이끄는 핵심 에너지',
+        desc: '당신의 사주 원국에서 가장 균형을 잡아주는 중심 축입니다. 이 기운이 들어오는 대운과 세운에서는 사업적 결실, 추진력, 삶의 명확한 방향성이 강력하게 열립니다.'
+      },
+      '희신': {
+        title: '희신(喜神) AI 해설',
+        subtitle: '용신을 보좌하고 돕는 귀인과 환경의 기운',
+        desc: '용신이 제 역할을 할 수 있도록 든든하게 뒷받침해 주는 조력의 에너지입니다. 협업, 귀인의 도움, 주변 환경의 긍정적 변화를 이끌어냅니다.'
+      },
+      '기신': {
+        title: '기신(忌神) AI 해설',
+        subtitle: '에너지 과잉으로 주의가 필요한 기운',
+        desc: '특정 기운이 지나치게 강해져 원국의 조화를 깨뜨리기 쉬운 에너지입니다. 이 시기에는 무리한 확장보다는 내실과 건강 관리에 집중하는 것이 현명합니다.'
+      },
+      '구신': {
+        title: '구신(仇神) AI 해설',
+        subtitle: '희신을 극하여 방해를 초래하는 요소',
+        desc: '조력자를 방해하거나 집중력을 분산시키는 에너지입니다. 감정적 충동을 경계하고 원칙과 루틴을 확고히 지켜나가는 전략이 필요합니다.'
+      }
+    };
+
+    document.querySelectorAll('.ai-insight-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        playTickSound();
+        const role = btn.dataset.role;
+        const text = btn.innerText;
+        const info = aiInsightDescriptions[role] || aiInsightDescriptions['용신'];
+
+        document.getElementById('modalAiTitle').innerText = `${text} · ${info.title}`;
+        document.getElementById('modalAiSubtitle').innerText = info.subtitle;
+        document.getElementById('modalAiContent').innerText = `${text}은(는) ${info.desc}`;
+        
+        const modal = document.getElementById('modalAiInsight');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+    });
+
+    document.getElementById('btnCloseAiModal').addEventListener('click', () => {
+      const modal = document.getElementById('modalAiInsight');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    });
+
+    // 9. AI 챗봇 드로어
+    function openChatDrawer() {
+      playTickSound();
+      const drawer = document.getElementById('modalChatDrawer');
+      drawer.classList.remove('hidden');
+      drawer.classList.add('flex');
+    }
+
+    function closeChatDrawer() {
+      const drawer = document.getElementById('modalChatDrawer');
+      drawer.classList.add('hidden');
+      drawer.classList.remove('flex');
+    }
+
+    document.getElementById('btnCenterChat').addEventListener('click', openChatDrawer);
+    document.getElementById('btnOpenChatFromJournal').addEventListener('click', openChatDrawer);
+    document.getElementById('btnAskMoreAi').addEventListener('click', () => {
+      document.getElementById('btnCloseAiModal').click();
+      openChatDrawer();
+    });
+    document.getElementById('btnCloseChatDrawer').addEventListener('click', closeChatDrawer);
+
+    // 10. Firebase 저장/불러오기
     async function saveToCloud() {
       if (!currentPayload) return;
       if (!db || !currentUser) {
@@ -855,9 +1147,3 @@ html_content = """<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-print("index.html generated successfully!")
