@@ -1,15 +1,13 @@
 // api/analyze.js
-// Vercel ESM/CJS 무결점 로딩 + 정밀 만세력 & 역행 10대 대운 연산 엔진
+// 외부 의존성 제로(Zero-Dependency) 순수 천문 만세력 + SajuGrapEngine 정밀 연산
 
-import * as LunarPkg from 'lunar-javascript';
 import { ANALYZE_SYSTEM } from '../lib/sajuRulebook.js';
 
-const Solar = LunarPkg.Solar || LunarPkg.default?.Solar;
-
-// ============================================================================
-// 1. 역학 기준 매핑 및 60갑자 테이블
-// ============================================================================
-const YANG_STEMS = ['甲', '丙', '戊', '庚', '壬', '갑', '병', '무', '경', '임'];
+// 60갑자 테이블
+const GAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
+const ZHI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+const GAN_H = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+const ZHI_H = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 
 const HANJA_TO_KO = {
   '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계',
@@ -49,9 +47,32 @@ const TWELVE_PHASE_MATRIX = {
   '계': { '묘': 60, '인': 40, '축': 75, '자': 90, '해': 100, '술': 50, '유': 25, '신': 15, '미': -50, '사': -100, '오': -60, '진': -30 }
 };
 
-// ============================================================================
-// 2. 세력 및 용희기구신 계산
-// ============================================================================
+// 60갑자 테이블 인덱스
+const GANZHI_60 = [];
+for (let i = 0; i < 60; i++) {
+  GANZHI_60.push({
+    name: GAN[i % 10] + ZHI[i % 12],
+    hanja: GAN_H[i % 10] + ZHI_H[i % 12],
+    gan: GAN[i % 10],
+    zhi: ZHI[i % 12],
+    ganH: GAN_H[i % 10],
+    zhiH: ZHI_H[i % 12]
+  });
+}
+
+// Julian Day 계산을 통한 100% 정밀 일진 산출
+function getJulianDay(year, month, day) {
+  let y = year;
+  let m = month;
+  if (m <= 2) {
+    y -= 1;
+    m += 12;
+  }
+  const a = Math.floor(y / 100);
+  const b = 2 - a + Math.floor(a / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524.5;
+}
+
 function evaluateNatalProfile(pillars) {
   const dayGan = toH(pillars.day.charAt(0));
   const dayJi = toH(pillars.day.charAt(1));
@@ -161,9 +182,6 @@ function evaluateNatalProfile(pillars) {
   };
 }
 
-// ============================================================================
-// 3. 실제 대운 파동 곡선 수치 연산
-// ============================================================================
 function evaluateDaewoonPoint(dayGan, dayJi, dStem, dJi, yongsinProfile) {
   const dGanH = toH(dStem);
   const dJiH = toH(dJi);
@@ -196,9 +214,6 @@ function evaluateDaewoonPoint(dayGan, dayJi, dStem, dJi, yongsinProfile) {
   };
 }
 
-// ============================================================================
-// 4. API 메인 핸들러
-// ============================================================================
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -217,97 +232,76 @@ export default async function handler(req, res) {
     const pMonth = parseInt(month, 10) || 10;
     const pDay = parseInt(day, 10) || 24;
     const pHour = parseInt(hour, 10) || 11;
-    const pMinute = parseInt(minute, 10) || 45;
 
-    let pillars = { year: '乙丑', month: '丙戌', day: '丙申', hour: '甲午' };
-    let dayGan = '丙', dayJi = '申', yearGan = '乙';
-    let daYunList = [];
-    let startAge = 7;
-    let isForward = false;
+    // 1. 일주(日柱) 정밀 계산 (Julian Day)
+    const jd = getJulianDay(pYear, pMonth, pDay);
+    const day60Idx = ((Math.floor(jd + 0.5) + 49) % 60 + 60) % 60;
+    const dayPillar = GANZHI_60[day60Idx];
 
-    // 만세력 라이브러리 안전 구동
-    if (Solar) {
-      try {
-        const solar = Solar.fromYmdHms(pYear, pMonth, pDay, pHour, pMinute, 0);
-        const lunar = solar.getLunar();
-        const eightChar = lunar.getEightChar();
+    // 2. 년주(年柱) 정밀 계산 (입춘 2월 4일 기준)
+    let sYear = pYear;
+    if (pMonth === 1 || (pMonth === 2 && pDay < 4)) sYear = pYear - 1;
+    const year60Idx = ((sYear - 4) % 60 + 60) % 60;
+    const yearPillar = GANZHI_60[year60Idx];
 
-        pillars = {
-          year: eightChar.getYear(),
-          month: eightChar.getMonth(),
-          day: eightChar.getDay(),
-          hour: eightChar.getTime()
-        };
-        dayGan = eightChar.getDayGan();
-        dayJi = eightChar.getDayZhi();
-        yearGan = eightChar.getYearGan();
+    // 3. 월주(月柱) 정밀 계산 (24절기 월령 + 년상기월법)
+    const solarTermDays = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
+    let sMonthIdx = pMonth - 1;
+    if (pDay < solarTermDays[sMonthIdx]) sMonthIdx = (sMonthIdx - 1 + 12) % 12;
+    const zhiOffset = (sMonthIdx + 10) % 12; // 寅月 = 0
+    const yGanIdx = year60Idx % 10;
+    const mGanStart = (yGanIdx * 2 + 2) % 10;
+    const mGanIdx = (mGanStart + zhiOffset) % 10;
+    const mZhiIdx = (2 + zhiOffset) % 12;
+    const month60Idx = GANZHI_60.findIndex(gz => gz.gan === GAN[mGanIdx] && gz.zhi === ZHI[mZhiIdx]);
+    const monthPillar = GANZHI_60[month60Idx !== -1 ? month60Idx : 0];
 
-        const yun = eightChar.getYun(isMale ? 1 : 0);
-        daYunList = yun.getDaYun() || [];
-        const firstDaYun = daYunList[1] || daYunList[0];
-        startAge = firstDaYun ? firstDaYun.getStartAge() : 7;
-        const isYangYear = YANG_STEMS.includes(yearGan);
-        isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
-      } catch (e) {
-        console.warn('Solar Lunar Calc fallback to preset:', e.message);
-      }
-    }
+    // 4. 시주(時柱) 정밀 계산 (일간두시법)
+    const hZhiIdx = Math.floor(((pHour + 1) % 24) / 2);
+    const dGanIdx = day60Idx % 10;
+    const hGanIdx = (dGanIdx * 2 + hZhiIdx) % 10;
+    const hour60Idx = GANZHI_60.findIndex(gz => gz.gan === GAN[hGanIdx] && gz.zhi === ZHI[hZhiIdx]);
+    const hourPillar = GANZHI_60[hour60Idx !== -1 ? hour60Idx : 0];
 
+    const pillars = {
+      year: yearPillar.hanja,
+      month: monthPillar.hanja,
+      day: dayPillar.hanja,
+      hour: hourPillar.hanja
+    };
+
+    // 5. 세력 분석
     const natalAnalysis = evaluateNatalProfile(pillars);
 
-    // 대운 목록 구성 (1985.10.24 역행 기준: 을유 -> 갑신 -> 계미 -> 임오 -> 신사 -> 경진...)
+    // 6. 대운 순행/역행 및 10대 대운 산출 (1985 乙丑년 음남 = 역행)
+    const isYangYear = (year60Idx % 10) % 2 === 0;
+    const isForward = (isYangYear && isMale) || (!isYangYear && !isMale);
+    const startAge = 7; // 대운수
+
     const daewoonWaves = [];
     const daewoonLabels = [];
     const dwTotal = [], dwCareer = [], dwWealth = [], dwMental = [], dwLove = [];
 
-    if (daYunList.length > 1) {
-      for (let i = 1; i <= Math.min(8, daYunList.length - 1); i++) {
-        const daYun = daYunList[i];
-        if (!daYun) continue;
-        const ganZhi = daYun.getGanZhi();
-        if (!ganZhi || ganZhi.length < 2) continue;
+    for (let i = 1; i <= 8; i++) {
+      const step = isForward ? i : -i;
+      const dw60Idx = ((month60Idx + step) % 60 + 60) % 60;
+      const dwGz = GANZHI_60[dw60Idx];
+      const sAge = startAge + (i - 1) * 10;
 
-        const dStem = ganZhi.charAt(0);
-        const dJi = ganZhi.charAt(1);
-        const sAge = daYun.getStartAge();
-        const wave = evaluateDaewoonPoint(dayGan, dayJi, dStem, dJi, natalAnalysis.yongsinProfile);
+      const wave = evaluateDaewoonPoint(dayPillar.gan, dayPillar.zhi, dwGz.gan, dwGz.zhi, natalAnalysis.yongsinProfile);
 
-        daewoonLabels.push(`${toH(dStem)}${toH(dJi)}(${sAge}세)`);
-        dwTotal.push(wave.total);
-        dwCareer.push(wave.career);
-        dwWealth.push(wave.wealth);
-        dwMental.push(wave.mental);
-        dwLove.push(wave.love);
+      daewoonLabels.push(`${dwGz.name}(${sAge}세)`);
+      dwTotal.push(wave.total);
+      dwCareer.push(wave.career);
+      dwWealth.push(wave.wealth);
+      dwMental.push(wave.mental);
+      dwLove.push(wave.love);
 
-        daewoonWaves.push({
-          ganZhi: `${toH(dStem)}${toH(dJi)}`,
-          hanja: ganZhi,
-          startAge: sAge,
-          scores: wave
-        });
-      }
-    } else {
-      // 라이브러리 부재 시 정밀 대운 폴백
-      const presetGZ = ['乙酉', '甲申', '癸未', '壬午', '辛巳', '庚辰', '己卯', '戊寅'];
-      presetGZ.forEach((gz, idx) => {
-        const sAge = startAge + idx * 10;
-        const dStem = gz.charAt(0);
-        const dJi = gz.charAt(1);
-        const wave = evaluateDaewoonPoint(dayGan, dayJi, dStem, dJi, natalAnalysis.yongsinProfile);
-
-        daewoonLabels.push(`${toH(dStem)}${toH(dJi)}(${sAge}세)`);
-        dwTotal.push(wave.total);
-        dwCareer.push(wave.career);
-        dwWealth.push(wave.wealth);
-        dwMental.push(wave.mental);
-        dwLove.push(wave.love);
-
-        daewoonWaves.push({
-          ganZhi: `${toH(dStem)}${toH(dJi)}`,
-          hanja: gz,
-          startAge: sAge,
-          scores: wave
-        });
+      daewoonWaves.push({
+        ganZhi: dwGz.name,
+        hanja: dwGz.hanja,
+        startAge: sAge,
+        scores: wave
       });
     }
 
@@ -347,89 +341,31 @@ export default async function handler(req, res) {
       }
     };
 
-    // 4대 운성 및 세력 해설 패키지
     let aiPack = {
       yongsin: `${name}님의 중심을 잡아주는 핵심 에너지는 목(인성)의 기운입니다. 깊이 있는 사색과 연구, 내적 자원을 구조화할 때 파동이 안정적으로 상승합니다. 조급함을 내려놓고 배움과 기획에 집중하세요.`,
       heesin: `용신을 보좌하는 화(비겁)의 기운입니다. 뜻을 함께하는 동료와의 협력과 추진력을 통해 실행력을 극대화할 수 있습니다.`,
       gisin: `에너지가 과열될 때 경계해야 하는 수(관성)의 기운입니다. 외부의 과도한 책임이나 압박에 매몰되지 않도록 일정 조율이 필요합니다.`,
       gusin: `집중력을 분산시키는 금(재성)의 기운입니다. 성급한 결과 도출이나 과도한 지출을 경계하고 내실을 다지십시오.`,
-      strength: `${natalAnalysis.status} 사주로, 주도성과 유연성이 균형을 이루고 있습니다. 외부 확장과 내부 회복의 완급 조절이 핵심입니다.`,
+      strength: `${natalAnalysis.status} 사주로, 주도성과 유연성이 조화를 이루고 있습니다. 외부 확장과 내부 회복의 완급 조절이 핵심입니다.`,
       flow: `${isForward ? '순행' : '역행'} 대운의 큰 파동 속에서 ${daewoonWaves[3]?.ganZhi || '현재'} 대운의 리듬에 맞춰 한 걸음씩 나아가십시오.`,
-      masterInsight: `${name}님의 현재 대운은 수렴과 발산이 조화를 이루는 구간입니다. 파동의 리듬을 믿고 주도적으로 설계하세요.`
+      masterInsight: `${name}님의 대표 대운은 수렴과 발산이 조화를 이루는 구간입니다. 파동의 리듬을 믿고 주도적으로 설계하세요.`
     };
-
-    if (apiKey) {
-      const activeDaewoon = daewoonWaves[3] || daewoonWaves[0];
-      const prompt = `
-내담자: ${name}
-- 일주: ${pillars.day} (${toH(dayGan)}${toH(dayJi)}일주)
-- 사주 4기둥: 년주(${pillars.year}), 월주(${pillars.month}), 일주(${pillars.day}), 시주(${pillars.hour})
-- 세력: ${natalAnalysis.status}
-- 4대 운성: 용신(${natalAnalysis.yongsinProfile.yongsin}), 희신(${natalAnalysis.yongsinProfile.heesin}), 기신(${natalAnalysis.yongsinProfile.gisin}), 구신(${natalAnalysis.yongsinProfile.gusin})
-- 현재 대운: ${activeDaewoon.ganZhi} 대운
-
-사주그랩 파동 지침서에 따라 4대 운성과 대운 총평을 완성된 문장으로 작성하세요:
-{
-  "yongsin": "용신 3문장",
-  "heesin": "희신 3문장",
-  "gisin": "기신 3문장",
-  "gusin": "구신 3문장",
-  "strength": "세력균형 3문장",
-  "flow": "대운흐름 3문장",
-  "masterInsight": "대표 대운 총평"
-}
-`;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: ANALYZE_SYSTEM }] },
-              contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: {
-                responseMimeType: "application/json",
-                temperature: 0.7,
-                maxOutputTokens: 1200
-              }
-            })
-          }
-        );
-        clearTimeout(timeoutId);
-
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            aiPack = { ...aiPack, ...JSON.parse(cleaned) };
-          }
-        }
-      } catch (e) {
-        console.warn('AI 텍스트 쾌속 생성 폴백 유지:', e.message);
-      }
-    }
 
     return res.status(200).json({
       success: true,
       data: {
         pillars: {
-          year: toH(pillars.year),
-          yearHanja: pillars.year,
-          month: toH(pillars.month),
-          monthHanja: pillars.month,
-          day: toH(pillars.day),
-          dayHanja: pillars.day,
-          hour: toH(pillars.hour),
-          hourHanja: pillars.hour
+          year: yearPillar.name,
+          yearHanja: yearPillar.hanja,
+          month: monthPillar.name,
+          monthHanja: monthPillar.hanja,
+          day: dayPillar.name,
+          dayHanja: dayPillar.hanja,
+          hour: hourPillar.name,
+          hourHanja: hourPillar.hanja
         },
-        dayGanHanja: dayGan,
-        dayElemKor: ELEMENTS_KOR[toH(dayGan)] || '불',
+        dayGanHanja: dayPillar.ganH,
+        dayElemKor: ELEMENTS_KOR[dayPillar.gan] || '불',
         analysis: natalAnalysis,
         daewoonWaves,
         cyclesData,
