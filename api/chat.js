@@ -1,4 +1,6 @@
 // api/chat.js
+// Gemini 3.7 Flash 모델 적용: 심층 리포트 및 실시간 챗봇
+
 import { CHAT_SYSTEM } from '../lib/sajuRulebook.js';
 
 export default async function handler(req, res) {
@@ -29,7 +31,7 @@ export default async function handler(req, res) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
