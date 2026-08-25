@@ -1,5 +1,5 @@
 // api/chat.js
-// Vercel Serverless Function: Gemini API 연동 브릿지
+// Vercel Serverless Function: Gemini 2.0 Flash API 연동 브릿지
 
 export default async function handler(req, res) {
   // CORS 헤더 설정
@@ -73,9 +73,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Gemini 1.5 Flash 공식 모델 호출
+    // Gemini 2.0 Flash 정식 모델 엔드포인트 호출
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
