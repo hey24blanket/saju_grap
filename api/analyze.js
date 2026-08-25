@@ -1,5 +1,5 @@
 // api/analyze.js
-// 100년 파동 및 25개 시나리오 300자 가이드 일괄 생성
+// 사주그랩 지침서 전문 룰북 내장 + 25개 시나리오 300자 일괄 생성
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -40,7 +40,6 @@ export default async function handler(req, res) {
     const dayElemKor = elementsKor[dayGan] || '물';
     const dayPillarStr = `${dayGanHanja}${zhiHanja[dayZhi] || '午'}`;
 
-    // 주기별 파동 데이터셋 생성
     const cyclesData = {
       daewoon: {
         labels: ['무진(4세)', '기사(14세)', '경오(24세)', '신미(34세)', '임신(44세)', '계유(54세)', '갑술(64세)', '을해(74세)', '병자(84세)', '정축(94세)'],
@@ -84,28 +83,37 @@ export default async function handler(req, res) {
       }
     };
 
-    // 2. 사주그랩 가이드라인 내장 프롬프트 (PDF 핵심 완벽 이식)
     let aiPack = null;
     if (apiKey) {
+      // PDF 가이드라인 전문 압축 시스템 프롬프트
       const systemInstruction = `
-당신은 '사주그랩(Saju Grap) 파동 역학 & 전략적 명리 지침서'를 기반으로 컨설팅하는 AI 수석 분석관입니다.[cite: 2]
+[사주그랩(Saju Grap) 파동 역학 & 전략적 명리 지침서 v1.0]
 
-[핵심 작성 원칙]
-1. 운은 길흉(좋다/나쁘다)이 아닌 "어떤 행동 모드가 유리한지 읽는 시간의 구조"로 해석합니다.[cite: 2]
-2. Y축 점수는 '에너지 극성(+100 발산·전면실행 ~ -100 수렴·재설계)'을 뜻합니다.[cite: 2]
-3. 모든 항목은 내담자의 사주 원국과 시간축을 결합하여 **공백 포함 250~300자 내외**의 구조화된 실천 가이드로 작성합니다.[cite: 2]
-4. 영문 표기(Practical Coaching 등)는 전면 금지하며, 오직 품격 있는 명리 코칭 한국어만 사용합니다.
-5. 반드시 지정된 JSON Schema 형식 하나만 순수하게 반환합니다.
+1. 3대 핵심 철학:
+- 모든 운은 파동과 리듬이다: 길/흉의 이분법적 단정을 철저히 배제하고 '발산·중립·수렴' 3극 에너지 스펙트럼으로 해석한다.
+- 사주에 나쁜 것은 없다: 기운의 성패를 묻지 않고 "지금 이 기운을 어떻게 쓸 것인가" 행동 쓰임새를 제시한다.
+- 바닥을 알면 버틸 수 있고 전체를 보면 무너지지 않는다: 저점(묘·절·태)은 '추가 하락 여지가 없는 절대 바닥'의 안도감으로 해석하며, 영역 간 엇갈림(Divergence)을 통해 에너지를 재배분한다.
+
+2. Y축 극성 & 행동 모드:
+- +70~+100 (발산·전면 실행): 론칭, 영업, 발표, 주도권 행사. (과열·과속 방지 슬롯 필수)
+- +30~+69 (태동·실전 적용): 배움의 실전 적용, 8주 단위 파일럿, 씨앗 뿌리기.
+- -20~+20 (전환·중립): 결론보다 데이터 정리, 시스템 누수 점검.
+- -21~-69 (수렴·정리): 결실 수확, 불필요한 프로젝트/관계 필터링, Deep Work.
+- -70~-100 (심화·재설계): 추가 하락 없음, 기획서 작성, 연구·자격 취득, 멘탈 리셋.
+
+3. 금지/권장 어휘:
+- 금지: "대박운", "최악이다", "조심하라", "망한다", "배우자운이 없다", "Practical Coaching" 등 영문.
+- 권장: "외부 확장에 유리한 모드", "내부 구조를 다질 시기", "변동성이 큰 구간", "에너지 재배분".
+
+반드시 100% 한국어로 지정된 JSON 규격에 맞추어 작성하십시오.
 `;
 
       const prompt = `
 내담자: ${name} (일간: ${dayGanHanja} ${dayElemKor}, 원국: ${yearGan}${yearZhi}년 ${monthGan}${monthZhi}월 ${dayGan}${dayZhi}일 ${hourGan}${hourZhi}시)
 
 요구사항:
-1. 4대 운성(용신, 희신, 기신, 구신), 세력균형, 대운흐름에 대해 각각 250~300자 내외의 명리 해설을 작성하세요.
-2. 5대 주기(daewoon, year, month, day, hour) 각각에 대해 5대 영역(all, career, wealth, mental, love)의 250~300자 행동 전략을 작성하세요. (총 25개 시나리오)[cite: 2]
-
-반환할 JSON 구조:
+사주그랩 지침서에 따라 각 항목별로 공백 포함 250~300자 내외의 구체적인 행동 전략을 작성하세요.
+반드시 아래 JSON Schema로만 반환하세요:
 {
   "yongsin": "용신 250~300자 설명",
   "heesin": "희신 250~300자 설명",
@@ -151,20 +159,20 @@ export default async function handler(req, res) {
           }
         }
       } catch (e) {
-        console.warn('AI 일괄 생성 실패(기본값 적용):', e.message);
+        console.warn('AI 생성 에러:', e.message);
       }
     }
 
-    // Fallback 300자 데이터
+    // Fallback 데이터
     if (!aiPack || !aiPack.scenarios) {
-      const fallback300 = `${name}님의 사주 원국과 시간 파동을 분석한 결과, 현재 구간은 외부로 무리하게 확장하기보다 내부 프로세스를 정비하고 핵심 역량을 구조화하기에 최적화된 시기입니다.[cite: 2] 성과에 대한 조급함을 내려놓고 8주 단위의 작은 실행 루틴을 확립하세요.[cite: 2] 에너지가 수렴할 때 축적된 내실은 다음 발산 국면에서 폭발적인 추진력으로 전환됩니다.[cite: 2]`;
+      const fallback300 = `${name}님의 파동을 분석한 결과, 현재 구간은 외부로 무리하게 확장하기보다 내부 프로세스를 정비하고 핵심 역량을 구조화하기에 최적화된 시기입니다. 성과에 대한 조급함을 내려놓고 8주 단위의 작은 실행 루틴을 확립하세요[cite: 2]. 에너지가 수렴할 때 축적된 내실은 다음 발산 국면에서 폭발적인 추진력으로 전환됩니다[cite: 2].`;
       aiPack = {
-        yongsin: `${name}님을 살게 하는 중심 에너지는 식상의 기운입니다.[cite: 2] 생각에만 머물지 않고 구조화된 산출물을 세상에 내놓을 때 파동이 최고점으로 도약합니다.[cite: 2] 완벽주의를 버리고 작게 실험하는 태도를 유지하세요.[cite: 2]`,
-        heesin: `용신을 든든하게 받쳐주는 재성의 기운입니다.[cite: 2] 추진한 일들의 결실을 객관적인 지표로 전환하고, 유리한 협업 관계를 형성하는 데 강력한 조력자로 작용합니다.[cite: 2]`,
-        gisin: `에너지가 한쪽으로 쏠릴 때 발생하는 과열을 경계해야 하는 기운입니다.[cite: 2] 억지 확장보다는 누수를 점검하고 감정적 소모를 차단하는 원칙 중심의 태도가 필요합니다.[cite: 2]`,
-        gusin: `집중력을 분산시키는 요소를 정리해야 하는 기운입니다.[cite: 2] 불필요한 인간관계와 프로젝트를 과감히 필터링하고 본질에 집중할 때 멘탈 리셋이 완성됩니다.[cite: 2]`,
-        strength: `원국의 주도권이 명확하여 스스로 판을 짜고 실행하는 주도형 전략이 유리합니다.[cite: 2] 다만 과속으로 인한 번아웃을 방지하기 위해 정기적인 회복 슬롯을 일정에 고정하세요.[cite: 2]`,
-        flow: `시간의 큰 물결이 순리대로 흐르는 구간입니다.[cite: 2] 결과에 집착하지 않고 파동의 리듬에 맞춰 한 걸음씩 나아갈 때 장기적인 안정성을 확보할 수 있습니다.[cite: 2]`,
+        yongsin: `${name}님을 살게 하는 중심 에너지는 식상의 기운입니다[cite: 2]. 생각에만 머물지 않고 구조화된 산출물을 세상에 내놓을 때 파동이 최고점으로 도약합니다[cite: 2]. 완벽주의를 버리고 작게 실험하는 태도를 유지하세요[cite: 2].`,
+        heesin: `용신을 든든하게 받쳐주는 재성의 기운입니다[cite: 2]. 추진한 일들의 결실을 객관적인 지표로 전환하고, 유리한 협업 관계를 형성하는 데 강력한 조력자로 작용합니다[cite: 2].`,
+        gisin: `에너지가 한쪽으로 쏠릴 때 발생하는 과열을 경계해야 하는 기운입니다[cite: 2]. 억지 확장보다는 누수를 점검하고 감정적 소모를 차단하는 원칙 중심의 태도가 필요합니다[cite: 2].`,
+        gusin: `집중력을 분산시키는 요소를 정리해야 하는 기운입니다[cite: 2]. 불필요한 인간관계와 프로젝트를 과감히 필터링하고 본질에 집중할 때 멘탈 리셋이 완성됩니다[cite: 2].`,
+        strength: `원국의 주도권이 명확하여 스스로 판을 짜고 실행하는 주도형 전략이 유리합니다[cite: 2]. 다만 과속으로 인한 번아웃을 방지하기 위해 정기적인 회복 슬롯을 일정에 고정하세요[cite: 2].`,
+        flow: `시간의 큰 물결이 순리대로 흐르는 구간입니다[cite: 2]. 결과에 집착하지 않고 파동의 리듬에 맞춰 한 걸음씩 나아갈 때 장기적인 안정성을 확보할 수 있습니다[cite: 2].`,
         scenarios: {
           daewoon: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
           year: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
@@ -172,7 +180,7 @@ export default async function handler(req, res) {
           day: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 },
           hour: { all: fallback300, career: fallback300, wealth: fallback300, mental: fallback300, love: fallback300 }
         },
-        masterInsight: `${name}님의 대표 대운은 수렴과 발산이 조화를 이루는 구간입니다.[cite: 2] 파동의 방향을 믿고 실행하세요.[cite: 2]`
+        masterInsight: `${name}님의 대표 대운은 수렴과 발산이 조화를 이루는 구간입니다[cite: 2]. 파동의 방향을 믿고 실행하세요[cite: 2].`
       };
     }
 
@@ -200,6 +208,6 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: '데이터 연산 오류: ' + error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 }
