@@ -233,6 +233,20 @@
       </div>
     </header>
 
+    <!-- 개발/진단 상태 패널: 정상 시 Engine/Schema 상태 확인용 -->
+    <section id="runtimeStatusPanel" class="w-full hidden liquid-glass rounded-[22px] px-4 py-3 text-[10px] text-stone-600">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="runtimeStatusBadge" class="shrink-0 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black">ENGINE CHECK</span>
+          <span id="runtimeStatusSummary" class="font-bold truncate">분석 엔진 상태 확인 전</span>
+        </div>
+        <button id="btnToggleRuntimeDetails" type="button" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/70 border border-white text-stone-700 font-black hover:bg-white transition">
+          진단 보기
+        </button>
+      </div>
+      <div id="runtimeStatusDetails" class="hidden mt-2 pt-2 border-t border-white/80 font-mono whitespace-pre-wrap break-all leading-relaxed"></div>
+    </section>
+
     <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
       
       <!-- SCREEN 1: 파동 패널 -->
@@ -462,6 +476,49 @@
   </div>
 
 
+  <!-- 개발자 오류 모달: 개발 단계에서 오류 내용을 그대로 복사해 전달하기 위한 패널 -->
+  <div id="modalDeveloperError" class="fixed inset-0 z-[100] bg-stone-950/35 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
+    <div class="w-full max-w-lg bg-white rounded-[28px] p-5 md:p-6 shadow-2xl border border-rose-200 max-h-[88vh] flex flex-col">
+      <div class="flex items-start justify-between gap-3 pb-3 border-b border-stone-100">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+            <span class="text-[10px] font-black text-rose-700 tracking-wide">SAJUGRAP DEVELOPMENT ERROR</span>
+          </div>
+          <h4 id="devErrorTitle" class="text-base font-black text-stone-900">오류가 발생했습니다</h4>
+          <p class="text-[11px] text-stone-500 font-semibold mt-1">아래 내용을 복사해서 ChatGPT에 그대로 보내주세요.</p>
+        </div>
+        <button id="btnCloseDeveloperError" type="button" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition shrink-0">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto no-scrollbar py-4">
+        <pre id="devErrorText" class="select-text whitespace-pre-wrap break-all bg-stone-950 text-emerald-300 rounded-2xl p-4 text-[11px] leading-relaxed font-mono">오류 정보 없음</pre>
+        <p class="mt-3 text-[10px] text-stone-500 leading-relaxed font-semibold">
+          API Key, Authorization header 등 비밀값은 서버 오류 응답에서 제거하도록 구성되어 있습니다. 그래도 복사 전에 민감정보가 보이지 않는지 한 번 확인해 주세요.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-3 border-t border-stone-100">
+        <button id="btnCopyDeveloperError" type="button" class="py-3 rounded-2xl bg-stone-900 text-white font-black text-xs hover:bg-stone-800 active:scale-[0.98] transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-copy text-amber-400"></i>
+          오류 내용 복사
+        </button>
+        <button id="btnDismissDeveloperError" type="button" class="py-3 rounded-2xl bg-stone-100 text-stone-700 font-black text-xs hover:bg-stone-200 active:scale-[0.98] transition">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 닫은 오류를 다시 열 수 있는 개발용 버튼 -->
+  <button id="btnOpenLastError" type="button" class="fixed bottom-4 right-4 z-[90] hidden px-3.5 py-2.5 rounded-2xl bg-rose-600 text-white font-black text-[11px] shadow-xl hover:bg-rose-700 active:scale-95 transition items-center gap-2">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    DEV 오류
+  </button>
+
+
   <!-- 6. 프론트엔드 연동 스크립트 -->
   <script>
     const CACHE_KEY = 'saju_grap_user_profile_cache';
@@ -512,6 +569,326 @@
     // 메모리 캐시
     const dynamicAiCache = {};
     let chatHistory = [];
+
+    // -----------------------------------------------------------------------
+    // 개발/진단 헬퍼
+    // -----------------------------------------------------------------------
+    let lastDeveloperError = null;
+    const cycleApiTitles = { daewoon: '대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
+
+    function safeText(value, fallback = '-') {
+      if (value === null || value === undefined || value === '') return fallback;
+      return String(value);
+    }
+
+    function closeDeveloperError() {
+      const modal = document.getElementById('modalDeveloperError');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function formatDeveloperError(info = {}) {
+      return [
+        'SajuGrap Development Error',
+        '--------------------------',
+        `code: ${safeText(info.code, 'SG-UNKNOWN')}`,
+        `stage: ${safeText(info.stage, 'UNKNOWN')}`,
+        `message: ${safeText(info.message, '알 수 없는 오류')}`,
+        `detail: ${safeText(info.detail)}`,
+        `hint: ${safeText(info.hint)}`,
+        `httpStatus: ${safeText(info.httpStatus)}`,
+        `provider: ${safeText(info.provider)}`,
+        `providerStatus: ${safeText(info.providerStatus)}`,
+        `providerCode: ${safeText(info.providerCode)}`,
+        `requestId: ${safeText(info.requestId)}`,
+        `apiVersion: ${safeText(info.apiVersion)}`,
+        `timestamp: ${safeText(info.timestamp, new Date().toISOString())}`,
+        `page: ${location.pathname}`
+      ].join('\n');
+    }
+
+    function showDeveloperError(title, info = {}) {
+      lastDeveloperError = {
+        ...info,
+        timestamp: info.timestamp || new Date().toISOString()
+      };
+
+      document.getElementById('devErrorTitle').innerText = title || '오류가 발생했습니다';
+      document.getElementById('devErrorText').innerText = formatDeveloperError(lastDeveloperError);
+
+      const modal = document.getElementById('modalDeveloperError');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const reopen = document.getElementById('btnOpenLastError');
+      reopen.classList.remove('hidden');
+      reopen.classList.add('flex');
+    }
+
+    async function copyDeveloperError() {
+      const text = document.getElementById('devErrorText').innerText;
+      const btn = document.getElementById('btnCopyDeveloperError');
+
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> 복사 완료';
+        setTimeout(() => { btn.innerHTML = original; }, 1200);
+      } catch (e) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+    }
+
+    function clearDeveloperErrorIndicator() {
+      lastDeveloperError = null;
+      const reopen = document.getElementById('btnOpenLastError');
+      reopen.classList.add('hidden');
+      reopen.classList.remove('flex');
+      closeDeveloperError();
+    }
+
+    async function readApiResponse(res, fallbackStage) {
+      const requestId = res.headers.get('X-SajuGrap-Request-Id') || null;
+      const text = await res.text();
+      let json = null;
+
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch (e) {
+        const err = new Error('서버가 JSON이 아닌 응답을 반환했습니다.');
+        err.sajuInfo = {
+          code: 'SG-HTTP-NONJSON',
+          stage: fallbackStage || 'HTTP_RESPONSE_PARSE',
+          message: '서버 응답 형식을 읽지 못했습니다.',
+          detail: text ? text.slice(0, 700) : '빈 응답',
+          hint: 'Vercel Function이 시작 단계에서 종료되었거나 HTML 오류 페이지가 반환됐을 수 있습니다.',
+          httpStatus: res.status,
+          requestId,
+          timestamp: new Date().toISOString()
+        };
+        throw err;
+      }
+
+      if (!res.ok || json?.success === false) {
+        const apiError = json?.error || {};
+        const err = new Error(apiError.message || json?.message || `HTTP ${res.status}`);
+        err.sajuInfo = {
+          code: apiError.code || res.headers.get('X-SajuGrap-Error-Code') || `SG-HTTP-${res.status}`,
+          stage: apiError.stage || fallbackStage || 'API_RESPONSE',
+          message: apiError.message || json?.message || 'API 요청이 실패했습니다.',
+          detail: apiError.detail || json?.message || `HTTP ${res.status}`,
+          hint: apiError.hint || null,
+          httpStatus: apiError.httpStatus || res.status,
+          provider: apiError.provider || null,
+          providerStatus: apiError.providerStatus || null,
+          providerCode: apiError.providerCode || null,
+          requestId: apiError.requestId || requestId,
+          apiVersion: apiError.apiVersion || null,
+          timestamp: apiError.timestamp || new Date().toISOString()
+        };
+        throw err;
+      }
+
+      return json;
+    }
+
+    function handleFrontendFailure(title, error, fallback = {}) {
+      const info = error?.sajuInfo || {
+        code: fallback.code || 'SG-UI-001',
+        stage: fallback.stage || 'FRONTEND_RUNTIME',
+        message: fallback.message || error?.message || '프론트엔드 오류가 발생했습니다.',
+        detail: error?.message || String(error || 'Unknown error'),
+        hint: fallback.hint || '이 오류 내용을 복사해서 전달해 주세요.',
+        httpStatus: fallback.httpStatus || null,
+        requestId: fallback.requestId || null,
+        timestamp: new Date().toISOString()
+      };
+
+      showDeveloperError(title, info);
+      return info;
+    }
+
+    function renderRuntimeStatus(diagnostic, data) {
+      const runtime = data?.runtimeDiagnostics || {};
+      const panel = document.getElementById('runtimeStatusPanel');
+      const badge = document.getElementById('runtimeStatusBadge');
+      const summary = document.getElementById('runtimeStatusSummary');
+      const details = document.getElementById('runtimeStatusDetails');
+
+      panel.classList.remove('hidden');
+      badge.innerText = 'ENGINE OK';
+      badge.className = 'shrink-0 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black';
+
+      const schema = diagnostic?.schemaVersion || runtime?.schemaVersion || data?.engineFacts?.schemaVersion || '-';
+      const engine = diagnostic?.engineVersion || runtime?.engineVersion || data?.engineFacts?.engineVersion || '-';
+      const validation = diagnostic?.schemaValidation || runtime?.schemaValidation || '-';
+      const requestId = diagnostic?.requestId || runtime?.requestId || '-';
+
+      summary.innerText = `Engine ${engine} · ${schema} · Validation ${validation}`;
+      details.innerText = [
+        `status: ${diagnostic?.status || runtime?.status || 'OK'}`,
+        `engineVersion: ${engine}`,
+        `schemaVersion: ${schema}`,
+        `schemaValidation: ${validation}`,
+        `requestId: ${requestId}`,
+        `warningCount: ${runtime?.warningCount ?? '-'}`,
+        `conflictCount: ${runtime?.conflictCount ?? '-'}`,
+        `apiVersion: ${diagnostic?.apiVersion || runtime?.apiVersion || '-'}`,
+        `timestamp: ${diagnostic?.timestamp || runtime?.timestamp || '-'}`
+      ].join('\n');
+    }
+
+    function buildSajuContext() {
+      return {
+        name: currentPayload?.name,
+        pillars: currentAnalysisData?.pillars,
+        dayPillar: currentAnalysisData?.pillars?.day,
+        dayHanja: currentAnalysisData?.pillars?.dayHanja,
+        engineFacts: currentAnalysisData?.engineFacts || null
+      };
+    }
+
+    function getRepresentativeCycleIndex(cycleKey) {
+      const engineCycles = currentAnalysisData?.engineFacts?.cycles;
+      const list = engineCycles?.[cycleKey];
+      const ref = engineCycles?.reference;
+
+      if (!Array.isArray(list) || list.length === 0) return 0;
+      if (!ref) return Math.min(3, list.length - 1);
+
+      if (cycleKey === 'daewoon') {
+        const idx = list.findIndex(item =>
+          Number.isFinite(Number(item?.startYear)) &&
+          Number.isFinite(Number(item?.endYear)) &&
+          Number(ref.year) >= Number(item.startYear) &&
+          Number(ref.year) <= Number(item.endYear)
+        );
+        return idx >= 0 ? idx : 0;
+      }
+
+      if (cycleKey === 'year') {
+        const idx = list.findIndex(item => Number(item?.year) === Number(ref.year));
+        return idx >= 0 ? idx : Math.min(4, list.length - 1);
+      }
+
+      if (cycleKey === 'month') {
+        const idx = list.findIndex(item => Number(item?.month) === Number(ref.month));
+        return idx >= 0 ? idx : 0;
+      }
+
+      if (cycleKey === 'day') {
+        let bestIndex = 0;
+        let bestDistance = Infinity;
+        list.forEach((item, index) => {
+          const distance = Math.abs(Number(item?.day) - Number(ref.day));
+          if (Number.isFinite(distance) && distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = index;
+          }
+        });
+        return bestIndex;
+      }
+
+      if (cycleKey === 'hour') {
+        let bestIndex = 0;
+        let bestDistance = Infinity;
+        list.forEach((item, index) => {
+          const distance = Math.abs(Number(item?.hour) - Number(ref.hour));
+          if (Number.isFinite(distance) && distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = index;
+          }
+        });
+        return bestIndex;
+      }
+
+      return 0;
+    }
+
+    function getCycleScore(cycleKey, domainKey) {
+      const series = currentAnalysisData?.cyclesData?.[cycleKey];
+      if (!series) return 0;
+      const index = getRepresentativeCycleIndex(cycleKey);
+      const key = domainKey === 'all' ? 'total' : domainKey;
+      const values = series?.[key];
+      return Array.isArray(values) ? Number(values[index] ?? values[0] ?? 0) : 0;
+    }
+
+    function buildCycleScores(cycleKey) {
+      return {
+        all: getCycleScore(cycleKey, 'all'),
+        career: getCycleScore(cycleKey, 'career'),
+        wealth: getCycleScore(cycleKey, 'wealth'),
+        mental: getCycleScore(cycleKey, 'mental'),
+        love: getCycleScore(cycleKey, 'love')
+      };
+    }
+
+    function updateJournalFromCurrentCycle() {
+      if (!currentAnalysisData) return;
+      const scores = buildCycleScores(currentCycle);
+      const toPercent = value => Math.max(4, Math.min(100, Math.round((Number(value) + 100) / 2)));
+
+      document.getElementById('txtMainWaveScore').innerText = `${scores.all >= 0 ? '+' : ''}${Math.round(scores.all)}`;
+
+      const config = [
+        ['Career', scores.career],
+        ['Wealth', scores.wealth],
+        ['Mental', scores.mental],
+        ['Love', scores.love]
+      ];
+
+      config.forEach(([suffix, score]) => {
+        const pct = toPercent(score);
+        const tube = document.getElementById(`tube${suffix}`);
+        const val = document.getElementById(`val${suffix}`);
+        if (tube) tube.style.height = `${pct}%`;
+        if (val) val.innerText = `${pct}%`;
+      });
+    }
+
+    document.getElementById('btnCloseDeveloperError').addEventListener('click', closeDeveloperError);
+    document.getElementById('btnDismissDeveloperError').addEventListener('click', closeDeveloperError);
+    document.getElementById('btnCopyDeveloperError').addEventListener('click', copyDeveloperError);
+    document.getElementById('btnOpenLastError').addEventListener('click', () => {
+      if (lastDeveloperError) showDeveloperError('최근 개발 오류', lastDeveloperError);
+    });
+    document.getElementById('modalDeveloperError').addEventListener('click', (e) => {
+      if (e.target.id === 'modalDeveloperError') closeDeveloperError();
+    });
+    document.getElementById('btnToggleRuntimeDetails').addEventListener('click', () => {
+      const details = document.getElementById('runtimeStatusDetails');
+      const button = document.getElementById('btnToggleRuntimeDetails');
+      const willShow = details.classList.contains('hidden');
+      details.classList.toggle('hidden');
+      button.innerText = willShow ? '진단 닫기' : '진단 보기';
+    });
+
+    window.addEventListener('error', (event) => {
+      handleFrontendFailure('프론트엔드 실행 오류', event.error || new Error(event.message), {
+        code: 'SG-UI-001',
+        stage: 'FRONTEND_RUNTIME',
+        message: event.message || '브라우저 JavaScript 오류가 발생했습니다.',
+        hint: `${event.filename || 'index.html'}:${event.lineno || '-'}:${event.colno || '-'}`
+      });
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event.reason instanceof Error ? event.reason : new Error(String(event.reason || 'Unhandled promise rejection'));
+      handleFrontendFailure('처리되지 않은 비동기 오류', reason, {
+        code: 'SG-UI-PROMISE-001',
+        stage: 'FRONTEND_ASYNC',
+        message: reason.message
+      });
+    });
+
 
     let state = { name: '', year: 1985, month: 10, day: 24, hour: 11, minute: 45, gender: 1 };
     let activePickerType = 'year';
@@ -695,7 +1072,9 @@
         day: state.day,
         hour: state.hour,
         minute: state.minute,
-        gender: state.gender
+        gender: state.gender,
+        calendarType: 'solar',
+        timezone: 'Asia/Seoul'
       };
 
       try {
@@ -704,24 +1083,45 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const json = await res.json();
-        if (json.success && json.data) {
-          currentPayload = payload;
-          currentAnalysisData = json.data;
-          cachedAiPack = json.data.aiPack;
-          chatHistory = [];
-          renderDashboard(payload.name, json.data);
-          document.getElementById('viewOnboarding').classList.add('hidden');
-          document.getElementById('viewDashboard').classList.remove('hidden');
-          document.getElementById('viewDashboard').classList.add('flex');
 
-          // 대시보드 진입 즉시 5대 운 백그라운드 프리페치 실행
-          prefetchCycleStrategies(currentCycle);
-        } else {
-          alert('분석 실패: ' + (json.message || '입력값을 확인하세요.'));
+        const json = await readApiResponse(res, 'ANALYZE_API');
+
+        if (!json?.success || !json?.data) {
+          throw Object.assign(new Error('분석 API 응답에 data가 없습니다.'), {
+            sajuInfo: {
+              code: 'SG-UI-ANALYZE-001',
+              stage: 'ANALYZE_RESPONSE',
+              message: '분석 결과 데이터가 비어 있습니다.',
+              detail: 'json.success 또는 json.data 확인 실패',
+              requestId: json?.diagnostic?.requestId || null,
+              httpStatus: res.status,
+              timestamp: new Date().toISOString()
+            }
+          });
         }
-      } catch (e) {
-        alert('서버 통신 실패');
+
+        currentPayload = payload;
+        currentAnalysisData = json.data;
+        cachedAiPack = json.data.aiPack || null;
+        chatHistory = [];
+
+        clearDeveloperErrorIndicator();
+        renderRuntimeStatus(json.diagnostic, json.data);
+        renderDashboard(payload.name, json.data);
+
+        document.getElementById('viewOnboarding').classList.add('hidden');
+        document.getElementById('viewDashboard').classList.remove('hidden');
+        document.getElementById('viewDashboard').classList.add('flex');
+
+        // 대시보드 진입 즉시 현재 대운 구간 기준 5대 운 전략 프리페치
+        prefetchCycleStrategies(currentCycle);
+      } catch (error) {
+        handleFrontendFailure('사주 분석 실패', error, {
+          code: 'SG-NETWORK-ANALYZE-001',
+          stage: 'ANALYZE_FETCH',
+          message: '분석 서버와 통신하지 못했습니다.',
+          hint: 'Vercel 배포 상태와 /api/analyze 응답을 확인하세요.'
+        });
       } finally {
         btn.classList.remove('opacity-70', 'pointer-events-none');
         btn.querySelector('span').innerText = '파동 보기';
@@ -751,18 +1151,15 @@
       currentCycle = 'daewoon';
       currentDomainIndex = 0;
       renderWaveChart(currentCycle, 'all');
+      updateJournalFromCurrentCycle();
     }
 
-    // 백그라운드 5대 운 프리페치 (상용 앱 핵심 기법)
+    // 백그라운드 5대 운 프리페치
     async function prefetchCycleStrategies(cycleKey) {
-      const cycleScores = currentAnalysisData.cyclesData[cycleKey];
-      const scoresPayload = {
-        all: cycleScores.total?.[3] ?? cycleScores.total?.[0] ?? 0,
-        career: cycleScores.career?.[3] ?? cycleScores.career?.[0] ?? 0,
-        wealth: cycleScores.wealth?.[3] ?? cycleScores.wealth?.[0] ?? 0,
-        mental: cycleScores.mental?.[3] ?? cycleScores.mental?.[0] ?? 0,
-        love: cycleScores.love?.[3] ?? cycleScores.love?.[0] ?? 0
-      };
+      if (!currentAnalysisData) return;
+
+      const cycleIndex = getRepresentativeCycleIndex(cycleKey);
+      const scoresPayload = buildCycleScores(cycleKey);
 
       try {
         const res = await fetch('/api/chat', {
@@ -770,23 +1167,28 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'prefetch',
-            cycle: cycleTitles[cycleKey],
+            cycle: cycleApiTitles[cycleKey],
+            cycleIndex,
             cycleScores: scoresPayload,
-            sajuContext: {
-              name: currentPayload?.name,
-              pillars: currentAnalysisData?.pillars,
-              dayPillar: currentAnalysisData?.pillars?.day,
-              dayHanja: currentAnalysisData?.pillars?.dayHanja
-            }
+            sajuContext: buildSajuContext()
           })
         });
-        const json = await res.json();
+
+        const json = await readApiResponse(res, 'CHAT_PREFETCH');
+
         if (json.success && json.data) {
           Object.keys(json.data).forEach(dKey => {
             dynamicAiCache[`${cycleKey}_${dKey}`] = json.data[dKey];
           });
         }
-      } catch (err) {}
+      } catch (error) {
+        handleFrontendFailure('AI 전략 미리 불러오기 실패', error, {
+          code: 'SG-NETWORK-CHAT-001',
+          stage: 'CHAT_PREFETCH',
+          message: '전략 프리페치 요청에 실패했습니다.',
+          hint: '오류를 닫아도 그래프 자체는 계속 확인할 수 있습니다.'
+        });
+      }
     }
 
     function renderWaveChart(cycleKey, highlightDomain = 'all') {
@@ -848,6 +1250,7 @@
         currentCycle = tab.dataset.cycle;
         document.getElementById('txtCycleGuide').innerText = `👈 ${cycleTitles[currentCycle]} 파동 분석`;
         renderWaveChart(currentCycle, domainKeys[currentDomainIndex]);
+        updateJournalFromCurrentCycle();
 
         // 새 주기의 5대 운 미리 로드
         prefetchCycleStrategies(currentCycle);
@@ -927,14 +1330,13 @@
       }
     });
 
-    // 주기별 영역 고유 전략 팝업 (0초 즉시 출력)
+    // 주기별 영역 고유 전략 팝업
     async function openScenarioModal(domainKey) {
       const domainName = domainTitles[domainKey];
       const cycleName = cycleTitles[currentCycle];
       const title = `${cycleName} · ${domainName} 전략`;
       const cacheKey = `${currentCycle}_${domainKey}`;
 
-      // 이미 백그라운드에서 프리페치 완료된 경우 0초 즉시 출력
       if (dynamicAiCache[cacheKey]) {
         openUnifiedModal(title, dynamicAiCache[cacheKey]);
         return;
@@ -942,8 +1344,10 @@
 
       openUnifiedModal(title, '', true);
 
-      const cycleScores = currentAnalysisData.cyclesData[currentCycle];
-      const activeScore = cycleScores[domainKey === 'all' ? 'total' : domainKey]?.[3] ?? cycleScores.total?.[0] ?? 0;
+      const cycleIndex = getRepresentativeCycleIndex(currentCycle);
+      const activeScore = getCycleScore(currentCycle, domainKey);
+      const contentEl = document.getElementById('modalAiContent');
+      const loadingEl = document.getElementById('modalAiLoading');
 
       try {
         const res = await fetch('/api/chat', {
@@ -952,20 +1356,14 @@
           body: JSON.stringify({
             mode: 'summary',
             domain: domainName,
-            cycle: cycleName,
+            cycle: cycleApiTitles[currentCycle],
+            cycleIndex,
             score: activeScore,
-            sajuContext: {
-              name: currentPayload?.name,
-              pillars: currentAnalysisData?.pillars,
-              dayPillar: currentAnalysisData?.pillars?.day,
-              dayHanja: currentAnalysisData?.pillars?.dayHanja
-            }
+            sajuContext: buildSajuContext()
           })
         });
 
-        const json = await res.json();
-        const contentEl = document.getElementById('modalAiContent');
-        const loadingEl = document.getElementById('modalAiLoading');
+        const json = await readApiResponse(res, 'CHAT_SUMMARY');
         loadingEl.classList.add('hidden');
         contentEl.classList.remove('hidden');
 
@@ -973,12 +1371,17 @@
           dynamicAiCache[cacheKey] = json.reply;
           contentEl.innerText = json.reply;
         } else {
-          contentEl.innerText = `${currentPayload?.name || '내담자'}님의 ${cycleName} ${domainName} 파동 흐름입니다. 현재 국면은 외부 확장보다 내부 프로세스를 점검하고 핵심 자원을 정돈하기에 적합합니다.`;
+          throw new Error('summary 응답에 reply가 없습니다.');
         }
-      } catch (err) {
-        document.getElementById('modalAiLoading').classList.add('hidden');
-        document.getElementById('modalAiContent').classList.remove('hidden');
-        contentEl.innerText = '서버 통신 오류가 발생했습니다.';
+      } catch (error) {
+        loadingEl.classList.add('hidden');
+        contentEl.classList.remove('hidden');
+        contentEl.innerText = 'AI 전략을 불러오지 못했습니다. 개발자 오류창의 내용을 복사해 주세요.';
+        handleFrontendFailure('AI 전략 생성 실패', error, {
+          code: 'SG-NETWORK-CHAT-002',
+          stage: 'CHAT_SUMMARY',
+          message: '요약 전략 요청에 실패했습니다.'
+        });
       }
     }
 
@@ -1001,13 +1404,14 @@
       });
     });
 
-    // 자세히 보기 (1,500자 비동기 심층 리포트)
+    // 자세히 보기 (비동기 심층 리포트)
     document.getElementById('btnFetchDetail').addEventListener('click', async () => {
       playTickSound();
       const domainKey = domainKeys[currentDomainIndex];
       const domainName = domainTitles[domainKey];
       const cycleName = cycleTitles[currentCycle];
-      
+      const cycleIndex = getRepresentativeCycleIndex(currentCycle);
+
       const detailBox = document.getElementById('modalDetailBox');
       const detailLoading = document.getElementById('modalDetailLoading');
       const detailText = document.getElementById('modalDetailText');
@@ -1016,8 +1420,7 @@
       detailLoading.classList.remove('hidden');
       detailText.innerText = '';
 
-      const cycleScores = currentAnalysisData.cyclesData[currentCycle];
-      const activeScore = cycleScores[domainKey === 'all' ? 'total' : domainKey]?.[3] ?? 0;
+      const activeScore = getCycleScore(currentCycle, domainKey);
 
       try {
         const res = await fetch('/api/chat', {
@@ -1026,27 +1429,29 @@
           body: JSON.stringify({
             mode: 'detail',
             domain: domainName,
-            cycle: cycleName,
+            cycle: cycleApiTitles[currentCycle],
+            cycleIndex,
             score: activeScore,
-            sajuContext: {
-              name: currentPayload?.name,
-              pillars: currentAnalysisData?.pillars,
-              dayPillar: currentAnalysisData?.pillars?.day,
-              dayHanja: currentAnalysisData?.pillars?.dayHanja
-            }
+            sajuContext: buildSajuContext()
           })
         });
 
-        const json = await res.json();
+        const json = await readApiResponse(res, 'CHAT_DETAIL');
         detailLoading.classList.add('hidden');
+
         if (json.success && json.reply) {
           detailText.innerText = json.reply;
         } else {
-          detailText.innerText = '상세 리포트를 생성하지 못했습니다.';
+          throw new Error('detail 응답에 reply가 없습니다.');
         }
-      } catch (e) {
+      } catch (error) {
         detailLoading.classList.add('hidden');
-        detailText.innerText = '서버 통신 오류가 발생했습니다.';
+        detailText.innerText = '상세 리포트를 불러오지 못했습니다. 개발자 오류창을 확인해 주세요.';
+        handleFrontendFailure('상세 AI 리포트 생성 실패', error, {
+          code: 'SG-NETWORK-CHAT-003',
+          stage: 'CHAT_DETAIL',
+          message: '상세 리포트 요청에 실패했습니다.'
+        });
       }
     });
 
@@ -1081,7 +1486,10 @@
       const list = document.getElementById('chatMessageList');
       const userBubble = document.createElement('div');
       userBubble.className = 'flex items-start justify-end gap-2';
-      userBubble.innerHTML = `<div class="bg-amber-500 text-white p-3 rounded-[20px] rounded-tr-none max-w-[85%] leading-relaxed font-bold text-xs shadow-md">${text}</div>`;
+      const userTextBox = document.createElement('div');
+      userTextBox.className = 'bg-amber-500 text-white p-3 rounded-[20px] rounded-tr-none max-w-[85%] leading-relaxed font-bold text-xs shadow-md whitespace-pre-wrap break-words';
+      userTextBox.innerText = text;
+      userBubble.appendChild(userTextBox);
       list.appendChild(userBubble);
 
       const aiBubble = document.createElement('div');
@@ -1090,7 +1498,7 @@
         <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]">AI</div>
         <div class="bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-600 text-xs"></i>
-          <span>파동 지침서를 기반으로 답변 작성 중...</span>
+          <span>Engine Facts와 파동 지침서를 기반으로 답변 작성 중...</span>
         </div>
       `;
       list.appendChild(aiBubble);
@@ -1102,26 +1510,36 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'chat',
+            cycle: cycleApiTitles[currentCycle],
+            cycleIndex: getRepresentativeCycleIndex(currentCycle),
             userMessage: text,
             history: chatHistory,
-            sajuContext: { name: currentPayload?.name, pillars: currentAnalysisData?.pillars }
+            sajuContext: buildSajuContext()
           })
         });
 
-        const json = await res.json();
+        const json = await readApiResponse(res, 'CHAT_CONVERSATION');
         const contentBox = aiBubble.querySelector('.bg-stone-100');
+
         if (json.success && json.reply) {
-          contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line';
+          contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words';
           contentBox.innerText = json.reply;
           chatHistory.push({ role: 'user', text });
           chatHistory.push({ role: 'model', text: json.reply });
         } else {
-          contentBox.innerText = json.message || '답변을 불러오지 못했습니다.';
+          throw new Error('chat 응답에 reply가 없습니다.');
         }
-      } catch (err) {
+      } catch (error) {
         const contentBox = aiBubble.querySelector('.bg-stone-100');
-        contentBox.innerText = '서버와 통신할 수 없습니다.';
+        contentBox.className = 'bg-rose-50 text-rose-800 border border-rose-100 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line';
+        contentBox.innerText = '답변을 불러오지 못했습니다. DEV 오류 버튼에서 오류 내용을 복사해 주세요.';
+        handleFrontendFailure('AI 채팅 실패', error, {
+          code: 'SG-NETWORK-CHAT-004',
+          stage: 'CHAT_CONVERSATION',
+          message: '채팅 서버와 통신하지 못했습니다.'
+        });
       }
+
       list.scrollTop = list.scrollHeight;
     });
 
