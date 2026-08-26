@@ -448,7 +448,7 @@
           LIQUID WAVE v1.0
         </div>
         <h1 class="text-3xl font-black text-stone-900 tracking-tight">사주 Grap</h1>
-        <p class="text-xs md:text-sm text-stone-500 font-medium mt-1">터치하여 사주 정보를 입력하세요</p>
+        <p class="text-xs md:text-sm text-stone-500 font-medium mt-1">생년월일시를 직접 입력해 주세요</p>
       </div>
 
       <div class="mb-4">
@@ -457,43 +457,69 @@
           class="w-full px-4 py-3.5 liquid-card-inner rounded-2xl font-bold text-center text-stone-800 focus:bg-white/80 focus:ring-2 focus:ring-amber-500/50 outline-none transition text-sm shadow-sm" />
       </div>
 
-      <!-- 생년월일시 그리드 -->
-      <div class="space-y-2.5 mb-6">
+      <!-- 생년월일시 직접 입력 -->
+      <div class="space-y-3 mb-6">
         <label class="block text-[11px] font-black text-stone-500 ml-1">생년월일시 및 성별</label>
-        
-        <div class="grid grid-cols-3 gap-2">
-          <button type="button" class="field-btn liquid-card-inner hover:bg-white/70 active:scale-95 p-3 rounded-2xl flex flex-col items-center justify-center transition border border-white/70" data-type="year">
-            <span class="text-[10px] text-stone-400 font-semibold mb-0.5">출생연도</span>
-            <span class="text-sm font-black text-stone-800" id="txtFieldYear">1985년</span>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="liquid-card-inner rounded-2xl border border-white/70 px-4 py-3 shadow-sm">
+            <label for="initBirthDate" class="block text-[10px] text-stone-400 font-semibold mb-1.5">생년월일 · 숫자 8자리</label>
+            <input
+              type="text"
+              id="initBirthDate"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="8"
+              autocomplete="bday"
+              enterkeyhint="next"
+              placeholder="예: 19851024"
+              aria-label="생년월일 8자리"
+              class="w-full bg-transparent outline-none text-center text-lg font-black tracking-[0.12em] text-stone-900 placeholder:text-stone-300 placeholder:tracking-normal placeholder:text-sm"
+            />
+            <p class="text-[9px] text-stone-400 text-center mt-1">YYYYMMDD</p>
+          </div>
+
+          <div class="liquid-card-inner rounded-2xl border border-white/70 px-4 py-3 shadow-sm">
+            <label for="initBirthTime" class="block text-[10px] text-stone-400 font-semibold mb-1.5">태어난 시간 · 숫자 4자리</label>
+            <input
+              type="text"
+              id="initBirthTime"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="4"
+              autocomplete="off"
+              enterkeyhint="done"
+              placeholder="예: 1145"
+              aria-label="태어난 시간 4자리"
+              class="w-full bg-transparent outline-none text-center text-lg font-black tracking-[0.16em] text-stone-900 placeholder:text-stone-300 placeholder:tracking-normal placeholder:text-sm"
+            />
+            <p class="text-[9px] text-stone-400 text-center mt-1">HHMM · 24시간제</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            id="btnGenderMale"
+            aria-pressed="true"
+            class="gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]"
+            data-gender="1"
+          >
+            남자
           </button>
 
-          <button type="button" class="field-btn liquid-card-inner hover:bg-white/70 active:scale-95 p-3 rounded-2xl flex flex-col items-center justify-center transition border border-white/70" data-type="month">
-            <span class="text-[10px] text-stone-400 font-semibold mb-0.5">태어난 달</span>
-            <span class="text-sm font-black text-stone-800" id="txtFieldMonth">10월</span>
-          </button>
-
-          <button type="button" class="field-btn liquid-card-inner hover:bg-white/70 active:scale-95 p-3 rounded-2xl flex flex-col items-center justify-center transition border border-white/70" data-type="day">
-            <span class="text-[10px] text-stone-400 font-semibold mb-0.5">태어난 날</span>
-            <span class="text-sm font-black text-stone-800" id="txtFieldDay">24일</span>
+          <button
+            type="button"
+            id="btnGenderFemale"
+            aria-pressed="false"
+            class="gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]"
+            data-gender="2"
+          >
+            여자
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-          <button type="button" class="field-btn liquid-card-inner hover:bg-white/70 active:scale-95 p-3 rounded-2xl flex flex-col items-center justify-center transition border border-white/70" data-type="hour">
-            <span class="text-[10px] text-stone-400 font-semibold mb-0.5">태어난 시</span>
-            <span class="text-sm font-black text-stone-800" id="txtFieldHour">11시</span>
-          </button>
-
-          <button type="button" class="field-btn liquid-card-inner hover:bg-white/70 active:scale-95 p-3 rounded-2xl flex flex-col items-center justify-center transition border border-white/70" data-type="minute">
-            <span class="text-[10px] text-stone-400 font-semibold mb-0.5">태어난 분</span>
-            <span class="text-sm font-black text-stone-800" id="txtFieldMin">45분</span>
-          </button>
-
-          <button type="button" class="field-btn liquid-card-inner hover:bg-white/70 active:scale-95 p-3 rounded-2xl flex flex-col items-center justify-center transition border border-white/70" data-type="gender">
-            <span class="text-[10px] text-stone-400 font-semibold mb-0.5">성별</span>
-            <span class="text-sm font-black text-amber-700" id="txtFieldGender">남성</span>
-          </button>
-        </div>
+        <p id="onboardingInputError" class="hidden px-3 py-2.5 rounded-xl bg-rose-50/90 border border-rose-200 text-[11px] font-bold text-rose-700 text-center"></p>
       </div>
     </div>
 
@@ -504,36 +530,8 @@
   </div>
 
 
-  <!-- 2. 슬라이더 휠 피커 모달 (배경 투명) -->
-  <div id="modalWheelPicker" class="fixed inset-0 z-50 bg-transparent hidden items-center justify-center p-4 fade-in">
-    <div class="w-full max-w-sm bg-white rounded-[32px] p-6 shadow-2xl relative flex flex-col justify-between border border-stone-200">
-      <div>
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <h4 id="pickerTitle" class="text-base font-black text-stone-900">출생연도 선택</h4>
-          </div>
-          <button id="btnClosePicker" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition">
-            <i class="fa-solid fa-xmark text-xs"></i>
-          </button>
-        </div>
 
-        <div class="relative w-full h-56 bg-stone-900 rounded-[24px] overflow-hidden shadow-inner border border-stone-800 flex items-center justify-center mb-4">
-          <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
-          <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-stone-900 via-stone-900/80 to-transparent pointer-events-none z-10"></div>
-          <div class="absolute w-[88%] h-12 border-y border-amber-400/70 bg-amber-400/10 rounded-xl pointer-events-none z-0"></div>
-          <div id="wheelList" class="wheel-scroll-container w-full h-full overflow-y-auto no-scrollbar py-[84px] z-5"></div>
-        </div>
-      </div>
-
-      <button type="button" id="btnConfirmPicker" class="w-full py-3.5 bg-stone-900 hover:bg-stone-800 text-white font-black text-sm rounded-2xl transition active:scale-95 shadow-md">
-        선택 완료
-      </button>
-    </div>
-  </div>
-
-
-  <!-- 3. 대시보드 화면 -->
+  <!-- 2. 대시보드 화면 -->
   <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-4 fade-in pb-12 relative z-10">
     
     <header class="w-full liquid-glass rounded-[28px] p-3.5 px-5 flex items-center justify-between gap-2">
@@ -1498,7 +1496,60 @@
 
 
     let state = { name: '', year: 1985, month: 10, day: 24, hour: 11, minute: 45, gender: 1 };
-    let activePickerType = 'year';
+
+    function pad2(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function birthDateValueFromState() {
+      return `${state.year}${pad2(state.month)}${pad2(state.day)}`;
+    }
+
+    function birthTimeValueFromState() {
+      return `${pad2(state.hour)}${pad2(state.minute)}`;
+    }
+
+    function onlyDigits(value, maxLength) {
+      return String(value || '').replace(/\D/g, '').slice(0, maxLength);
+    }
+
+    function setOnboardingInputError(message = '') {
+      const errorEl = document.getElementById('onboardingInputError');
+      if (!errorEl) return;
+
+      if (!message) {
+        errorEl.innerText = '';
+        errorEl.classList.add('hidden');
+        return;
+      }
+
+      errorEl.innerText = message;
+      errorEl.classList.remove('hidden');
+    }
+
+    function updateGenderUI() {
+      const male = document.getElementById('btnGenderMale');
+      const female = document.getElementById('btnGenderFemale');
+      const maleSelected = Number(state.gender) === 1;
+
+      male.setAttribute('aria-pressed', maleSelected ? 'true' : 'false');
+      female.setAttribute('aria-pressed', maleSelected ? 'false' : 'true');
+
+      male.className = maleSelected
+        ? 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]'
+        : 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
+
+      female.className = !maleSelected
+        ? 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]'
+        : 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
+    }
+
+    function updateFieldUI() {
+      document.getElementById('initName').value = state.name || '';
+      document.getElementById('initBirthDate').value = birthDateValueFromState();
+      document.getElementById('initBirthTime').value = birthTimeValueFromState();
+      updateGenderUI();
+    }
 
     function loadCachedState() {
       const cached = localStorage.getItem(CACHE_KEY);
@@ -1515,15 +1566,74 @@
       localStorage.setItem(CACHE_KEY, JSON.stringify(state));
     }
 
-    function updateFieldUI() {
-      document.getElementById('initName').value = state.name || '';
-      document.getElementById('txtFieldYear').innerText = `${state.year}년`;
-      document.getElementById('txtFieldMonth').innerText = `${state.month}월`;
-      document.getElementById('txtFieldDay').innerText = `${state.day}일`;
-      document.getElementById('txtFieldHour').innerText = `${state.hour}시`;
-      document.getElementById('txtFieldMin').innerText = `${String(state.minute).padStart(2, '0')}분`;
-      document.getElementById('txtFieldGender').innerText = state.gender === 1 ? '남성' : '여성';
-      document.getElementById('txtFieldGender').className = state.gender === 1 ? 'text-sm font-black text-amber-700' : 'text-sm font-black text-rose-700';
+    function parseDirectBirthInputs({ showError = true } = {}) {
+      const birthDateEl = document.getElementById('initBirthDate');
+      const birthTimeEl = document.getElementById('initBirthTime');
+
+      const dateDigits = onlyDigits(birthDateEl.value, 8);
+      const timeDigits = onlyDigits(birthTimeEl.value, 4);
+
+      birthDateEl.value = dateDigits;
+      birthTimeEl.value = timeDigits;
+
+      const fail = (message) => {
+        if (showError) setOnboardingInputError(message);
+        return false;
+      };
+
+      if (dateDigits.length !== 8) {
+        return fail('생년월일을 숫자 8자리로 입력해 주세요. 예: 19851024');
+      }
+
+      if (timeDigits.length !== 4) {
+        return fail('태어난 시간을 숫자 4자리로 입력해 주세요. 예: 오전 11시 45분 → 1145');
+      }
+
+      const year = Number(dateDigits.slice(0, 4));
+      const month = Number(dateDigits.slice(4, 6));
+      const day = Number(dateDigits.slice(6, 8));
+      const hour = Number(timeDigits.slice(0, 2));
+      const minute = Number(timeDigits.slice(2, 4));
+
+      if (!Number.isInteger(year) || year < 1900 || year > 2100) {
+        return fail('출생연도는 1900년부터 2100년 사이로 입력해 주세요.');
+      }
+
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
+        return fail('태어난 달을 확인해 주세요. 월은 01~12입니다.');
+      }
+
+      if (!Number.isInteger(day) || day < 1 || day > 31) {
+        return fail('태어난 날짜를 확인해 주세요.');
+      }
+
+      const realDate = new Date(Date.UTC(year, month - 1, day));
+      const validDate =
+        realDate.getUTCFullYear() === year &&
+        realDate.getUTCMonth() === month - 1 &&
+        realDate.getUTCDate() === day;
+
+      if (!validDate) {
+        return fail('실제로 존재하는 생년월일을 입력해 주세요.');
+      }
+
+      if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+        return fail('태어난 시각의 시간은 00~23으로 입력해 주세요.');
+      }
+
+      if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
+        return fail('태어난 시각의 분은 00~59로 입력해 주세요.');
+      }
+
+      state.year = year;
+      state.month = month;
+      state.day = day;
+      state.hour = hour;
+      state.minute = minute;
+
+      setOnboardingInputError('');
+      saveCachedState();
+      return true;
     }
 
     document.getElementById('initName').addEventListener('input', (e) => {
@@ -1531,141 +1641,44 @@
       saveCachedState();
     });
 
-    const pickerConfigs = {
-      year: { title: '출생연도 선택', min: 1940, max: 2030, unit: '년', key: 'year' },
-      month: { title: '태어난 달 선택', min: 1, max: 12, unit: '월', key: 'month' },
-      day: { title: '태어난 날 선택', min: 1, max: 31, unit: '일', key: 'day' },
-      hour: { title: '태어난 시 선택', min: 0, max: 23, unit: '시', key: 'hour' },
-      minute: { title: '태어난 분 선택', min: 0, max: 55, stepVal: 5, unit: '분', key: 'minute' },
-      gender: { title: '성별 선택', options: [{ val: 1, text: '남성' }, { val: 2, text: '여성' }], key: 'gender' }
-    };
+    document.getElementById('initBirthDate').addEventListener('input', (e) => {
+      const digits = onlyDigits(e.target.value, 8);
+      if (e.target.value !== digits) e.target.value = digits;
+      setOnboardingInputError('');
 
-    let isProgrammaticScroll = false;
-    let lastHighlightedValue = null;
-
-    function openWheelPicker(type) {
-      playTickSound();
-      activePickerType = type;
-      const config = pickerConfigs[type];
-      document.getElementById('pickerTitle').innerText = config.title;
-
-      const wheelEl = document.getElementById('wheelList');
-      wheelEl.innerHTML = '';
-      lastHighlightedValue = null;
-
-      let items = config.options ? config.options : [];
-      if (!config.options) {
-        const stepVal = config.stepVal || 1;
-        for (let v = config.min; v <= config.max; v += stepVal) {
-          items.push({ val: v, text: `${v}${config.unit}` });
-        }
+      if (digits.length === 8 && document.getElementById('initBirthTime').value.length === 4) {
+        parseDirectBirthInputs({ showError: false });
       }
+    });
 
-      items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'wheel-item h-12 flex items-center justify-center text-lg font-black transition-all cursor-pointer select-none text-stone-400 hover:text-white';
-        div.dataset.value = item.val;
-        div.innerText = item.text;
-        div.onclick = () => selectWheelItem(div);
-        wheelEl.appendChild(div);
+    document.getElementById('initBirthTime').addEventListener('input', (e) => {
+      const digits = onlyDigits(e.target.value, 4);
+      if (e.target.value !== digits) e.target.value = digits;
+      setOnboardingInputError('');
+
+      if (digits.length === 4 && document.getElementById('initBirthDate').value.length === 8) {
+        parseDirectBirthInputs({ showError: false });
+      }
+    });
+
+    document.querySelectorAll('.gender-choice').forEach((button) => {
+      button.addEventListener('click', () => {
+        playTickSound();
+        state.gender = Number(button.dataset.gender) === 2 ? 2 : 1;
+        updateGenderUI();
+        saveCachedState();
       });
-
-      const modal = document.getElementById('modalWheelPicker');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-
-      setTimeout(() => {
-        const currentVal = state[config.key];
-        const targetNode = Array.from(wheelEl.children).find(c => Number(c.dataset.value) === Number(currentVal));
-        if (targetNode) {
-          isProgrammaticScroll = true;
-          targetNode.scrollIntoView({ block: 'center', behavior: 'instant' });
-          highlightCenterItem();
-          setTimeout(() => { isProgrammaticScroll = false; }, 100);
-        }
-      }, 20);
-    }
-
-    function selectWheelItem(el) {
-      if (!el) return;
-      isProgrammaticScroll = true;
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      const val = Number(el.dataset.value);
-      const config = pickerConfigs[activePickerType];
-      state[config.key] = val;
-      updateFieldUI();
-      saveCachedState();
-      highlightCenterItem();
-      setTimeout(() => { isProgrammaticScroll = false; }, 250);
-    }
-
-    function highlightCenterItem() {
-      const wheelEl = document.getElementById('wheelList');
-      const containerRect = wheelEl.getBoundingClientRect();
-      const centerY = containerRect.top + containerRect.height / 2;
-      let closestEl = null, minDistance = Infinity;
-
-      Array.from(wheelEl.children).forEach(child => {
-        const childRect = child.getBoundingClientRect();
-        const childCenterY = childRect.top + childRect.height / 2;
-        const dist = Math.abs(centerY - childCenterY);
-        if (dist < minDistance) { minDistance = dist; closestEl = child; }
-        child.classList.remove('text-amber-400', 'scale-110', 'text-2xl');
-        child.classList.add('text-stone-400', 'text-base');
-      });
-
-      if (closestEl) {
-        closestEl.classList.remove('text-stone-400', 'text-base');
-        closestEl.classList.add('text-amber-400', 'scale-110', 'text-2xl');
-        const currentVal = closestEl.dataset.value;
-        if (lastHighlightedValue !== null && lastHighlightedValue !== currentVal) playTickSound();
-        lastHighlightedValue = currentVal;
-      }
-      return closestEl;
-    }
-
-    let scrollEndTimer = null;
-    document.getElementById('wheelList').addEventListener('scroll', () => {
-      highlightCenterItem();
-      if (isProgrammaticScroll) return;
-      clearTimeout(scrollEndTimer);
-      scrollEndTimer = setTimeout(() => {
-        const centerEl = highlightCenterItem();
-        if (centerEl) {
-          const val = Number(centerEl.dataset.value);
-          const config = pickerConfigs[activePickerType];
-          state[config.key] = val;
-          updateFieldUI();
-          saveCachedState();
-        }
-      }, 100);
-    });
-
-    document.querySelectorAll('.field-btn').forEach(btn => {
-      btn.addEventListener('click', () => openWheelPicker(btn.dataset.type));
-    });
-
-    document.getElementById('btnClosePicker').addEventListener('click', () => {
-      document.getElementById('modalWheelPicker').classList.add('hidden');
-      document.getElementById('modalWheelPicker').classList.remove('flex');
-    });
-
-    document.getElementById('btnConfirmPicker').addEventListener('click', () => {
-      playTickSound();
-      document.getElementById('modalWheelPicker').classList.add('hidden');
-      document.getElementById('modalWheelPicker').classList.remove('flex');
-    });
-
-    document.getElementById('modalWheelPicker').addEventListener('click', (e) => {
-      if (e.target.id === 'modalWheelPicker') {
-        document.getElementById('modalWheelPicker').classList.add('hidden');
-        document.getElementById('modalWheelPicker').classList.remove('flex');
-      }
     });
 
     // 분석 실행
     async function executeAnalysis() {
       playTickSound();
+
+      if (!parseDirectBirthInputs({ showError: true })) {
+        document.getElementById('initBirthDate').focus();
+        return;
+      }
+
       const btn = document.getElementById('btnStart');
       btn.classList.add('opacity-70', 'pointer-events-none');
       btn.querySelector('span').innerText = '파동 분석 중...';
