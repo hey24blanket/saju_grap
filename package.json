@@ -2,5 +2,8 @@
   "name": "saju_grap",
   "version": "1.0.0",
   "type": "module",
-  "description": "SajuGrap Core Computation Engine API"
+  "description": "SajuGrap Core Computation Engine API",
+  "dependencies": {
+    "lunar-javascript": "1.7.7"
+  }
 }
