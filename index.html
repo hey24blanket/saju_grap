@@ -103,6 +103,334 @@
       border: 1.2px solid rgba(255, 255, 255, 0.7);
       box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 -2px 6px rgba(255, 255, 255, 0.8);
     }
+
+
+    /* Engine Facts visual diagnostics -------------------------------------- */
+    .engine-facts-shell {
+      background: rgba(255, 255, 255, 0.38);
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      border-radius: 22px;
+      padding: 14px;
+      box-shadow: inset 0 1px 1.5px rgba(255,255,255,.85);
+    }
+
+    .engine-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .engine-section-title h5 {
+      margin: 0;
+      color: #292524;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .engine-section-title span {
+      color: #a8a29e;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .manse-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .manse-pillar {
+      min-width: 0;
+      border-radius: 18px;
+      padding: 9px 7px 8px;
+      background: rgba(255,255,255,.48);
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: 0 5px 15px rgba(41,37,36,.035), inset 0 1px 1.5px rgba(255,255,255,.85);
+      text-align: center;
+    }
+
+    .manse-pillar.day-master-pillar {
+      border-color: rgba(245, 158, 11, .42);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, .08), inset 0 1px 1.5px rgba(255,255,255,.9);
+    }
+
+    .manse-pillar-label {
+      color: #78716c;
+      font-size: 10px;
+      font-weight: 900;
+      margin-bottom: 7px;
+      white-space: nowrap;
+    }
+
+    .manse-pillar-label .dm-mark {
+      display: inline-flex;
+      margin-left: 3px;
+      padding: 1px 4px;
+      border-radius: 999px;
+      background: rgba(245,158,11,.13);
+      color: #b45309;
+      font-size: 7px;
+      vertical-align: 1px;
+    }
+
+    .saju-char-card {
+      height: 48px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 23px;
+      font-weight: 900;
+      line-height: 1;
+      border: 1px solid transparent;
+      box-shadow: inset 0 1px 1.5px rgba(255,255,255,.65), 0 4px 12px rgba(41,37,36,.035);
+    }
+
+    .saju-char-card + .saju-char-card { margin-top: 6px; }
+
+    /* 오행 컬러: 현재 UI 톤에 맞춘 저채도 버전 */
+    .el-fire {
+      background: linear-gradient(145deg, rgba(254,226,226,.88), rgba(252,165,165,.45));
+      border-color: rgba(248,113,113,.30);
+      color: #b91c1c;
+    }
+
+    .el-earth {
+      background: linear-gradient(145deg, rgba(254,243,199,.92), rgba(251,191,36,.38));
+      border-color: rgba(245,158,11,.30);
+      color: #b45309;
+    }
+
+    .el-wood {
+      background: linear-gradient(145deg, rgba(209,250,229,.90), rgba(110,231,183,.36));
+      border-color: rgba(16,185,129,.26);
+      color: #047857;
+    }
+
+    .el-metal {
+      background: linear-gradient(145deg, rgba(255,255,255,.97), rgba(245,245,244,.88));
+      border-color: rgba(168,162,158,.28);
+      color: #57534e;
+    }
+
+    .el-water {
+      background: linear-gradient(145deg, rgba(68,64,60,.96), rgba(28,25,23,.98));
+      border-color: rgba(255,255,255,.18);
+      color: #fff;
+      box-shadow: inset 0 1px 1.5px rgba(255,255,255,.18), 0 5px 14px rgba(28,25,23,.12);
+    }
+
+    .el-unknown {
+      background: rgba(245,245,244,.9);
+      color: #78716c;
+      border-color: rgba(214,211,209,.5);
+    }
+
+    .element-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 9px;
+    }
+
+    .element-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(255,255,255,.82);
+      color: #78716c;
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .element-legend-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.06);
+    }
+
+    .core-facts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .core-fact-card {
+      min-width: 0;
+      padding: 11px;
+      border-radius: 17px;
+      background: rgba(255,255,255,.53);
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: inset 0 1px 1.5px rgba(255,255,255,.86);
+    }
+
+    .core-fact-label {
+      font-size: 8px;
+      font-weight: 900;
+      color: #a8a29e;
+      margin-bottom: 5px;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .core-fact-value {
+      color: #292524;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+
+    .core-fact-sub {
+      color: #78716c;
+      font-size: 8.5px;
+      font-weight: 700;
+      line-height: 1.45;
+      margin-top: 4px;
+    }
+
+    .fact-element-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 100%;
+      padding: 5px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .fact-element-chip .chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: currentColor;
+      opacity: .85;
+    }
+
+    .role-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .role-card {
+      min-width: 0;
+      padding: 8px 5px;
+      border-radius: 15px;
+      text-align: center;
+      background: rgba(255,255,255,.48);
+      border: 1px solid rgba(255,255,255,.78);
+    }
+
+    .role-card.primary-role {
+      border-color: rgba(245,158,11,.35);
+      background: rgba(255,251,235,.60);
+    }
+
+    .role-name {
+      font-size: 8px;
+      color: #a8a29e;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .role-element {
+      font-size: 11px;
+      font-weight: 900;
+      color: #292524;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .role-element-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      margin-right: 3px;
+      vertical-align: 1px;
+      border: 1px solid rgba(0,0,0,.05);
+    }
+
+    .engine-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .engine-mini-card {
+      min-width: 0;
+      border-radius: 15px;
+      padding: 9px;
+      background: rgba(255,255,255,.44);
+      border: 1px solid rgba(255,255,255,.76);
+    }
+
+    .engine-mini-card .label {
+      color: #a8a29e;
+      font-size: 8px;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+
+    .engine-mini-card .value {
+      color: #44403c;
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .tech-log-box {
+      margin-top: 10px;
+      border-radius: 15px;
+      background: rgba(41,37,36,.94);
+      border: 1px solid rgba(255,255,255,.12);
+      overflow: hidden;
+    }
+
+    .tech-log-box summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 9px 11px;
+      color: #d6d3d1;
+      font-size: 9px;
+      font-weight: 900;
+      user-select: none;
+    }
+
+    .tech-log-box summary::-webkit-details-marker { display: none; }
+
+    .tech-log-box pre {
+      margin: 0;
+      padding: 0 11px 11px;
+      color: #86efac;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 8.5px;
+      line-height: 1.55;
+      user-select: text;
+    }
+
+    @media (max-width: 640px) {
+      .core-facts-grid { grid-template-columns: 1fr; }
+      .role-strip { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; }
+      .engine-mini-grid { grid-template-columns: 1fr; }
+      .saju-char-card { height: 44px; font-size: 21px; }
+      .manse-grid { gap: 6px; }
+      .manse-pillar { padding: 8px 5px 7px; }
+    }
   </style>
 </head>
 <body class="bg-[#ECE7E1] text-stone-800 min-h-screen flex flex-col items-center justify-center p-2 md:p-6 select-none relative overflow-x-hidden">
@@ -233,8 +561,8 @@
       </div>
     </header>
 
-    <!-- 개발/진단 상태 패널: 정상 시 Engine/Schema 상태 확인용 -->
-    <section id="runtimeStatusPanel" class="w-full hidden liquid-glass rounded-[22px] px-4 py-3 text-[10px] text-stone-600">
+    <!-- Engine Facts 시각 진단 패널: 원국 8자 + 핵심 Fact + 기술 로그 -->
+    <section id="runtimeStatusPanel" class="w-full hidden liquid-glass rounded-[24px] px-4 py-3 text-[10px] text-stone-600">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-2 min-w-0">
           <span id="runtimeStatusBadge" class="shrink-0 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black">ENGINE CHECK</span>
@@ -244,7 +572,7 @@
           진단 보기
         </button>
       </div>
-      <div id="runtimeStatusDetails" class="hidden mt-2 pt-2 border-t border-white/80 font-mono whitespace-pre-wrap break-all leading-relaxed"></div>
+      <div id="runtimeStatusDetails" class="hidden mt-3 pt-3 border-t border-white/80"></div>
     </section>
 
     <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
@@ -715,13 +1043,156 @@
       return info;
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 표시 전용 오행 색상 매핑.
+    // Engine Fact를 수정하거나 RAG/LLM 입력에 새 Fact를 추가하지 않는다.
+    const uiElementByChar = Object.freeze({
+      '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood',
+      '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire',
+      '戊': 'earth', '己': 'earth', '丑': 'earth', '辰': 'earth', '未': 'earth', '戌': 'earth',
+      '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal',
+      '壬': 'water', '癸': 'water', '子': 'water', '亥': 'water'
+    });
+
+    const uiElementKo = Object.freeze({
+      wood: '목',
+      fire: '화',
+      earth: '토',
+      metal: '금',
+      water: '수'
+    });
+
+    const uiStrengthKo = Object.freeze({
+      very_weak: '신약',
+      weak: '중화신약',
+      balanced: '중화',
+      strong: '중화신강',
+      very_strong: '신강'
+    });
+
+    const uiMechanismKo = Object.freeze({
+      regulation: '억부',
+      climate: '조후',
+      bridge: '통관',
+      disease_remedy: '병약',
+      special_structure: '특수구조',
+      mixed: '복합'
+    });
+
+    const uiLevelKo = Object.freeze({
+      very_high: '매우 높음',
+      high: '높음',
+      moderate: '보통',
+      medium: '보통',
+      low: '낮음',
+      very_low: '매우 낮음',
+      none: '없음'
+    });
+
+    const uiClimateKo = Object.freeze({
+      very_cold: '매우 차가움',
+      cold: '차가움',
+      balanced: '균형',
+      hot: '더움',
+      very_hot: '매우 더움',
+      very_dry: '매우 건조',
+      dry: '건조',
+      wet: '습함',
+      very_wet: '매우 습함'
+    });
+
+    const uiImbalanceKo = Object.freeze({
+      resource_accumulation_excess: '인성·자원 축적 편중',
+      peer_concentration_excess: '비겁·동류 집중',
+      output_expression_excess: '식상·표현 집중',
+      wealth_activation_excess: '재성·성과 활성 집중',
+      officer_control_excess: '관살·통제 압력 집중',
+      balanced_or_mixed_distribution: '균형·혼합 구조'
+    });
+
+    const uiSeverityKo = Object.freeze({
+      low: '낮음',
+      moderate: '보통',
+      medium: '보통',
+      high: '높음'
+    });
+
+    function uiElementClass(element) {
+      return ['wood', 'fire', 'earth', 'metal', 'water'].includes(element)
+        ? `el-${element}`
+        : 'el-unknown';
+    }
+
+    function uiElementDotStyle(element) {
+      return {
+        wood: 'background:#6ee7b7;',
+        fire: 'background:#fca5a5;',
+        earth: 'background:#fbbf24;',
+        metal: 'background:#ffffff;border-color:#a8a29e;',
+        water: 'background:#292524;'
+      }[element] || 'background:#d6d3d1;';
+    }
+
+    function renderElementChip(element, extra = '') {
+      const label = uiElementKo[element] || safeText(element, '-');
+      return `<span class="fact-element-chip ${uiElementClass(element)}"><span class="chip-dot"></span>${escapeHtml(label)}${extra ? ` · ${escapeHtml(extra)}` : ''}</span>`;
+    }
+
+    function renderPillarColumn(label, pillar, isDayMaster = false) {
+      const stem = pillar?.stem || pillar?.ganzhi?.charAt?.(0) || '-';
+      const branch = pillar?.branch || pillar?.ganzhi?.charAt?.(1) || '-';
+      const stemElement = uiElementByChar[stem] || null;
+      const branchElement = uiElementByChar[branch] || null;
+
+      return `
+        <div class="manse-pillar ${isDayMaster ? 'day-master-pillar' : ''}">
+          <div class="manse-pillar-label">
+            ${escapeHtml(label)}${isDayMaster ? '<span class="dm-mark">MASTER</span>' : ''}
+          </div>
+          <div class="saju-char-card ${uiElementClass(stemElement)}" title="천간 · ${escapeHtml(uiElementKo[stemElement] || '-')}">${escapeHtml(stem)}</div>
+          <div class="saju-char-card ${uiElementClass(branchElement)}" title="지지 · ${escapeHtml(uiElementKo[branchElement] || '-')}">${escapeHtml(branch)}</div>
+        </div>`;
+    }
+
+    function firstRole(list) {
+      return Array.isArray(list) && list.length ? list[0] : null;
+    }
+
+    function renderRoleCard(name, role, primary = false) {
+      const element = role?.element || null;
+      const label = uiElementKo[element] || '-';
+      return `
+        <div class="role-card ${primary ? 'primary-role' : ''}">
+          <div class="role-name">${escapeHtml(name)}</div>
+          <div class="role-element">
+            <span class="role-element-dot" style="${uiElementDotStyle(element)}"></span>${escapeHtml(label)}
+          </div>
+        </div>`;
+    }
+
     function renderRuntimeStatus(diagnostic, data) {
       const runtime = data?.runtimeDiagnostics || {};
       const facts = data?.engineFacts || {};
       const natal = facts?.natal || {};
       const dayMaster = natal?.dayMaster || {};
       const strength = facts?.strength || {};
-      const yongsin = facts?.usefulGodProfile?.yongsin || {};
+      const useful = facts?.usefulGodProfile || {};
+      const yongsin = useful?.yongsin || {};
+      const heesin = firstRole(useful?.heesin);
+      const gisin = firstRole(useful?.gisin);
+      const gusin = firstRole(useful?.gusin);
+      const hansin = firstRole(useful?.hansin);
+      const climate = useful?.climate || {};
+      const imbalance = useful?.dominantImbalance || {};
+      const special = strength?.specialStructureCandidate || {};
 
       const panel = document.getElementById('runtimeStatusPanel');
       const badge = document.getElementById('runtimeStatusBadge');
@@ -737,41 +1208,148 @@
       const validation = diagnostic?.schemaValidation || runtime?.schemaValidation || '-';
       const requestId = diagnostic?.requestId || runtime?.requestId || '-';
 
-      const yearPillar = natal?.year?.ganzhi || data?.pillars?.yearHanja || '-';
-      const monthPillar = natal?.month?.ganzhi || data?.pillars?.monthHanja || '-';
-      const dayPillar = natal?.day?.ganzhi || data?.pillars?.dayHanja || '-';
-      const hourPillar = natal?.hour?.ganzhi || data?.pillars?.hourHanja || '-';
+      const strengthKo = uiStrengthKo[strength?.band] || safeText(strength?.band, '-');
+      const dayElement = dayMaster?.element || uiElementByChar[dayMaster?.stem] || null;
+      const dayElementKo = uiElementKo[dayElement] || '-';
+      const yinYangKo = dayMaster?.yinYang === 'yang' ? '양' : dayMaster?.yinYang === 'yin' ? '음' : '-';
 
-      const mechanisms = Array.isArray(yongsin?.mechanisms) && yongsin.mechanisms.length
-        ? yongsin.mechanisms.join(', ')
+      const mechanismKo = Array.isArray(yongsin?.mechanisms) && yongsin.mechanisms.length
+        ? yongsin.mechanisms.map(m => uiMechanismKo[m] || m).join(' · ')
         : '-';
 
+      const needKo = uiLevelKo[yongsin?.need] || safeText(yongsin?.need, '-');
+      const availabilityKo = uiLevelKo[yongsin?.currentAvailability] || safeText(yongsin?.currentAvailability, '-');
+
+      const coldHeatKo = uiClimateKo[climate?.coldHeat] || safeText(climate?.coldHeat, '-');
+      const dryWetKo = uiClimateKo[climate?.dryWet] || safeText(climate?.dryWet, '-');
+      const imbalanceKo = uiImbalanceKo[imbalance?.type] || safeText(imbalance?.type, '-');
+      const severityKo = uiSeverityKo[imbalance?.severity] || safeText(imbalance?.severity, '-');
+      const specialText = special?.detected
+        ? `${safeText(special?.type)} · confidence ${safeText(special?.confidence)}`
+        : '감지 없음';
+
       summary.innerText = `Engine ${engine} · ${schema} · Validation ${validation}`;
-      details.innerText = [
+
+      const rawLog = [
         `status: ${diagnostic?.status || runtime?.status || 'OK'}`,
         `engineVersion: ${engine}`,
         `schemaVersion: ${schema}`,
         `schemaValidation: ${validation}`,
-        '',
-        '[Natal Pillars / 원국 8자]',
-        `년주: ${yearPillar}`,
-        `월주: ${monthPillar}`,
-        `일주: ${dayPillar}`,
-        `시주: ${hourPillar}`,
-        `Day Master: ${dayMaster?.stem || '-'} · element=${dayMaster?.element || '-'} · yinYang=${dayMaster?.yinYang || '-'}`,
-        '',
-        '[Core Engine Facts]',
-        `Strength: band=${strength?.band || '-'} · score=${strength?.score ?? '-'} · method=${strength?.methodId || '-'}`,
-        `Yongsin: element=${yongsin?.element || '-'} · mechanisms=${mechanisms}`,
-        `Yongsin Need/Availability: need=${yongsin?.need || '-'} · availability=${yongsin?.currentAvailability || '-'}`,
-        '',
-        '[Diagnostics]',
         `requestId: ${requestId}`,
         `warningCount: ${runtime?.warningCount ?? '-'}`,
         `conflictCount: ${runtime?.conflictCount ?? '-'}`,
         `apiVersion: ${diagnostic?.apiVersion || runtime?.apiVersion || '-'}`,
-        `timestamp: ${diagnostic?.timestamp || runtime?.timestamp || '-'}`
+        `timestamp: ${diagnostic?.timestamp || runtime?.timestamp || '-'}`,
+        '',
+        `natal.year: ${natal?.year?.ganzhi || data?.pillars?.yearHanja || '-'}`,
+        `natal.month: ${natal?.month?.ganzhi || data?.pillars?.monthHanja || '-'}`,
+        `natal.day: ${natal?.day?.ganzhi || data?.pillars?.dayHanja || '-'}`,
+        `natal.hour: ${natal?.hour?.ganzhi || data?.pillars?.hourHanja || '-'}`,
+        `dayMaster: ${dayMaster?.stem || '-'} / ${dayMaster?.element || '-'} / ${dayMaster?.yinYang || '-'}`,
+        `strength: ${strength?.band || '-'} / score=${strength?.score ?? '-'} / method=${strength?.methodId || '-'}`,
+        `yongsin: ${yongsin?.element || '-'} / mechanisms=${Array.isArray(yongsin?.mechanisms) ? yongsin.mechanisms.join(',') : '-'}`,
+        `yongsinNeed: ${yongsin?.need || '-'} / availability=${yongsin?.currentAvailability || '-'}`
       ].join('\n');
+
+      details.innerHTML = `
+        <div class="space-y-3">
+          <div class="engine-facts-shell">
+            <div class="engine-section-title">
+              <h5>원국 8자</h5>
+              <span>시주 · 일주 · 월주 · 년주</span>
+            </div>
+
+            <div class="manse-grid">
+              ${renderPillarColumn('시주', natal?.hour || { ganzhi: data?.pillars?.hourHanja })}
+              ${renderPillarColumn('일주', natal?.day || { ganzhi: data?.pillars?.dayHanja }, true)}
+              ${renderPillarColumn('월주', natal?.month || { ganzhi: data?.pillars?.monthHanja })}
+              ${renderPillarColumn('년주', natal?.year || { ganzhi: data?.pillars?.yearHanja })}
+            </div>
+
+            <div class="element-legend">
+              <span class="element-legend-item"><span class="element-legend-dot" style="background:#fca5a5"></span>화 · 불</span>
+              <span class="element-legend-item"><span class="element-legend-dot" style="background:#fbbf24"></span>토 · 흙</span>
+              <span class="element-legend-item"><span class="element-legend-dot" style="background:#6ee7b7"></span>목 · 나무</span>
+              <span class="element-legend-item"><span class="element-legend-dot" style="background:#fff;border-color:#a8a29e"></span>금 · 쇠</span>
+              <span class="element-legend-item"><span class="element-legend-dot" style="background:#292524"></span>수 · 물</span>
+            </div>
+          </div>
+
+          <div class="engine-facts-shell">
+            <div class="engine-section-title">
+              <h5>핵심 명리 Fact</h5>
+              <span>Engine Facts v1</span>
+            </div>
+
+            <div class="core-facts-grid">
+              <div class="core-fact-card">
+                <div class="core-fact-label">일간 · DAY MASTER</div>
+                <div class="flex items-center gap-2">
+                  <div class="saju-char-card ${uiElementClass(dayElement)}" style="width:46px;height:46px;flex:0 0 auto;">${escapeHtml(dayMaster?.stem || '-')}</div>
+                  <div class="min-w-0">
+                    <div class="core-fact-value">${escapeHtml(dayElementKo)} · ${escapeHtml(yinYangKo)}간</div>
+                    <div class="core-fact-sub">${escapeHtml(dayMaster?.stem || '-')} 일간</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="core-fact-card">
+                <div class="core-fact-label">강약</div>
+                <div class="core-fact-value">${escapeHtml(strengthKo)}</div>
+                <div class="core-fact-sub">band ${escapeHtml(strength?.band || '-')} · score ${escapeHtml(strength?.score ?? '-')}</div>
+              </div>
+
+              <div class="core-fact-card">
+                <div class="core-fact-label">용신</div>
+                <div>${renderElementChip(yongsin?.element, mechanismKo)}</div>
+                <div class="core-fact-sub">필요도 ${escapeHtml(needKo)} · 현재 가용성 ${escapeHtml(availabilityKo)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="engine-facts-shell">
+            <div class="engine-section-title">
+              <h5>용 · 희 · 기 · 구 · 한</h5>
+              <span>역할 구분</span>
+            </div>
+            <div class="role-strip no-scrollbar">
+              ${renderRoleCard('용신', yongsin, true)}
+              ${renderRoleCard('희신', heesin)}
+              ${renderRoleCard('기신', gisin)}
+              ${renderRoleCard('구신', gusin)}
+              ${renderRoleCard('한신', hansin)}
+            </div>
+          </div>
+
+          <div class="engine-facts-shell">
+            <div class="engine-section-title">
+              <h5>구조 보조 정보</h5>
+              <span>해석 전 Engine 상태</span>
+            </div>
+            <div class="engine-mini-grid">
+              <div class="engine-mini-card">
+                <div class="label">DOMINANT IMBALANCE</div>
+                <div class="value">${escapeHtml(imbalanceKo)}</div>
+                <div class="core-fact-sub">severity ${escapeHtml(severityKo)}</div>
+              </div>
+              <div class="engine-mini-card">
+                <div class="label">조후</div>
+                <div class="value">${escapeHtml(coldHeatKo)} · ${escapeHtml(dryWetKo)}</div>
+                <div class="core-fact-sub">cold/heat · dry/wet</div>
+              </div>
+              <div class="engine-mini-card">
+                <div class="label">특수구조 후보</div>
+                <div class="value">${escapeHtml(specialText)}</div>
+                <div class="core-fact-sub">candidate ≠ established</div>
+              </div>
+            </div>
+
+            <details class="tech-log-box">
+              <summary><i class="fa-solid fa-terminal mr-1.5 text-emerald-300"></i>기술 진단 로그 보기</summary>
+              <pre>${escapeHtml(rawLog)}</pre>
+            </details>
+          </div>
+        </div>`;
     }
 
     function buildSajuContext() {
