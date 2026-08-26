@@ -717,6 +717,12 @@
 
     function renderRuntimeStatus(diagnostic, data) {
       const runtime = data?.runtimeDiagnostics || {};
+      const facts = data?.engineFacts || {};
+      const natal = facts?.natal || {};
+      const dayMaster = natal?.dayMaster || {};
+      const strength = facts?.strength || {};
+      const yongsin = facts?.usefulGodProfile?.yongsin || {};
+
       const panel = document.getElementById('runtimeStatusPanel');
       const badge = document.getElementById('runtimeStatusBadge');
       const summary = document.getElementById('runtimeStatusSummary');
@@ -726,10 +732,19 @@
       badge.innerText = 'ENGINE OK';
       badge.className = 'shrink-0 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black';
 
-      const schema = diagnostic?.schemaVersion || runtime?.schemaVersion || data?.engineFacts?.schemaVersion || '-';
-      const engine = diagnostic?.engineVersion || runtime?.engineVersion || data?.engineFacts?.engineVersion || '-';
+      const schema = diagnostic?.schemaVersion || runtime?.schemaVersion || facts?.schemaVersion || '-';
+      const engine = diagnostic?.engineVersion || runtime?.engineVersion || facts?.engineVersion || '-';
       const validation = diagnostic?.schemaValidation || runtime?.schemaValidation || '-';
       const requestId = diagnostic?.requestId || runtime?.requestId || '-';
+
+      const yearPillar = natal?.year?.ganzhi || data?.pillars?.yearHanja || '-';
+      const monthPillar = natal?.month?.ganzhi || data?.pillars?.monthHanja || '-';
+      const dayPillar = natal?.day?.ganzhi || data?.pillars?.dayHanja || '-';
+      const hourPillar = natal?.hour?.ganzhi || data?.pillars?.hourHanja || '-';
+
+      const mechanisms = Array.isArray(yongsin?.mechanisms) && yongsin.mechanisms.length
+        ? yongsin.mechanisms.join(', ')
+        : '-';
 
       summary.innerText = `Engine ${engine} · ${schema} · Validation ${validation}`;
       details.innerText = [
@@ -737,6 +752,20 @@
         `engineVersion: ${engine}`,
         `schemaVersion: ${schema}`,
         `schemaValidation: ${validation}`,
+        '',
+        '[Natal Pillars / 원국 8자]',
+        `년주: ${yearPillar}`,
+        `월주: ${monthPillar}`,
+        `일주: ${dayPillar}`,
+        `시주: ${hourPillar}`,
+        `Day Master: ${dayMaster?.stem || '-'} · element=${dayMaster?.element || '-'} · yinYang=${dayMaster?.yinYang || '-'}`,
+        '',
+        '[Core Engine Facts]',
+        `Strength: band=${strength?.band || '-'} · score=${strength?.score ?? '-'} · method=${strength?.methodId || '-'}`,
+        `Yongsin: element=${yongsin?.element || '-'} · mechanisms=${mechanisms}`,
+        `Yongsin Need/Availability: need=${yongsin?.need || '-'} · availability=${yongsin?.currentAvailability || '-'}`,
+        '',
+        '[Diagnostics]',
         `requestId: ${requestId}`,
         `warningCount: ${runtime?.warningCount ?? '-'}`,
         `conflictCount: ${runtime?.conflictCount ?? '-'}`,
