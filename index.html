@@ -423,6 +423,50 @@
       user-select: text;
     }
 
+    /* AI provider switch ---------------------------------------------------- */
+    .ai-provider-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px;
+      border-radius: 12px;
+      background: rgba(245, 245, 244, .92);
+      border: 1px solid rgba(231, 229, 228, .95);
+      box-shadow: inset 0 1px 1.5px rgba(255,255,255,.9);
+    }
+
+    .ai-provider-btn {
+      border: 0;
+      border-radius: 9px;
+      padding: 4px 9px;
+      color: #78716c;
+      background: transparent;
+      font-size: 9px;
+      font-weight: 900;
+      line-height: 1;
+      transition: all .16s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .ai-provider-btn:hover {
+      color: #292524;
+      background: rgba(255,255,255,.75);
+    }
+
+    .ai-provider-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 4px 10px rgba(245,158,11,.22), inset 0 1px 1px rgba(255,255,255,.34);
+    }
+
+    .ai-provider-model-label {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     @media (max-width: 640px) {
       .core-facts-grid { grid-template-columns: 1fr; }
       .role-strip { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; }
@@ -770,14 +814,33 @@
   <!-- 5. 챗봇 모달 -->
   <div id="modalChatDrawer" class="fixed inset-0 z-50 bg-transparent hidden items-end md:items-center justify-center p-0 md:p-4 fade-in">
     <div id="chatDrawerBox" class="w-full max-w-lg bg-white rounded-t-[32px] md:rounded-[32px] p-5 shadow-2xl h-[80vh] flex flex-col justify-between border border-stone-200">
-      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xs shadow-md">
+      <div class="flex items-center justify-between gap-3 pb-3 border-b border-stone-100">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xs shadow-md shrink-0">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
           </div>
-          <h4 class="text-sm font-black text-stone-900">사주 Grap AI 상담사</h4>
+
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="text-sm font-black text-stone-900">사주 Grap AI 상담사</h4>
+
+              <div class="ai-provider-switch" aria-label="AI 모델 선택">
+                <button type="button" class="ai-provider-btn" data-provider="gemini" aria-pressed="true">
+                  Gemini
+                </button>
+                <button type="button" class="ai-provider-btn" data-provider="openai" aria-pressed="false">
+                  GPT
+                </button>
+              </div>
+            </div>
+
+            <p id="chatProviderModelLabel" class="ai-provider-model-label mt-1 text-[9px] font-bold text-stone-400">
+              Gemini 선택
+            </p>
+          </div>
         </div>
-        <button id="btnCloseChatDrawer" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition">
+
+        <button id="btnCloseChatDrawer" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition shrink-0">
           <i class="fa-solid fa-xmark text-xs"></i>
         </button>
       </div>
@@ -848,6 +911,20 @@
   <!-- 6. 프론트엔드 연동 스크립트 -->
   <script>
     const CACHE_KEY = 'saju_grap_user_profile_cache';
+    const AI_PROVIDER_CACHE_KEY = 'saju_grap_ai_provider';
+    const AI_PROVIDER_LABELS = Object.freeze({
+      gemini: 'Gemini',
+      openai: 'GPT'
+    });
+
+    let selectedProvider = (() => {
+      try {
+        const saved = localStorage.getItem(AI_PROVIDER_CACHE_KEY);
+        return saved === 'openai' ? 'openai' : 'gemini';
+      } catch (error) {
+        return 'gemini';
+      }
+    })();
 
     let audioCtx = null;
     function getAudioContext() {
@@ -895,6 +972,75 @@
     // 메모리 캐시
     const dynamicAiCache = {};
     let chatHistory = [];
+
+    // -----------------------------------------------------------------------
+    // AI provider / 표시 형식
+    // -----------------------------------------------------------------------
+    function aiCacheKey(cycleKey, domainKey) {
+      return `${selectedProvider}_${cycleKey}_${domainKey}`;
+    }
+
+    function normalizeAiDisplayText(value) {
+      return String(value ?? '')
+        .replace(/\r\n/g, '\n')
+        .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+        .replace(/^\s*>\s?/gm, '')
+        .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/__([^_]+)__/g, '$1')
+        .replace(/`{1,3}([^`\n]+)`{1,3}/g, '$1')
+        .replace(/^\s*[-*+]\s+/gm, '• ')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    function updateAiProviderUi(modelName = '') {
+      document.querySelectorAll('.ai-provider-btn').forEach((button) => {
+        const active = button.dataset.provider === selectedProvider;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      const label = document.getElementById('chatProviderModelLabel');
+      if (!label) return;
+
+      const providerLabel = AI_PROVIDER_LABELS[selectedProvider] || selectedProvider;
+      label.innerText = modelName
+        ? `${providerLabel} · ${modelName}`
+        : `${providerLabel} 선택`;
+    }
+
+    function applyAiDiagnostic(json) {
+      const diagnosticProvider = json?.diagnostic?.provider;
+      const diagnosticModel = json?.diagnostic?.model;
+
+      if (
+        diagnosticProvider === 'gemini' ||
+        diagnosticProvider === 'openai'
+      ) {
+        updateAiProviderUi(diagnosticModel || '');
+      }
+    }
+
+    async function setAiProvider(provider) {
+      if (provider !== 'gemini' && provider !== 'openai') return;
+
+      const changed = provider !== selectedProvider;
+      selectedProvider = provider;
+
+      try {
+        localStorage.setItem(AI_PROVIDER_CACHE_KEY, selectedProvider);
+      } catch (error) {}
+
+      updateAiProviderUi();
+
+      // provider별 cache key를 사용하므로 기존 결과를 섞지 않는다.
+      // 대시보드가 열린 상태라면 새 provider의 현재 주기 전략을 미리 불러온다.
+      if (changed && currentAnalysisData) {
+        prefetchCycleStrategies(currentCycle);
+      }
+    }
 
     // -----------------------------------------------------------------------
     // 개발/진단 헬퍼
@@ -1787,6 +1933,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'prefetch',
+            provider: selectedProvider,
             cycle: cycleApiTitles[cycleKey],
             cycleIndex,
             cycleScores: scoresPayload,
@@ -1795,10 +1942,12 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_PREFETCH');
+        applyAiDiagnostic(json);
 
         if (json.success && json.data) {
           Object.keys(json.data).forEach(dKey => {
-            dynamicAiCache[`${cycleKey}_${dKey}`] = json.data[dKey];
+            dynamicAiCache[aiCacheKey(cycleKey, dKey)] =
+              normalizeAiDisplayText(json.data[dKey]);
           });
         }
       } catch (error) {
@@ -1928,7 +2077,7 @@
       } else {
         loadingEl.classList.add('hidden');
         contentEl.classList.remove('hidden');
-        contentEl.innerText = content;
+        contentEl.innerText = normalizeAiDisplayText(content);
       }
 
       const modal = document.getElementById('modalAiInsight');
@@ -1955,7 +2104,7 @@
       const domainName = domainTitles[domainKey];
       const cycleName = cycleTitles[currentCycle];
       const title = `${cycleName} · ${domainName} 전략`;
-      const cacheKey = `${currentCycle}_${domainKey}`;
+      const cacheKey = aiCacheKey(currentCycle, domainKey);
 
       if (dynamicAiCache[cacheKey]) {
         openUnifiedModal(title, dynamicAiCache[cacheKey]);
@@ -1975,6 +2124,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'summary',
+            provider: selectedProvider,
             domain: domainName,
             cycle: cycleApiTitles[currentCycle],
             cycleIndex,
@@ -1984,12 +2134,14 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_SUMMARY');
+        applyAiDiagnostic(json);
         loadingEl.classList.add('hidden');
         contentEl.classList.remove('hidden');
 
         if (json.success && json.reply) {
-          dynamicAiCache[cacheKey] = json.reply;
-          contentEl.innerText = json.reply;
+          const displayReply = normalizeAiDisplayText(json.reply);
+          dynamicAiCache[cacheKey] = displayReply;
+          contentEl.innerText = displayReply;
         } else {
           throw new Error('summary 응답에 reply가 없습니다.');
         }
@@ -2048,6 +2200,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'detail',
+            provider: selectedProvider,
             domain: domainName,
             cycle: cycleApiTitles[currentCycle],
             cycleIndex,
@@ -2057,10 +2210,11 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_DETAIL');
+        applyAiDiagnostic(json);
         detailLoading.classList.add('hidden');
 
         if (json.success && json.reply) {
-          detailText.innerText = json.reply;
+          detailText.innerText = normalizeAiDisplayText(json.reply);
         } else {
           throw new Error('detail 응답에 reply가 없습니다.');
         }
@@ -2118,7 +2272,7 @@
         <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]">AI</div>
         <div class="bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-600 text-xs"></i>
-          <span>Engine Facts와 파동 지침서를 기반으로 답변 작성 중...</span>
+          <span>${AI_PROVIDER_LABELS[selectedProvider]}가 Engine Facts와 RAG를 기반으로 답변 작성 중...</span>
         </div>
       `;
       list.appendChild(aiBubble);
@@ -2130,6 +2284,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'chat',
+            provider: selectedProvider,
             cycle: cycleApiTitles[currentCycle],
             cycleIndex: getRepresentativeCycleIndex(currentCycle),
             userMessage: text,
@@ -2139,13 +2294,15 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_CONVERSATION');
+        applyAiDiagnostic(json);
         const contentBox = aiBubble.querySelector('.bg-stone-100');
 
         if (json.success && json.reply) {
+          const displayReply = normalizeAiDisplayText(json.reply);
           contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words';
-          contentBox.innerText = json.reply;
+          contentBox.innerText = displayReply;
           chatHistory.push({ role: 'user', text });
-          chatHistory.push({ role: 'model', text: json.reply });
+          chatHistory.push({ role: 'model', text: displayReply });
         } else {
           throw new Error('chat 응답에 reply가 없습니다.');
         }
@@ -2162,6 +2319,15 @@
 
       list.scrollTop = list.scrollHeight;
     });
+
+    document.querySelectorAll('.ai-provider-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        playTickSound();
+        setAiProvider(button.dataset.provider);
+      });
+    });
+
+    updateAiProviderUi();
 
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
     document.getElementById('btnEditInput').addEventListener('click', () => {
