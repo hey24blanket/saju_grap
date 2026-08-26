@@ -4,6 +4,7 @@
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "dependencies": {
+    "@google-cloud/firestore": "9.0.0",
     "lunar-javascript": "1.7.7"
   }
 }

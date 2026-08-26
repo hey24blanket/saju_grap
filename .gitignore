@@ -1,0 +1,83 @@
+# ============================================================
+# SajuGrap - Git Ignore
+# ============================================================
+
+# ------------------------------------------------------------
+# Environment variables / API keys
+# ------------------------------------------------------------
+.env
+.env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+.env.test
+.env.test.local
+.env.*.local
+
+# Example env files may be committed
+!.env.example
+
+
+# ------------------------------------------------------------
+# Firebase / Google service account secrets
+# ------------------------------------------------------------
+secrets/
+*service-account*.json
+*serviceAccount*.json
+
+
+# ------------------------------------------------------------
+# Node.js
+# ------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# ------------------------------------------------------------
+# Vercel local files
+# ------------------------------------------------------------
+.vercel/
+
+
+# ------------------------------------------------------------
+# Generated RAG corpus / embedding artifacts
+# Production app reads Firestore, not these local generated files.
+# ------------------------------------------------------------
+data/rag-corpus.reviewed.production.jsonl
+data/rag-corpus.reviewed.evaluation.jsonl
+data/rag-corpus.reviewed.import-manifest.json
+data/rag-corpus.embedded*.jsonl
+data/rag-corpus.*manifest.json
+
+
+# ------------------------------------------------------------
+# Temporary / cache files
+# ------------------------------------------------------------
+.cache/
+tmp/
+temp/
+*.tmp
+*.log
+
+
+# ------------------------------------------------------------
+# OS / editor
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Proprietary RAG source documents
+rag-source/
+
+# Local RAG pipeline runners
+run-rag-pipeline.cmd
+run-rag-pipeline-ascii.cmd
