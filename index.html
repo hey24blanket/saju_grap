@@ -467,6 +467,25 @@
       white-space: nowrap;
     }
 
+    /* Chat copy / multiline input ------------------------------------------- */
+    #chatMessageList,
+    #chatMessageList * {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
+
+    #chatMessageList {
+      cursor: text;
+    }
+
+    #chatInputText {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.55;
+    }
+
     @media (max-width: 640px) {
       .core-facts-grid { grid-template-columns: 1fr; }
       .role-strip { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; }
@@ -845,19 +864,19 @@
         </button>
       </div>
 
-      <div id="chatMessageList" class="flex-1 overflow-y-auto no-scrollbar py-3.5 space-y-3 text-xs">
+      <div id="chatMessageList" class="flex-1 overflow-y-auto no-scrollbar py-3.5 space-y-3 text-xs select-text">
         <div class="flex items-start gap-2">
-          <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]">AI</div>
-          <div class="bg-stone-100 text-stone-800 p-3.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed font-semibold">
+          <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px] select-text">AI</div>
+          <div class="bg-stone-100 text-stone-800 p-3.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed font-semibold select-text">
             반가워요! 당신의 사주 파동과 전략적 명리 지침서를 기반으로 1:1 라이프 상담을 진행합니다.
           </div>
         </div>
       </div>
 
-      <form id="chatInputForm" class="pt-2.5 border-t border-stone-100 flex items-center gap-2">
-        <input type="text" id="chatInputText" placeholder="궁금한 운세나 시기를 질문하세요..." autocomplete="off"
-          class="flex-1 px-4 py-3 bg-stone-100 rounded-2xl font-bold text-xs text-stone-800 focus:bg-white outline-none transition" />
-        <button type="submit" class="w-11 h-11 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-md">
+      <form id="chatInputForm" class="pt-2.5 border-t border-stone-100 flex items-end gap-2">
+        <textarea id="chatInputText" rows="2" enterkeyhint="enter" placeholder="궁금한 운세나 시기를 질문하세요..." autocomplete="off"
+          class="flex-1 min-h-[44px] max-h-32 px-4 py-3 bg-stone-100 rounded-2xl font-bold text-xs text-stone-800 focus:bg-white outline-none transition whitespace-pre-wrap break-words select-text"></textarea>
+        <button type="submit" class="w-11 h-11 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-md shrink-0">
           <i class="fa-solid fa-arrow-up text-xs"></i>
         </button>
       </form>
@@ -2250,18 +2269,37 @@
       }
     });
 
+    const chatInputTextEl = document.getElementById('chatInputText');
+
+    function resizeChatInput() {
+      if (!chatInputTextEl) return;
+      chatInputTextEl.style.height = 'auto';
+      chatInputTextEl.style.height = `${Math.min(chatInputTextEl.scrollHeight, 128)}px`;
+    }
+
+    chatInputTextEl.addEventListener('input', resizeChatInput);
+    chatInputTextEl.addEventListener('keydown', (event) => {
+      // Enter는 줄바꿈. 데스크톱에서는 Ctrl/Cmd + Enter로 전송할 수 있다.
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        document.getElementById('chatInputForm').requestSubmit();
+      }
+    });
+    resizeChatInput();
+
     document.getElementById('chatInputForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const inp = document.getElementById('chatInputText');
       const text = inp.value.trim();
       if (!text) return;
       inp.value = '';
+      resizeChatInput();
 
       const list = document.getElementById('chatMessageList');
       const userBubble = document.createElement('div');
       userBubble.className = 'flex items-start justify-end gap-2';
       const userTextBox = document.createElement('div');
-      userTextBox.className = 'bg-amber-500 text-white p-3 rounded-[20px] rounded-tr-none max-w-[85%] leading-relaxed font-bold text-xs shadow-md whitespace-pre-wrap break-words';
+      userTextBox.className = 'bg-amber-500 text-white p-3 rounded-[20px] rounded-tr-none max-w-[85%] leading-relaxed font-bold text-xs shadow-md whitespace-pre-wrap break-words select-text';
       userTextBox.innerText = text;
       userBubble.appendChild(userTextBox);
       list.appendChild(userBubble);
@@ -2270,7 +2308,7 @@
       aiBubble.className = 'flex items-start gap-2';
       aiBubble.innerHTML = `
         <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]">AI</div>
-        <div class="bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5">
+        <div class="bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5 select-text">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-600 text-xs"></i>
           <span>${AI_PROVIDER_LABELS[selectedProvider]}가 Engine Facts와 RAG를 기반으로 답변 작성 중...</span>
         </div>
@@ -2299,7 +2337,7 @@
 
         if (json.success && json.reply) {
           const displayReply = normalizeAiDisplayText(json.reply);
-          contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words';
+          contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words select-text';
           contentBox.innerText = displayReply;
           chatHistory.push({ role: 'user', text });
           chatHistory.push({ role: 'model', text: displayReply });
@@ -2308,7 +2346,7 @@
         }
       } catch (error) {
         const contentBox = aiBubble.querySelector('.bg-stone-100');
-        contentBox.className = 'bg-rose-50 text-rose-800 border border-rose-100 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line';
+        contentBox.className = 'bg-rose-50 text-rose-800 border border-rose-100 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line select-text';
         contentBox.innerText = '답변을 불러오지 못했습니다. DEV 오류 버튼에서 오류 내용을 복사해 주세요.';
         handleFrontendFailure('AI 채팅 실패', error, {
           code: 'SG-NETWORK-CHAT-004',
