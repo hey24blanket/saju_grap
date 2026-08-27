@@ -1613,7 +1613,11 @@ ${ragContextText}
 }
 
 async function buildRagRuntimeContext(
-  normalized
+  normalized,
+  {
+    ragVersion = null,
+    knowledgeLayer = null
+  } = {}
 ) {
   const engineFacts =
     normalized
@@ -1714,6 +1718,10 @@ async function buildRagRuntimeContext(
       await retrieveRag(
         queryPacket,
         {
+          ragVersion,
+
+          knowledgeLayer,
+
           targetResults:
             Number.isInteger(
               RAG_TARGET_RESULTS
@@ -2625,7 +2633,8 @@ async function callSelectedProvider(
 
 export default async function handler(
   req,
-  res
+  res,
+  runtimeOptions = {}
 ) {
   const requestId =
     makeRequestId();
@@ -2800,7 +2809,16 @@ export default async function handler(
 
     ragRuntime =
       await buildRagRuntimeContext(
-        normalized
+        normalized,
+        {
+          ragVersion:
+            runtimeOptions.ragVersion ||
+            null,
+
+          knowledgeLayer:
+            runtimeOptions.knowledgeLayer ||
+            null
+        }
       );
 
     if (

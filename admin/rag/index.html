@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SajuGrap RAG Manager</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="/firebase-config.js"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    :root {
+      --bg:#f6f3ee; --card:#fffdfa; --ink:#241f1a; --muted:#7b7168;
+      --line:#e7dfd6; --accent:#d97706; --accent2:#9a3412; --ok:#047857;
+      --warn:#b45309; --bad:#b91c1c; --soft:#fff7ed; --shadow:0 18px 50px rgba(73,54,35,.08);
+    }
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 20% 0%,#fff7ed 0,transparent 35%),var(--bg);color:var(--ink);font-family:Pretendard,system-ui,sans-serif}
+    button,input,textarea,select{font:inherit} button{cursor:pointer}
+    .shell{max-width:1240px;margin:0 auto;padding:28px 20px 80px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.brand h1{margin:0;font-size:28px}.brand p{margin:6px 0 0;color:var(--muted);font-size:14px}
+    .badge{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:#9ca3af}.dot.ok{background:var(--ok)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:rgba(255,253,250,.92);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:22px}.full{grid-column:1/-1}
+    h2{font-size:18px;margin:0 0 6px} .sub{color:var(--muted);font-size:13px;margin:0 0 18px;line-height:1.5}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row.end{justify-content:flex-end}.grow{flex:1;min-width:180px}
+    input,textarea,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;color:var(--ink);outline:none}textarea{min-height:150px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.5}input:focus,textarea:focus,select:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.12)}
+    label{display:block;font-size:12px;font-weight:700;margin:0 0 7px}.field{margin-bottom:13px}.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;background:#2d2925;color:#fff}.btn.primary{background:linear-gradient(135deg,#f59e0b,#c2410c)}.btn.soft{background:var(--soft);color:var(--accent2);border:1px solid #fed7aa}.btn.good{background:var(--ok)}.btn.bad{background:#991b1b}.btn:disabled{opacity:.45;cursor:not-allowed}
+    .login{max-width:470px;margin:12vh auto 0}.hidden{display:none!important}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{padding:14px;border-radius:15px;background:#fff;border:1px solid var(--line)}.stat b{display:block;font-size:21px}.stat span{color:var(--muted);font-size:12px}
+    .drop{border:1.5px dashed #d6c7b8;border-radius:18px;padding:25px;text-align:center;background:#fffbf5;transition:.2s}.drop.drag{border-color:#f59e0b;background:#fff7ed}.drop strong{display:block;margin-bottom:7px}.drop small{color:var(--muted)}
+    .statusline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:10px}.bar{height:10px;background:#eee6dd;border-radius:999px;overflow:hidden;margin:12px 0}.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f59e0b,#c2410c);transition:width .2s}
+    .log{background:#1f1d1b;color:#e7e5e4;border-radius:14px;padding:14px;min-height:110px;max-height:280px;overflow:auto;white-space:pre-wrap;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.okText{color:var(--ok)}.badText{color:var(--bad)}.warnText{color:var(--warn)}
+    table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-size:11px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#f5f1ec;color:#5f574f;font-size:11px}.pill.production{background:#ecfdf5;color:#065f46}.pill.ready{background:#eff6ff;color:#1d4ed8}.pill.embedding{background:#fff7ed;color:#9a3412}
+    .result{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px;background:#fff}.result .meta{font-size:11px;color:var(--muted);margin-bottom:6px}.result h4{margin:0 0 7px;font-size:14px}.result p{margin:0;color:#4b443e;font-size:13px;line-height:1.55;white-space:pre-wrap}.tabs{display:flex;gap:8px;margin-bottom:14px}.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;font-size:12px}.tab.active{background:#2d2925;color:#fff;border-color:#2d2925}
+    .warning{padding:12px 14px;border-radius:13px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;line-height:1.5;margin-bottom:14px}
+    @media(max-width:850px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.stats{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section id="loginView" class="card login">
+      <div class="brand"><h1>SajuGrap RAG Manager</h1><p>관리자 전용 · Firebase Auth</p></div>
+      <div style="height:22px"></div>
+      <div class="field"><label>관리자 이메일</label><input id="email" type="email" autocomplete="username" /></div>
+      <div class="field"><label>비밀번호</label><input id="password" type="password" autocomplete="current-password" /></div>
+      <button id="loginBtn" class="btn primary" style="width:100%">로그인</button>
+      <p id="loginError" class="badText" style="font-size:12px"></p>
+    </section>
+
+    <main id="appView" class="hidden">
+      <div class="top">
+        <div class="brand"><h1>SajuGrap RAG Manager</h1><p>JSONL → 검증 → Diff → Embedding → Retrieval/LLM Test → Production</p></div>
+        <div class="row"><span class="badge"><i id="healthDot" class="dot"></i><span id="healthText">연결 확인 중</span></span><button id="logoutBtn" class="btn soft">로그아웃</button></div>
+      </div>
+
+      <div class="grid">
+        <section class="card full">
+          <h2>운영 상태</h2><p class="sub">현재 앱이 사용하는 RAG 버전과 최근 Draft를 확인합니다.</p>
+          <div id="legacyWarning" class="warning hidden"></div>
+          <div class="stats">
+            <div class="stat"><b id="activeVersion">-</b><span>Production</span></div>
+            <div class="stat"><b id="versionCount">-</b><span>Versions</span></div>
+            <div class="stat"><b id="embedModel">-</b><span>Embedding model</span></div>
+            <div class="stat"><b id="embedDims">-</b><span>Dimensions</span></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>1. JSONL 업로드 & 검증</h2><p class="sub">파일은 브라우저에서 읽은 뒤 인증된 Admin API로만 전달됩니다.</p>
+          <div id="dropZone" class="drop"><strong>JSONL 파일을 여기에 놓으세요</strong><small>또는 클릭해서 선택</small><input id="fileInput" type="file" accept=".jsonl,.txt" class="hidden" /></div>
+          <div class="statusline"><span id="fileName">선택된 파일 없음</span></div>
+          <div style="height:12px"></div>
+          <div class="field"><label>새 버전 이름</label><input id="versionName" placeholder="예: v1.25" /></div>
+          <div class="row"><button id="validateBtn" class="btn soft" disabled>검증</button><button id="draftBtn" class="btn primary" disabled>Draft 생성</button></div>
+          <div id="validateStats" style="margin-top:14px"></div>
+        </section>
+
+        <section class="card">
+          <h2>2. Resumable Embedding</h2><p class="sub">변경된 embedding input만 batch 처리합니다. 브라우저를 닫아도 Firestore 진행 상태에서 다시 이어집니다.</p>
+          <div class="field"><label>작업 버전</label><select id="embedVersion"></select></div>
+          <div class="field"><label>Batch 크기</label><input id="batchSize" type="number" min="1" max="32" value="12" /></div>
+          <div class="bar"><i id="progressBar"></i></div>
+          <div id="progressText" class="statusline">작업 버전을 선택하세요.</div>
+          <div class="row" style="margin-top:13px"><button id="embedOnceBtn" class="btn soft">1 Batch 실행</button><button id="embedAllBtn" class="btn primary">완료까지 실행</button></div>
+          <div id="embedLog" class="log" style="margin-top:14px">Embedding 로그</div>
+        </section>
+
+        <section class="card full">
+          <h2>3. Retrieval / 실제 앱 / LLM 테스트</h2><p class="sub">Quick Search와 실제 production Query Builder 경로를 분리해 확인합니다. LLM Test는 실제 chat.js를 그대로 호출하되 선택한 Draft version만 주입합니다.</p>
+          <div class="row">
+            <div class="grow field"><label>테스트 버전</label><select id="testVersion"></select></div>
+            <div class="grow field"><label>Knowledge Layer (Quick/LLM)</label><select id="testLayer"><option value="all">all</option><option value="myeongri">myeongri</option><option value="counseling_case">counseling_case</option><option value="conversation_style">conversation_style</option></select></div>
+            <div class="grow field"><label>Domain</label><select id="testDomain"><option>all</option><option>career</option><option>wealth</option><option>mental</option><option>love</option><option>shared</option></select></div>
+            <div class="grow field"><label>Cycle</label><select id="testCycle"><option value="daewoon">daewoon</option><option value="year">year</option><option value="month">month</option><option value="day">day</option><option value="hour">hour</option><option value="shared">shared</option></select></div>
+          </div>
+          <div class="field"><label>질문</label><input id="testQuery" placeholder="예: 지금 이직을 준비할 때 어떤 전략이 필요할까?" /></div>
+          <div class="field"><label>Engine Facts JSON (Real App / LLM Test에서 사용)</label><textarea id="engineFacts" placeholder='{"schemaVersion":"engine_facts_v1", ...}'></textarea></div>
+          <div class="row"><button id="quickBtn" class="btn soft">Quick Search</button><button id="realBtn" class="btn">Real App Retrieval</button><button id="geminiBtn" class="btn primary">Gemini 답변</button><button id="openaiBtn" class="btn primary">GPT 답변</button></div>
+          <div id="testResults" style="margin-top:16px"></div>
+        </section>
+
+        <section class="card full">
+          <h2>4. Version / Production / Rollback</h2><p class="sub">READY 버전을 Production으로 atomic switch합니다. 이전 버전의 vector는 보존되어 즉시 롤백할 수 있습니다.</p>
+          <div style="overflow:auto"><table><thead><tr><th>Version</th><th>Status</th><th>Base</th><th>Chunks</th><th>Diff</th><th>Embedding</th><th>Created</th><th>Action</th></tr></thead><tbody id="versionsBody"></tbody></table></div>
+        </section>
+
+        <section class="card full">
+          <h2>Manager 로그</h2><div id="mainLog" class="log">준비됨.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let fileText = '';
+  let selectedFileName = '';
+  let managerStatus = null;
+
+  if (!window.firebaseConfig) {
+    $('loginError').textContent = 'firebase-config.js를 불러오지 못했습니다.';
+    return;
+  }
+  if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
+  const auth = firebase.auth();
+
+  function log(message, target = 'mainLog') {
+    const el = $(target);
+    const time = new Date().toLocaleTimeString();
+    el.textContent = `[${time}] ${message}\n` + el.textContent;
+  }
+
+  function autoVersionName() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `v${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+  }
+
+  async function api(action, payload = {}) {
+    const user = auth.currentUser;
+    if (!user) throw new Error('관리자 로그인이 필요합니다.');
+    const token = await user.getIdToken();
+    const response = await fetch('/api/admin/rag', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || !body.success) {
+      const error = new Error(body?.error?.message || `HTTP ${response.status}`);
+      error.payload = body?.error || null;
+      throw error;
+    }
+    return body.data;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+
+  function versionOptions() {
+    const versions = managerStatus?.versions || [];
+    return versions.map(v => `<option value="${escapeHtml(v.version || v.id)}">${escapeHtml(v.version || v.id)} · ${escapeHtml(v.status || '')}</option>`).join('');
+  }
+
+  function renderStatus(status) {
+    managerStatus = status;
+    $('healthDot').className = 'dot ok';
+    $('healthText').textContent = status.firestore?.projectId ? `${status.firestore.projectId} 연결됨` : 'Firestore 연결됨';
+    $('activeVersion').textContent = status.activeRagVersion || 'LEGACY';
+    $('versionCount').textContent = (status.versions || []).length;
+    $('embedModel').textContent = status.embedding?.model || '-';
+    $('embedDims').textContent = status.embedding?.dimensions || '-';
+    $('legacyWarning').classList.toggle('hidden', !status.legacyMode);
+    if (status.legacyMode) {
+      $('legacyWarning').textContent = `현재는 기존 단일 RAG 모드입니다${status.legacyCount != null ? ` (${status.legacyCount} chunks)` : ''}. 첫 READY 버전을 Production으로 전환하기 전까지 기존 검색 방식이 유지됩니다.`;
+    }
+    const options = versionOptions();
+    $('embedVersion').innerHTML = options || '<option value="">Draft 없음</option>';
+    $('testVersion').innerHTML = options || '<option value="">Version 없음</option>';
+    renderVersions(status.versions || []);
+    updateEmbeddingProgress();
+  }
+
+  function renderVersions(versions) {
+    $('versionsBody').innerHTML = versions.map(v => {
+      const c = v.counts || {};
+      const e = v.embedding || {};
+      const statusClass = String(v.status || '').toLowerCase();
+      const action = v.status === 'PRODUCTION'
+        ? '<span class="pill production">ACTIVE</span>'
+        : ['READY','ARCHIVED'].includes(v.status)
+          ? `<button class="btn soft versionPromote" data-version="${escapeHtml(v.version || v.id)}">${v.status === 'ARCHIVED' ? 'Rollback' : 'Production'}</button>`
+          : '';
+      return `<tr>
+        <td><b>${escapeHtml(v.version || v.id)}</b></td>
+        <td><span class="pill ${statusClass}">${escapeHtml(v.status)}</span></td>
+        <td>${escapeHtml(v.baseVersion || '-')}</td>
+        <td>${escapeHtml(c.total ?? '-')}</td>
+        <td>+${escapeHtml(c.added ?? 0)} / M${escapeHtml(c.metadataModified ?? 0)} / E${escapeHtml(c.embeddingModified ?? 0)} / -${escapeHtml(c.deleted ?? 0)}</td>
+        <td>${escapeHtml(e.completed ?? 0)}/${escapeHtml(e.required ?? 0)}${e.failed ? ` · fail ${e.failed}` : ''}</td>
+        <td>${escapeHtml((v.createdAt || '').slice(0,16).replace('T',' '))}</td>
+        <td>${action}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="8">아직 version이 없습니다.</td></tr>';
+
+    document.querySelectorAll('.versionPromote').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const version = btn.dataset.version;
+        if (!confirm(`${version}을(를) Production으로 전환할까요?`)) return;
+        try {
+          btn.disabled = true;
+          log(`${version} Production 전환 시작`);
+          const status = await api('promote', { version });
+          renderStatus(status);
+          log(`${version} Production 전환 완료`);
+        } catch (error) {
+          log(`Production 전환 실패: ${error.message}`);
+          alert(error.message);
+        } finally { btn.disabled = false; }
+      });
+    });
+  }
+
+  async function refreshStatus() {
+    try {
+      const status = await api('status');
+      renderStatus(status);
+      return status;
+    } catch (error) {
+      $('healthDot').className = 'dot';
+      $('healthText').textContent = '연결 실패';
+      log(`상태 조회 실패: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async function readFile(file) {
+    selectedFileName = file.name;
+    fileText = await file.text();
+    $('fileName').textContent = `${file.name} · ${(file.size / 1024).toFixed(1)} KB`;
+    $('validateBtn').disabled = false;
+    $('draftBtn').disabled = true;
+    $('validateStats').innerHTML = '';
+    if (!$('versionName').value) $('versionName').value = autoVersionName();
+    log(`파일 선택: ${file.name}`);
+  }
+
+  async function validateFile() {
+    if (!fileText) return;
+    $('validateBtn').disabled = true;
+    try {
+      const data = await api('validate', { jsonlText: fileText });
+      const s = data.summary || {};
+      $('validateStats').innerHTML = `<div class="stats">
+        <div class="stat"><b>${s.total ?? 0}</b><span>chunks</span></div>
+        <div class="stat"><b class="${s.errorCount ? 'badText':'okText'}">${s.errorCount ?? 0}</b><span>errors</span></div>
+        <div class="stat"><b class="${s.warningCount ? 'warnText':''}">${s.warningCount ?? 0}</b><span>warnings</span></div>
+        <div class="stat"><b>${Object.keys(s.knowledgeLayers || {}).length}</b><span>layers</span></div>
+      </div>${data.errors?.length ? `<div class="log" style="margin-top:10px">${escapeHtml(JSON.stringify(data.errors.slice(0,20), null, 2))}</div>`:''}`;
+      $('draftBtn').disabled = !data.valid;
+      log(data.valid ? `JSONL 검증 성공: ${s.total} chunks` : `JSONL 검증 실패: ${s.errorCount} errors`);
+    } catch (error) {
+      log(`검증 API 실패: ${error.message}`);
+      alert(error.message);
+    } finally { $('validateBtn').disabled = false; }
+  }
+
+  async function createDraft() {
+    const version = $('versionName').value.trim();
+    if (!version || !fileText) return;
+    $('draftBtn').disabled = true;
+    try {
+      log(`${version} Draft 생성 시작`);
+      const detail = await api('createDraft', {
+        version,
+        jsonlText: fileText,
+        sourceFileName: selectedFileName
+      });
+      log(`${version} Draft 생성 완료 · status=${detail.status}`);
+      await refreshStatus();
+      $('embedVersion').value = detail.version;
+      $('testVersion').value = detail.version;
+      updateEmbeddingProgress();
+    } catch (error) {
+      const validation = error.payload?.validation;
+      log(`Draft 생성 실패: ${error.message}`);
+      if (validation) $('validateStats').innerHTML = `<div class="log">${escapeHtml(JSON.stringify(validation, null, 2))}</div>`;
+      alert(error.message);
+    } finally { $('draftBtn').disabled = false; }
+  }
+
+  function selectedVersionData(selectId) {
+    const version = $(selectId).value;
+    return (managerStatus?.versions || []).find(v => (v.version || v.id) === version) || null;
+  }
+
+  function updateEmbeddingProgress() {
+    const v = selectedVersionData('embedVersion');
+    if (!v) {
+      $('progressBar').style.width = '0%';
+      $('progressText').textContent = '작업 버전을 선택하세요.';
+      return;
+    }
+    const e = v.embedding || {};
+    const required = Number(e.required || 0);
+    const completed = Number(e.completed || 0);
+    const pct = required === 0 ? 100 : Math.round(completed / required * 100);
+    $('progressBar').style.width = `${Math.min(100,pct)}%`;
+    $('progressText').textContent = `${v.version || v.id} · ${v.status} · ${completed}/${required} · failed ${e.failed || 0} · pending ${e.pending || 0}`;
+  }
+
+  async function embedOne() {
+    const version = $('embedVersion').value;
+    if (!version) throw new Error('Embedding 버전을 선택해 주세요.');
+    const detail = await api('embedBatch', {
+      version,
+      batchSize: Number($('batchSize').value || 12)
+    });
+    log(`${version}: ${detail.embedding?.completed || 0}/${detail.embedding?.required || 0}, status=${detail.status}`, 'embedLog');
+    await refreshStatus();
+    $('embedVersion').value = version;
+    updateEmbeddingProgress();
+    return detail;
+  }
+
+  async function embedUntilDone() {
+    $('embedAllBtn').disabled = true;
+    $('embedOnceBtn').disabled = true;
+    try {
+      let previousSignature = '';
+      for (let i = 0; i < 100; i++) {
+        const detail = await embedOne();
+        if (detail.status === 'READY') {
+          log(`${detail.version} embedding READY`, 'embedLog');
+          return;
+        }
+        const e = detail.embedding || {};
+        const signature = `${e.completed}|${e.failed}|${e.pending}`;
+        if (signature === previousSignature && Number(e.failed || 0) > 0) {
+          log('동일 실패 상태가 반복되어 자동 실행을 중지했습니다. 오류를 확인한 뒤 다시 실행하세요.', 'embedLog');
+          return;
+        }
+        previousSignature = signature;
+      }
+      log('안전 제한(100 batch)에 도달해 중지했습니다.', 'embedLog');
+    } finally {
+      $('embedAllBtn').disabled = false;
+      $('embedOnceBtn').disabled = false;
+    }
+  }
+
+  function parseEngineFacts() {
+    const text = $('engineFacts').value.trim();
+    if (!text) throw new Error('Engine Facts JSON을 입력해 주세요.');
+    try { return JSON.parse(text); } catch (e) { throw new Error(`Engine Facts JSON 오류: ${e.message}`); }
+  }
+
+  function renderRetrieval(data) {
+    const results = data?.results || [];
+    if (!results.length) {
+      $('testResults').innerHTML = `<div class="warning">검색 결과가 0개입니다.<br>Draft가 READY인지, ragVersion+embeddingVector composite index가 생성되어 있는지 확인하세요.</div><div class="log">${escapeHtml(JSON.stringify(data, null, 2))}</div>`;
+      return;
+    }
+    $('testResults').innerHTML = results.map((r, i) => `<div class="result">
+      <div class="meta">#${i+1} · ${escapeHtml(r.knowledgeLayer || '')} · ${escapeHtml(r.domain || '')} · score ${escapeHtml(r.semanticScore ?? r.retrieval?.finalScore ?? '-')} · ${escapeHtml(r.chunkId || r.id || '')}</div>
+      <h4>${escapeHtml(r.title || '')}</h4><p>${escapeHtml((r.content || '').slice(0,1800))}</p>
+    </div>`).join('') + `<details style="margin-top:12px"><summary>Raw JSON</summary><div class="log">${escapeHtml(JSON.stringify(data, null, 2))}</div></details>`;
+  }
+
+  async function runQuick() {
+    $('testResults').innerHTML = '<div class="statusline">검색 중...</div>';
+    try {
+      const data = await api('quickSearch', {
+        version: $('testVersion').value,
+        query: $('testQuery').value,
+        knowledgeLayer: $('testLayer').value,
+        limit: 6
+      });
+      renderRetrieval(data);
+      log(`Quick Search 완료: ${data.results?.length || 0} results`);
+    } catch (error) {
+      $('testResults').innerHTML = `<div class="warning">${escapeHtml(error.message)}</div><div class="log">${escapeHtml(JSON.stringify(error.payload || {}, null, 2))}</div>`;
+      log(`Quick Search 실패: ${error.message}`);
+    }
+  }
+
+  async function runReal() {
+    $('testResults').innerHTML = '<div class="statusline">실제 Query Builder 경로 검색 중...</div>';
+    try {
+      const data = await api('realRetrieval', {
+        version: $('testVersion').value,
+        query: $('testQuery').value,
+        engineFacts: parseEngineFacts(),
+        domain: $('testDomain').value,
+        cycleType: $('testCycle').value,
+        limit: 6
+      });
+      renderRetrieval(data);
+      log(`Real App Retrieval 완료: ${data.results?.length || 0} results`);
+    } catch (error) {
+      $('testResults').innerHTML = `<div class="warning">${escapeHtml(error.message)}</div><div class="log">${escapeHtml(JSON.stringify(error.payload || {}, null, 2))}</div>`;
+      log(`Real Retrieval 실패: ${error.message}`);
+    }
+  }
+
+  async function runLlm(provider) {
+    $('testResults').innerHTML = `<div class="statusline">${provider} + 실제 chat.js 테스트 중...</div>`;
+    try {
+      const data = await api('llmTest', {
+        version: $('testVersion').value,
+        query: $('testQuery').value,
+        engineFacts: parseEngineFacts(),
+        domain: $('testDomain').value,
+        cycle: $('testCycle').value,
+        provider,
+        knowledgeLayer: $('testLayer').value
+      });
+      const body = data.jsonBody || {};
+      if (!body.success) throw new Error(body?.error?.message || `${provider} 테스트 실패`);
+      const answer = body.reply || JSON.stringify(body.data || {}, null, 2);
+      $('testResults').innerHTML = `<div class="result"><div class="meta">${escapeHtml(provider)} · HTTP ${escapeHtml(data.statusCode)}</div><h4>최종 답변</h4><p>${escapeHtml(answer)}</p></div><details style="margin-top:12px"><summary>RAG/모델 진단 JSON</summary><div class="log">${escapeHtml(JSON.stringify(body.diagnostic || body, null, 2))}</div></details>`;
+      log(`${provider} LLM Test 완료`);
+    } catch (error) {
+      $('testResults').innerHTML = `<div class="warning">${escapeHtml(error.message)}</div><div class="log">${escapeHtml(JSON.stringify(error.payload || {}, null, 2))}</div>`;
+      log(`${provider} LLM Test 실패: ${error.message}`);
+    }
+  }
+
+  $('loginBtn').addEventListener('click', async () => {
+    $('loginError').textContent = '';
+    try {
+      await auth.signInWithEmailAndPassword($('email').value.trim(), $('password').value);
+    } catch (error) { $('loginError').textContent = error.message; }
+  });
+  $('password').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
+  $('logoutBtn').addEventListener('click', () => auth.signOut());
+
+  const dz = $('dropZone');
+  dz.addEventListener('click', () => $('fileInput').click());
+  $('fileInput').addEventListener('change', e => { if (e.target.files?.[0]) readFile(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(type => dz.addEventListener(type, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(type => dz.addEventListener(type, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => { if (e.dataTransfer.files?.[0]) readFile(e.dataTransfer.files[0]); });
+
+  $('validateBtn').addEventListener('click', validateFile);
+  $('draftBtn').addEventListener('click', createDraft);
+  $('embedVersion').addEventListener('change', updateEmbeddingProgress);
+  $('embedOnceBtn').addEventListener('click', async () => { try { await embedOne(); } catch(e){ log(`Embedding 실패: ${e.message}`,'embedLog'); alert(e.message); } });
+  $('embedAllBtn').addEventListener('click', embedUntilDone);
+  $('quickBtn').addEventListener('click', runQuick);
+  $('realBtn').addEventListener('click', runReal);
+  $('geminiBtn').addEventListener('click', () => runLlm('gemini'));
+  $('openaiBtn').addEventListener('click', () => runLlm('openai'));
+
+  auth.onAuthStateChanged(async user => {
+    $('loginView').classList.toggle('hidden', !!user);
+    $('appView').classList.toggle('hidden', !user);
+    if (user) {
+      try {
+        await refreshStatus();
+        $('versionName').value = autoVersionName();
+        log(`로그인: ${user.email || user.uid}`);
+      } catch (error) {
+        if (error.payload?.code === 'SG-RAG-ADMIN-AUTH-013') {
+          alert('로그인은 되었지만 RAG 관리자 UID allowlist에 없습니다.');
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
