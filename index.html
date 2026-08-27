@@ -486,6 +486,49 @@
       line-height: 1.55;
     }
 
+    .training-trace-box {
+      margin-top: 10px;
+      border-top: 1px solid rgba(214, 211, 209, .9);
+      padding-top: 9px;
+    }
+
+    .training-trace-box summary {
+      cursor: pointer;
+      color: #78716c;
+      font-size: 9px;
+      font-weight: 900;
+      user-select: none !important;
+    }
+
+    .training-trace-box pre {
+      margin-top: 8px;
+      max-height: 240px;
+      overflow: auto;
+      padding: 10px;
+      border-radius: 12px;
+      background: #1c1917;
+      color: #bbf7d0;
+      font-size: 8.5px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
+
+    .training-trace-copy {
+      margin-top: 7px;
+      border: 0;
+      border-radius: 10px;
+      padding: 6px 9px;
+      background: #292524;
+      color: white;
+      font-size: 9px;
+      font-weight: 900;
+      cursor: pointer;
+      user-select: none !important;
+    }
+
     @media (max-width: 640px) {
       .core-facts-grid { grid-template-columns: 1fr; }
       .role-strip { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; }
@@ -2287,6 +2330,55 @@
     });
     resizeChatInput();
 
+    async function copyTextToClipboard(text, button = null) {
+      try {
+        await navigator.clipboard.writeText(text);
+        if (button) {
+          const original = button.innerText;
+          button.innerText = '복사 완료';
+          setTimeout(() => { button.innerText = original; }, 1200);
+        }
+      } catch (error) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+    }
+
+    function appendTrainingTrace(contentBox, trainingTrace) {
+      if (!contentBox || !trainingTrace) return;
+
+      const rawText = JSON.stringify(trainingTrace, null, 2);
+      const details = document.createElement('details');
+      details.className = 'training-trace-box';
+
+      const summary = document.createElement('summary');
+      summary.innerText = 'RAW OBJECT · 답변에 사용된 Engine Facts / RAG 보기';
+
+      const pre = document.createElement('pre');
+      pre.innerText = rawText;
+
+      const copyButton = document.createElement('button');
+      copyButton.type = 'button';
+      copyButton.className = 'training-trace-copy';
+      copyButton.innerText = 'RAW OBJECT 복사';
+      copyButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        copyTextToClipboard(rawText, copyButton);
+      });
+
+      details.appendChild(summary);
+      details.appendChild(pre);
+      details.appendChild(copyButton);
+      contentBox.appendChild(details);
+    }
+
     document.getElementById('chatInputForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const inp = document.getElementById('chatInputText');
@@ -2327,6 +2419,7 @@
             cycleIndex: getRepresentativeCycleIndex(currentCycle),
             userMessage: text,
             history: chatHistory,
+            includeTrainingTrace: true,
             sajuContext: buildSajuContext()
           })
         });
@@ -2339,6 +2432,7 @@
           const displayReply = normalizeAiDisplayText(json.reply);
           contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words select-text';
           contentBox.innerText = displayReply;
+          appendTrainingTrace(contentBox, json.trainingTrace);
           chatHistory.push({ role: 'user', text });
           chatHistory.push({ role: 'model', text: displayReply });
         } else {
