@@ -21,6 +21,10 @@ import {
   retrieveRagForEngineFacts
 } from '../../lib/ragRetriever.js';
 
+import {
+  createChunkingExpressInactiveChunk
+} from '../../lib/chunkingExpressImport.js';
+
 import chatHandler from '../chat.js';
 
 function parseBody(body) {
@@ -239,6 +243,10 @@ export default async function handler(req, res) {
         });
         break;
 
+      case 'createInactiveChunk':
+        data = await createChunkingExpressInactiveChunk(body.document);
+        break;
+
       case 'quickSearch':
         data = await quickVectorSearch({
           version: body.version,
@@ -298,7 +306,7 @@ export default async function handler(req, res) {
         }
       : null;
 
-    return send(res, 500, {
+    return send(res, error.httpStatus || 500, {
       success: false,
       error: {
         code: error.code || 'SG-RAG-ADMIN-500',

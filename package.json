@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
+  "scripts": {
+    "test:chunking-express": "node scripts/testChunkingExpressImport.js"
+  },
   "dependencies": {
     "@google-cloud/firestore": "9.0.0",
     "lunar-javascript": "1.7.7"

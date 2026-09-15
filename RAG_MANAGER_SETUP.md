@@ -155,6 +155,19 @@ OPENAI_API_KEY=...
 
 Admin API는 Firebase ID token의 RS256 서명을 Google SecureToken 공개 인증서로 검증한 뒤 UID allowlist를 확인한다.
 
+### ChunkingExpress 1건 수신
+
+ChunkingExpress는 같은 관리자 인증을 사용해 `POST /api/admin/rag`에 아래 작업을 보낸다.
+
+```json
+{
+  "action": "createInactiveChunk",
+  "document": { "검증된 ChunkingExpress 청크": "..." }
+}
+```
+
+이 작업은 대상을 `saju-grap` / `(default)` / `sajugrap_rag_chunks`로 제한하고 `gemini-embedding-2` 768차원 embedding을 만든다. 문서는 create-only로 저장한 뒤 즉시 재조회하며, 상태와 검색 허용 플래그는 항상 `inactive` / `false`다. 동일 ID의 같은 문서는 재검증만 하고, 다른 내용은 덮어쓰지 않는다. 브라우저 비밀번호나 Gemini·서비스 계정 키는 ChunkingExpress 서버로 전달하지 않는다. Firebase ID token만 전달되며 기존 `SAJUGRAP_ADMIN_UID(S)` allowlist가 그대로 적용된다.
+
 ---
 
 ## 4. Firestore Vector composite index - 반드시 생성
