@@ -1,4 +1,10 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/admin/chunking-review.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/admin/rag",
