@@ -16,6 +16,8 @@ const MAX_TOTAL_SOURCE_CHARS = 300000;
 const ACTIONS = new Set(['approve', 'revise', 'merge', 'hold', 'exclude']);
 const LEVELS = new Set(['high', 'medium', 'low']);
 const GENERALIZABILITY = new Set(['broad', 'moderate', 'limited']);
+const GEMINI_RETRYABLE_STATUSES = new Set([500, 502, 503, 504]);
+const GEMINI_RETRY_DELAYS_MS = [0, 1200, 3200];
 
 function clean(value, max = 12000) {
   return value === null || value === undefined ? '' : String(value).trim().slice(0, max);
@@ -36,6 +38,9 @@ function apiError(message, code = 'SG-CE-REVIEW-001', httpStatus = 400, diagnost
   error.providerStatus = Number.isInteger(diagnostics.providerStatus) ? diagnostics.providerStatus : null;
   error.providerCode = clean(diagnostics.providerCode, 120) || null;
   return error;
+}
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function validateInput(body) {
@@ -159,6 +164,56 @@ function upstreamSafeMessage(status) {
   return `Gemini Reviewer 서비스가 일시적으로 요청을 처리하지 못했습니다. (upstream HTTP ${status})`;
 }
 
+async function requestGemini(input, policy, key) {
+  const url = `${API_BASE}/models/${encodeURIComponent(input.model)}:generateContent`;
+  const body = JSON.stringify(buildGeminiRequest(input, policy));
+  let lastResponse = null;
+  let lastRaw = '';
+
+  for (let attempt = 0; attempt < GEMINI_RETRY_DELAYS_MS.length; attempt++) {
+    const delay = GEMINI_RETRY_DELAYS_MS[attempt];
+    if (delay) await sleep(delay);
+
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body,
+        signal: AbortSignal.timeout(120000),
+        redirect: 'error'
+      });
+    } catch {
+      throw apiError(
+        'Gemini Reviewer 서버 연결이 지연되거나 끊겼습니다.',
+        'SG-CE-REVIEW-GEMINI-005',
+        502,
+        { provider: 'gemini', providerCode: 'FETCH_FAILED' }
+      );
+    }
+
+    const raw = await response.text();
+    if (response.ok) return { response, raw, attempts: attempt + 1 };
+
+    lastResponse = response;
+    lastRaw = raw;
+    const providerCode = upstreamProviderCode(raw);
+    const canRetry = GEMINI_RETRYABLE_STATUSES.has(response.status) && attempt < GEMINI_RETRY_DELAYS_MS.length - 1;
+    if (!canRetry) break;
+
+    console.warn(JSON.stringify({
+      event: 'chunking_reviewer_upstream_retry',
+      provider: 'gemini',
+      providerStatus: response.status,
+      providerCode,
+      attempt: attempt + 1,
+      nextAttempt: attempt + 2
+    }));
+  }
+
+  return { response: lastResponse, raw: lastRaw, attempts: GEMINI_RETRY_DELAYS_MS.length };
+}
+
 function normalizeReview(raw, expectedIds) {
   const unitId = clean(raw?.unitId, 160);
   if (!expectedIds.has(unitId)) return null;
@@ -180,26 +235,22 @@ async function callGemini(input, adminUid) {
   if (!key) throw apiError('SajuGrap 서버에 GEMINI_API_KEY가 없습니다.', 'SG-CE-REVIEW-ENV-001', 503);
   const connection = await getFirestoreClient();
   const policy = await getReviewerPrompt(connection.db, input.reviewerPromptId, adminUid);
-  const response = await fetch(`${API_BASE}/models/${encodeURIComponent(input.model)}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify(buildGeminiRequest(input, policy)),
-    signal: AbortSignal.timeout(120000), redirect: 'error'
-  });
-  const raw = await response.text();
-  if (!response.ok) {
+  const { response, raw, attempts } = await requestGemini(input, policy, key);
+  if (!response?.ok) {
     const providerCode = upstreamProviderCode(raw);
     console.error(JSON.stringify({
       event: 'chunking_reviewer_upstream_error',
       provider: 'gemini',
-      providerStatus: response.status,
-      providerCode
+      providerStatus: response?.status ?? null,
+      providerCode,
+      attempts
     }));
+    const status = response?.status ?? 503;
     throw apiError(
-      upstreamSafeMessage(response.status),
-      response.status === 429 ? 'SG-CE-REVIEW-QUOTA-001' : 'SG-CE-REVIEW-GEMINI-001',
-      response.status === 429 ? 429 : 502,
-      { provider: 'gemini', providerStatus: response.status, providerCode }
+      upstreamSafeMessage(status),
+      status === 429 ? 'SG-CE-REVIEW-QUOTA-001' : 'SG-CE-REVIEW-GEMINI-001',
+      status === 429 ? 429 : 502,
+      { provider: 'gemini', providerStatus: response?.status, providerCode }
     );
   }
   let payload;
@@ -211,7 +262,7 @@ async function callGemini(input, adminUid) {
   const expectedIds = new Set(input.cards.map((card) => card.unitId));
   const reviews = (Array.isArray(parsed?.reviews) ? parsed.reviews : []).map((review) => normalizeReview(review, expectedIds)).filter(Boolean);
   if (!reviews.length) throw apiError('유효한 Reviewer 결과를 만들지 못했습니다.', 'SG-CE-REVIEW-RESULT-001', 422);
-  return { provider: 'gemini', model: input.model, reviewerPromptId: policy.id, reviewerPromptName: policy.name, reviews, reviewedCount: reviews.length, usage: payload?.usageMetadata || null };
+  return { provider: 'gemini', model: input.model, reviewerPromptId: policy.id, reviewerPromptName: policy.name, reviews, reviewedCount: reviews.length, usage: payload?.usageMetadata || null, attempts };
 }
 
 export default async function handler(req, res) {
