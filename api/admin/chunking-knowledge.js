@@ -185,7 +185,7 @@ async function callGemini(input) {
         contents: [{ role: 'user', parts: [{ text: buildPrompt(input) }] }],
         generationConfig: {
           responseMimeType: 'application/json',
-          responseJsonSchema: responseSchema(),
+          responseSchema: responseSchema(),
           maxOutputTokens: 12000
         }
       }),
