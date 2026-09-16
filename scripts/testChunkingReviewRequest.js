@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildGeminiRequest, buildReviewerUserPrompt } from '../api/admin/chunking-review.js';
+import {
+  buildGeminiRequest,
+  buildReviewerUserPrompt,
+  reviewerModelCandidates
+} from '../api/admin/chunking-review.js';
 
 const sourceId = 'a'.repeat(64);
 const input = {
@@ -47,4 +51,20 @@ test('Gemini request contains no systemInstruction and exactly one user part', (
   assert.match(request.contents[0].parts[0].text, /근거 적합성과 일반화 범위를 보수적으로 검수한다/);
   assert.equal(request.generationConfig.responseMimeType, 'application/json');
   assert.equal(request.generationConfig.responseSchema.required[0], 'reviews');
+});
+
+test('Reviewer keeps the selected model first and falls back without duplicates', () => {
+  assert.deepEqual(reviewerModelCandidates('gemini-3.8-flash'), [
+    'gemini-3.8-flash',
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite'
+  ]);
+  assert.deepEqual(reviewerModelCandidates('gemini-3.7-flash'), [
+    'gemini-3.7-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash',
+    'gemini-3.5-flash-lite'
+  ]);
 });
