@@ -4,9 +4,10 @@
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "scripts": {
-    "test": "npm run test:counseling && npm run test:scope",
+    "test": "npm run test:counseling && npm run test:scope && npm run test:counseling-recovery",
     "test:counseling": "node scripts/testCounselingPrototype.js",
     "test:scope": "node scripts/testChatScopeGuard.js",
+    "test:counseling-recovery": "node scripts/testCounselingPendingRecovery.js",
     "eval:counseling": "node scripts/runCounselingEval.js",
     "test:chunking-express": "node scripts/testChunkingExpressImport.js"
   },
