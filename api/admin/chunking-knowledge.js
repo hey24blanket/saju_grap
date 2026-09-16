@@ -15,6 +15,10 @@ function clean(value, max = 12000) {
   return value === null || value === undefined ? '' : String(value).trim().slice(0, max);
 }
 
+function exactText(value, max = MAX_TOTAL_CHARS) {
+  return value === null || value === undefined ? '' : String(value).slice(0, max);
+}
+
 function send(res, status, payload) {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -47,8 +51,8 @@ function validateInput(body) {
     const sourceId = clean(raw?.sourceId, 128);
     const title = clean(raw?.title, 1000);
     const scope = raw?.scope === 'abstract' ? 'abstract' : 'body';
-    const text = clean(raw?.text, MAX_TOTAL_CHARS);
-    if (!/^[a-f0-9]{64}$/.test(sourceId) || !title || !text) {
+    const text = exactText(raw?.text);
+    if (!/^[a-f0-9]{64}$/.test(sourceId) || !title || !text.trim()) {
       throw apiError(`자료 ${index + 1}의 ID·제목·본문을 확인해 주세요.`, 'SG-CE-KNOWLEDGE-SOURCE-002');
     }
     return { sourceId, title, scope, text };
