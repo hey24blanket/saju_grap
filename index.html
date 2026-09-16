@@ -902,9 +902,14 @@
           </div>
         </div>
 
-        <button id="btnCloseChatDrawer" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition shrink-0">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="btnNewChat" type="button" class="px-3 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 font-black text-[10px] transition">
+            새 대화
+          </button>
+          <button id="btnCloseChatDrawer" type="button" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
       </div>
 
       <div id="chatMessageList" class="flex-1 overflow-y-auto no-scrollbar py-3.5 space-y-3 text-xs select-text">
@@ -919,7 +924,7 @@
       <form id="chatInputForm" class="pt-2.5 border-t border-stone-100 flex items-end gap-2">
         <textarea id="chatInputText" rows="2" enterkeyhint="enter" placeholder="궁금한 운세나 시기를 질문하세요..." autocomplete="off"
           class="flex-1 min-h-[44px] max-h-32 px-4 py-3 bg-stone-100 rounded-2xl font-bold text-xs text-stone-800 focus:bg-white outline-none transition whitespace-pre-wrap break-words select-text"></textarea>
-        <button type="submit" class="w-11 h-11 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-md shrink-0">
+        <button id="btnSendChat" type="submit" class="w-11 h-11 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-md shrink-0">
           <i class="fa-solid fa-arrow-up text-xs"></i>
         </button>
       </form>
@@ -974,6 +979,8 @@
   <script>
     const CACHE_KEY = 'saju_grap_user_profile_cache';
     const AI_PROVIDER_CACHE_KEY = 'saju_grap_ai_provider';
+    const COUNSELING_SESSION_KEY = 'saju_grap_counseling_session_v1';
+    const ADMIN_DIAGNOSTICS_ENABLED = new URLSearchParams(window.location.search).get('debug') === '1';
     const AI_PROVIDER_LABELS = Object.freeze({
       gemini: 'Gemini',
       openai: 'GPT'
@@ -1031,9 +1038,39 @@
     const domainTitles = { all: '총운', career: '사업운', wealth: '재물운', mental: '심신운', love: '연애운' };
     const cycleTitles = { daewoon: '100년 대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
     
+    function makeClientId(prefix = 'id') {
+      const random = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      return `${prefix}-${random}`;
+    }
+
+    function loadCounselingSession() {
+      try {
+        const parsed = JSON.parse(sessionStorage.getItem(COUNSELING_SESSION_KEY) || 'null');
+        if (parsed?.sessionId && Array.isArray(parsed.history)) return parsed;
+      } catch (error) {}
+      return {
+        schemaVersion: 'sg_browser_counseling_session_v1',
+        sessionId: makeClientId('session'),
+        revision: 0,
+        history: [],
+        state: null
+      };
+    }
+
+    function saveCounselingSession() {
+      counselingSession.history = chatHistory.slice(-60);
+      try {
+        sessionStorage.setItem(COUNSELING_SESSION_KEY, JSON.stringify(counselingSession));
+      } catch (error) {}
+    }
+
     // 메모리 캐시
     const dynamicAiCache = {};
-    let chatHistory = [];
+    let counselingSession = loadCounselingSession();
+    let chatHistory = counselingSession.history.slice(-60);
+    let activeChatController = null;
+    let chatGeneration = 0;
+    let chatInFlight = false;
 
     // -----------------------------------------------------------------------
     // AI provider / 표시 형식
@@ -1931,7 +1968,20 @@
         currentPayload = payload;
         currentAnalysisData = json.data;
         cachedAiPack = json.data.aiPack || null;
-        chatHistory = [];
+        const profileKey = [
+          payload.year,
+          payload.month,
+          payload.day,
+          payload.hour,
+          payload.minute,
+          payload.gender,
+          payload.timezone
+        ].join(':');
+        if (counselingSession.profileKey !== profileKey) {
+          resetCounselingSession({ render: true, profileKey });
+        } else {
+          renderCounselingHistory();
+        }
 
         clearDeveloperErrorIndicator();
         renderRuntimeStatus(json.diagnostic, json.data);
@@ -2292,14 +2342,86 @@
     });
 
     // 챗봇 드로어
+    function setChatBusy(busy) {
+      chatInFlight = busy;
+      const sendButton = document.getElementById('btnSendChat');
+      const input = document.getElementById('chatInputText');
+      if (sendButton) {
+        sendButton.disabled = busy;
+        sendButton.classList.toggle('opacity-50', busy);
+        sendButton.classList.toggle('pointer-events-none', busy);
+      }
+      if (input) input.disabled = busy;
+    }
+
+    function renderCounselingHistory() {
+      const list = document.getElementById('chatMessageList');
+      if (!list) return;
+      list.innerHTML = '';
+
+      const greeting = document.createElement('div');
+      greeting.className = 'flex items-start gap-2';
+      greeting.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px] select-text">AI</div>
+        <div class="bg-stone-100 text-stone-800 p-3.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed font-semibold select-text">
+          반가워요. 사주 계산 결과는 참고하되, 지금 겪는 현실과 선택을 중심으로 함께 정리해 볼게요.
+        </div>
+      `;
+      list.appendChild(greeting);
+
+      for (const item of chatHistory) {
+        const wrapper = document.createElement('div');
+        const box = document.createElement('div');
+        if (item.role === 'user') {
+          wrapper.className = 'flex items-start justify-end gap-2';
+          box.className = 'bg-amber-500 text-white p-3 rounded-[20px] rounded-tr-none max-w-[85%] leading-relaxed font-bold text-xs shadow-md whitespace-pre-wrap break-words select-text';
+        } else {
+          wrapper.className = 'flex items-start gap-2';
+          const avatar = document.createElement('div');
+          avatar.className = 'w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]';
+          avatar.innerText = 'AI';
+          wrapper.appendChild(avatar);
+          box.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words select-text';
+        }
+        box.innerText = item.text;
+        wrapper.appendChild(box);
+        list.appendChild(wrapper);
+      }
+      list.scrollTop = list.scrollHeight;
+    }
+
+    function resetCounselingSession({ render = true, profileKey = counselingSession?.profileKey || null } = {}) {
+      activeChatController?.abort();
+      activeChatController = null;
+      chatGeneration += 1;
+      setChatBusy(false);
+      counselingSession = {
+        schemaVersion: 'sg_browser_counseling_session_v1',
+        sessionId: makeClientId('session'),
+        profileKey,
+        revision: 0,
+        history: [],
+        state: null
+      };
+      chatHistory = [];
+      saveCounselingSession();
+      if (render) renderCounselingHistory();
+    }
+
     function openChatDrawer() {
       playTickSound();
+      renderCounselingHistory();
       document.getElementById('modalChatDrawer').classList.remove('hidden');
       document.getElementById('modalChatDrawer').classList.add('flex');
       document.getElementById('chatInputText').focus();
     }
     document.getElementById('btnCenterChat').addEventListener('click', openChatDrawer);
     document.getElementById('btnOpenChatFromJournal').addEventListener('click', openChatDrawer);
+    document.getElementById('btnNewChat').addEventListener('click', () => {
+      playTickSound();
+      resetCounselingSession({ render: true });
+      document.getElementById('chatInputText').focus();
+    });
     document.getElementById('btnCloseChatDrawer').addEventListener('click', () => {
       document.getElementById('modalChatDrawer').classList.add('hidden');
       document.getElementById('modalChatDrawer').classList.remove('flex');
@@ -2379,14 +2501,7 @@
       contentBox.appendChild(details);
     }
 
-    document.getElementById('chatInputForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const inp = document.getElementById('chatInputText');
-      const text = inp.value.trim();
-      if (!text) return;
-      inp.value = '';
-      resizeChatInput();
-
+    function appendUserChatBubble(text) {
       const list = document.getElementById('chatMessageList');
       const userBubble = document.createElement('div');
       userBubble.className = 'flex items-start justify-end gap-2';
@@ -2395,61 +2510,118 @@
       userTextBox.innerText = text;
       userBubble.appendChild(userTextBox);
       list.appendChild(userBubble);
+      return userBubble;
+    }
 
+    function appendLoadingChatBubble() {
+      const list = document.getElementById('chatMessageList');
       const aiBubble = document.createElement('div');
       aiBubble.className = 'flex items-start gap-2';
       aiBubble.innerHTML = `
         <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]">AI</div>
-        <div class="bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5 select-text">
+        <div class="chat-response-box bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5 select-text">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-600 text-xs"></i>
-          <span>${AI_PROVIDER_LABELS[selectedProvider]}가 Engine Facts와 RAG를 기반으로 답변 작성 중...</span>
+          <span>${AI_PROVIDER_LABELS[selectedProvider]}가 사연을 정리하고 필요한 참고자료를 확인하는 중...</span>
         </div>
       `;
       list.appendChild(aiBubble);
+      return aiBubble;
+    }
+
+    async function sendCounselingMessage(text, { messageId = makeClientId('u'), displayUser = true } = {}) {
+      if (chatInFlight || !text) return;
+
+      const list = document.getElementById('chatMessageList');
+      if (displayUser) appendUserChatBubble(text);
+      const aiBubble = appendLoadingChatBubble();
       list.scrollTop = list.scrollHeight;
+
+      const generationAtSend = chatGeneration;
+      const sessionIdAtSend = counselingSession.sessionId;
+      const baseRevision = Number(counselingSession.state?.revision ?? counselingSession.revision ?? 0);
+      activeChatController = new AbortController();
+      setChatBusy(true);
 
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: activeChatController.signal,
           body: JSON.stringify({
             mode: 'chat',
             provider: selectedProvider,
+            ragMode: 'optional',
             cycle: cycleApiTitles[currentCycle],
             cycleIndex: getRepresentativeCycleIndex(currentCycle),
+            messageId,
+            sessionId: sessionIdAtSend,
+            baseRevision,
+            counselingState: counselingSession.state,
             userMessage: text,
-            history: chatHistory,
-            includeTrainingTrace: true,
+            history: chatHistory.slice(-20),
+            includeTrainingTrace: ADMIN_DIAGNOSTICS_ENABLED,
             sajuContext: buildSajuContext()
           })
         });
 
         const json = await readApiResponse(res, 'CHAT_CONVERSATION');
+        if (generationAtSend !== chatGeneration || sessionIdAtSend !== counselingSession.sessionId) return;
         applyAiDiagnostic(json);
-        const contentBox = aiBubble.querySelector('.bg-stone-100');
+        const contentBox = aiBubble.querySelector('.chat-response-box');
 
         if (json.success && json.reply) {
+          const responseRevision = Number(json.counselingState?.revision ?? baseRevision);
+          if (responseRevision < baseRevision) throw new Error('오래된 상담 응답이 도착해 적용하지 않았습니다.');
+
           const displayReply = normalizeAiDisplayText(json.reply);
-          contentBox.className = 'bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words select-text';
+          contentBox.className = 'chat-response-box bg-stone-100 text-stone-800 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line break-words select-text';
           contentBox.innerText = displayReply;
           appendTrainingTrace(contentBox, json.trainingTrace);
-          chatHistory.push({ role: 'user', text });
-          chatHistory.push({ role: 'model', text: displayReply });
+
+          if (!chatHistory.some((item) => item.id === messageId)) {
+            chatHistory.push({ id: messageId, role: 'user', text });
+          }
+          chatHistory.push({ id: makeClientId('a'), role: 'model', text: displayReply });
+          counselingSession.state = json.counselingState || counselingSession.state;
+          counselingSession.revision = responseRevision;
+          saveCounselingSession();
         } else {
           throw new Error('chat 응답에 reply가 없습니다.');
         }
       } catch (error) {
-        const contentBox = aiBubble.querySelector('.bg-stone-100');
-        contentBox.className = 'bg-rose-50 text-rose-800 border border-rose-100 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line select-text';
-        contentBox.innerText = '답변을 불러오지 못했습니다. DEV 오류 버튼에서 오류 내용을 복사해 주세요.';
+        if (error?.name === 'AbortError' || generationAtSend !== chatGeneration) return;
+        const contentBox = aiBubble.querySelector('.chat-response-box');
+        contentBox.className = 'chat-response-box bg-rose-50 text-rose-800 border border-rose-100 p-3.5 rounded-[22px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs whitespace-pre-line select-text';
+        contentBox.innerText = '답변을 불러오지 못했습니다.';
+        const retryButton = document.createElement('button');
+        retryButton.type = 'button';
+        retryButton.className = 'mt-2 px-3 py-2 rounded-xl bg-white border border-rose-200 text-rose-700 font-black text-[10px]';
+        retryButton.innerText = '같은 메시지 다시 시도';
+        retryButton.addEventListener('click', () => sendCounselingMessage(text, { messageId, displayUser: false }));
+        contentBox.appendChild(retryButton);
         handleFrontendFailure('AI 채팅 실패', error, {
           code: 'SG-NETWORK-CHAT-004',
           stage: 'CHAT_CONVERSATION',
           message: '채팅 서버와 통신하지 못했습니다.'
         });
+      } finally {
+        if (generationAtSend === chatGeneration) {
+          activeChatController = null;
+          setChatBusy(false);
+        }
+        list.scrollTop = list.scrollHeight;
       }
+    }
 
-      list.scrollTop = list.scrollHeight;
+    document.getElementById('chatInputForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (chatInFlight) return;
+      const inp = document.getElementById('chatInputText');
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = '';
+      resizeChatInput();
+      await sendCounselingMessage(text);
     });
 
     document.querySelectorAll('.ai-provider-btn').forEach((button) => {
@@ -2459,6 +2631,7 @@
       });
     });
 
+    renderCounselingHistory();
     updateAiProviderUi();
 
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
