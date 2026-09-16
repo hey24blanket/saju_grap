@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm test",
+  "buildCommand": "npm test && node scripts/runCounselingDirectGate.js",
   "outputDirectory": ".",
   "rewrites": [
     {
