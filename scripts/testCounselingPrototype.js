@@ -161,6 +161,18 @@ function testCounselingFactContext() {
   assert.deepEqual(context.timeline.coverage.missingMonthlyYears, []);
   assert.equal(context.timeline.monthly[1].cycles.length, 12);
   assert.equal(context.timeline.monthly[1].cycles[0].year, 2027);
+  assert.deepEqual(
+    context.timeline.relativeWindows.annual.relativelyStronger.map((item) => item.label),
+    ['2026년', '2027년']
+  );
+  assert.deepEqual(
+    context.timeline.relativeWindows.monthly[0].fromReferenceMonth.relativelyStronger.map((item) => item.label),
+    ['10월', '11월']
+  );
+  assert.deepEqual(
+    context.timeline.relativeWindows.monthly[1].fromReferenceMonth.relativelyStronger.map((item) => item.label),
+    ['2월', '3월', '4월', '5월']
+  );
   assert.match(
     context.timeline.fieldSemantics['usefulGodImpact.gisinImpact.activated'],
     /재성·재물 기능의 활성 여부가 아니며/

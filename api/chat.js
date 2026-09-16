@@ -77,7 +77,7 @@ const COUNSELING_PROTO_ENABLED =
 const REQUEST_TIMEOUT_MS =
   Number(
     process.env.LLM_TIMEOUT_MS ||
-    45000
+    60000
   );
 
 const MAX_HISTORY_ITEMS =
