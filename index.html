@@ -1071,6 +1071,7 @@
     let activeChatController = null;
     let chatGeneration = 0;
     let chatInFlight = false;
+    let timelineAnalysisCache = new Map();
 
     // -----------------------------------------------------------------------
     // AI provider / 표시 형식
@@ -1595,14 +1596,87 @@
         </div>`;
     }
 
-    function buildSajuContext() {
+    function buildSajuContext(timelineContexts = []) {
       return {
         name: currentPayload?.name,
         pillars: currentAnalysisData?.pillars,
         dayPillar: currentAnalysisData?.pillars?.day,
         dayHanja: currentAnalysisData?.pillars?.dayHanja,
-        engineFacts: currentAnalysisData?.engineFacts || null
+        engineFacts: currentAnalysisData?.engineFacts || null,
+        cyclesData: currentAnalysisData?.cyclesData || null,
+        timelineContexts: Array.isArray(timelineContexts)
+          ? timelineContexts.slice(0, 3)
+          : []
       };
+    }
+
+    function requestedTimelineYearsForMessage(text) {
+      const message = String(text || '').trim();
+      const referenceYear = Number(currentAnalysisData?.engineFacts?.cycles?.reference?.year);
+      if (!Number.isFinite(referenceYear)) return [];
+      if (!/(언제|시기|흐름|풀릴|풀리|좋아질|나아질|전환|변화|과거|예전|앞으로|향후|올해|금년|내년|내후년|작년|지난해|재작년|연운|월운|대운|몇\s*월|\d{4}\s*년)/u.test(message)) return [];
+
+      const years = [];
+      for (const match of message.matchAll(/(19\d{2}|20\d{2}|2100)\s*년?/gu)) years.push(Number(match[1]));
+      if (/(올해|금년)/u.test(message)) years.push(referenceYear);
+      if (/내후년/u.test(message)) years.push(referenceYear + 2);
+      if (/내년/u.test(message)) years.push(referenceYear + 1);
+      if (/(작년|지난해)/u.test(message)) years.push(referenceYear - 1);
+      if (/재작년/u.test(message)) years.push(referenceYear - 2);
+      if (/(과거|예전|지나온)/u.test(message)) years.push(referenceYear - 1);
+      if (/(언제|시기|앞으로|향후|풀릴|좋아질|나아질)/u.test(message)) years.push(referenceYear + 1);
+
+      return [...new Set(years)]
+        .filter(year => Number.isInteger(year) && year >= 1900 && year <= 2100 && year !== referenceYear)
+        .slice(0, 3);
+    }
+
+    async function loadTimelineContext(year, signal) {
+      if (timelineAnalysisCache.has(year)) return timelineAnalysisCache.get(year);
+      const reference = currentAnalysisData?.engineFacts?.cycles?.reference || {};
+      const month = Math.min(12, Math.max(1, Number(reference.month) || 6));
+      const hour = Math.min(23, Math.max(0, Number(reference.hour) || 12));
+      const referenceDateTime = `${year}-${String(month).padStart(2, '0')}-15T${String(hour).padStart(2, '0')}:00:00+09:00`;
+      const request = fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal,
+        body: JSON.stringify({
+          ...currentPayload,
+          referenceDateTime
+        })
+      }).then(async (res) => {
+        const json = await readApiResponse(res, 'ANALYZE_TIMELINE_CONTEXT');
+        if (!json?.success || !json?.data?.engineFacts) throw new Error(`${year}년 월운 자료를 준비하지 못했습니다.`);
+        return {
+          referenceYear: year,
+          engineFacts: {
+            schemaVersion: json.data.engineFacts.schemaVersion,
+            engineVersion: json.data.engineFacts.engineVersion,
+            cycles: {
+              reference: json.data.engineFacts.cycles?.reference,
+              month: json.data.engineFacts.cycles?.month
+            }
+          },
+          cyclesData: json.data.cyclesData?.month
+            ? { month: json.data.cyclesData.month }
+            : null
+        };
+      }).catch((error) => {
+        timelineAnalysisCache.delete(year);
+        throw error;
+      });
+      timelineAnalysisCache.set(year, request);
+      return request;
+    }
+
+    async function prepareTimelineContexts(text, signal) {
+      const years = requestedTimelineYearsForMessage(text);
+      if (!years.length || !currentPayload || !currentAnalysisData) return [];
+      const results = await Promise.allSettled(years.map(year => loadTimelineContext(year, signal)));
+      return results
+        .filter(result => result.status === 'fulfilled')
+        .map(result => result.value);
     }
 
     function getRepresentativeCycleIndex(cycleKey) {
@@ -1967,6 +2041,7 @@
 
         currentPayload = payload;
         currentAnalysisData = json.data;
+        timelineAnalysisCache = new Map();
         cachedAiPack = json.data.aiPack || null;
         const profileKey = [
           payload.year,
@@ -2543,6 +2618,7 @@
       setChatBusy(true);
 
       try {
+        const timelineContexts = await prepareTimelineContexts(text, activeChatController.signal);
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2560,7 +2636,7 @@
             userMessage: text,
             history: chatHistory.slice(-20),
             includeTrainingTrace: ADMIN_DIAGNOSTICS_ENABLED,
-            sajuContext: buildSajuContext()
+            sajuContext: buildSajuContext(timelineContexts)
           })
         });
 

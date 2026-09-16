@@ -25,6 +25,27 @@ facts.
 The state is private session context. It is not written to public RAG,
 ChunkingExpress, analytics, or a training dataset.
 
+## Time-flow counseling
+
+- Questions such as "when will it improve?", future-flow questions, and past
+  comparisons receive a compact counseling timeline instead of one selected
+  graph point.
+- The timeline contains all ten annual cycles available from the engine, the
+  current major-luck cycle, and monthly cycles for the requested years.
+- The browser obtains a requested adjacent year's monthly cycles through the
+  deterministic `/api/analyze` endpoint and sends only its cycle facts and
+  monthly compatibility projection. Up to three supplemental years are
+  allowed per turn.
+- Missing supplemental years are recorded as coverage gaps. The model must
+  not turn a coverage gap into generic financial, relationship, career, or
+  health advice.
+- Past readings are conditional comparisons against the user's actual
+  experience. Future readings describe relative conditions and never promise
+  an event or outcome.
+- UI wave scores are explicitly non-canonical comparison heuristics. A
+  `gisinImpact.activated` value only means an element match and must never be
+  described as wealth activation.
+
 ## RAG policy
 
 Modes are `off`, `optional`, and `required`.
@@ -41,13 +62,15 @@ Modes are `off`, `optional`, and `required`.
 errors, and retrieval errors from the final counseling call. `required`
 returns a clear failure. `off` calls neither embedding nor retrieval.
 
-Free counseling uses a `counseling_reference` query purpose: it does not apply
-Saju domain/cycle hard filters or boost results with natal metadata, and uses
-at most three chunks. Report modes keep the existing Saju interpretation
-query. Explicit `inactive`, `retrievalAllowed:false`, `isActive:false`, or
-negative-review flags always exclude a document. Legacy documents with all
-activation fields missing retain the prior allow behavior until the corpus is
-migrated.
+Ordinary reality-based counseling uses a `counseling_reference` query purpose:
+it does not apply Saju domain/cycle hard filters or boost results with natal
+metadata. Explicit Saju and time-flow questions use `saju_interpretation`,
+with the inferred domain and the relevant annual or monthly anchor. Free
+counseling retrieves at most three chunks. Report modes keep the existing Saju
+interpretation query. Explicit `inactive`, `retrievalAllowed:false`,
+`isActive:false`, or negative-review flags always exclude a document. Legacy
+documents with all activation fields missing retain the prior allow behavior
+until the corpus is migrated.
 
 ## Configuration and rollback
 
@@ -76,3 +99,8 @@ document-denial flags, source validation, duplicate messages, stale revisions,
 subject separation, corrections, more than 20 follow-up messages, prompt-data
 boundaries, chat API compatibility, and the rollback path. Live model and
 Firebase checks require configured credentials and an approved cost cap.
+
+Passing this suite means the response path and fact contracts are ready for a
+preview. It does not mean real counseling quality has been validated. That
+second gate requires the live E07/E08 multi-turn evaluation, human review of
+timing specificity and continuity, and explicit acceptance of the output.

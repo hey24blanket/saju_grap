@@ -5,6 +5,12 @@ import {
   buildCounselingTurnPrompt
 } from '../lib/counselingPrompt.js';
 import {
+  analyzeCounselingIntent,
+  buildCounselingFactContext,
+  requestedSupplementalYears
+} from '../lib/counselingFactContext.js';
+import SajuGrapEngine from '../src/engine/SajuGrapEngine.js';
+import {
   executeRagPolicy,
   resolveRagMode,
   shouldRetrieveForChat
@@ -28,6 +34,7 @@ async function testRagPolicy() {
   assert.equal(resolveRagMode({ requestMode: 'off', legacyRequired: 'true' }), 'off');
   assert.equal(shouldRetrieveForChat('고마워'), false);
   assert.equal(shouldRetrieveForChat('이 주장에 어떤 연구 근거가 있어?'), true);
+  assert.equal(shouldRetrieveForChat('내 금전운은 언제 풀릴까'), true);
 
   let calls = 0;
   const off = await executeRagPolicy({
@@ -58,6 +65,107 @@ async function testRagPolicy() {
     }),
     /permission denied/
   );
+}
+
+function analyzeFixture(referenceYear) {
+  const facts = SajuGrapEngine.analyze({
+    name: '합성 평가 사용자',
+    year: 1985,
+    month: 10,
+    day: 24,
+    hour: 11,
+    minute: 45,
+    gender: 1,
+    calendarType: 'solar',
+    timezone: 'Asia/Seoul',
+    referenceDateTime: `${referenceYear}-09-16T12:00:00+09:00`
+  });
+  return {
+    engineFacts: facts,
+    cyclesData: SajuGrapEngine.toLegacyApiData(facts).cyclesData
+  };
+}
+
+function compactTimelineFixture(fixture) {
+  return {
+    engineFacts: {
+      schemaVersion: fixture.engineFacts.schemaVersion,
+      engineVersion: fixture.engineFacts.engineVersion,
+      cycles: {
+        reference: fixture.engineFacts.cycles.reference,
+        month: fixture.engineFacts.cycles.month
+      }
+    },
+    cyclesData: fixture.cyclesData?.month
+      ? { month: fixture.cyclesData.month }
+      : null
+  };
+}
+
+function testCounselingFactContext() {
+  const current = analyzeFixture(2026);
+  const next = analyzeFixture(2027);
+  const intent = analyzeCounselingIntent({
+    userMessage: '그럼 내년은?',
+    history: [{ id: 'u1', role: 'user', text: '내 금전운은 언제 풀릴까' }],
+    referenceYear: 2026,
+    selectedDomain: '총운'
+  });
+  assert.equal(intent.timelineRequested, true);
+  assert.equal(intent.domain, '재물운');
+  assert.equal(intent.purpose, 'saju_interpretation');
+  assert.equal(intent.monthSpecific, false);
+  assert.deepEqual(intent.targetYears, [2027]);
+
+  assert.deepEqual(requestedSupplementalYears({
+    userMessage: '내 금전운은 언제 풀릴까',
+    referenceYear: 2026
+  }), [2027]);
+  assert.deepEqual(requestedSupplementalYears({
+    userMessage: '과거 흐름도 월운으로 확인해줘',
+    referenceYear: 2026
+  }), [2025]);
+  assert.deepEqual(requestedSupplementalYears({
+    userMessage: '2027년과 2028년 월운을 비교해줘',
+    referenceYear: 2026
+  }), [2027, 2028]);
+
+  const monthIntent = analyzeCounselingIntent({
+    userMessage: '올해 몇 월부터 금전운이 나아져?',
+    referenceYear: 2026
+  });
+  assert.equal(monthIntent.monthSpecific, true);
+  assert.equal(monthIntent.targetMonth, null);
+  assert.ok(monthIntent.requestedGranularities.includes('month'));
+
+  const explicitMonthIntent = analyzeCounselingIntent({
+    userMessage: '2026년 9월 재물운은 어때?',
+    referenceYear: 2026
+  });
+  assert.equal(explicitMonthIntent.targetMonth, 9);
+
+  const context = buildCounselingFactContext({
+    sajuContext: {
+      ...current,
+      timelineContexts: [{ referenceYear: 2027, ...compactTimelineFixture(next) }]
+    },
+    userMessage: '내 금전운은 언제 풀릴까',
+    history: [],
+    selectedDomain: '총운'
+  });
+  assert.equal(context.intent.domain, '재물운');
+  assert.equal(context.timeline.annual.length, 10);
+  assert.equal(context.timeline.annual[0].year, 2022);
+  assert.equal(context.timeline.annual.at(-1).year, 2031);
+  assert.deepEqual(context.timeline.coverage.monthlyYears, [2026, 2027]);
+  assert.deepEqual(context.timeline.coverage.missingMonthlyYears, []);
+  assert.equal(context.timeline.monthly[1].cycles.length, 12);
+  assert.equal(context.timeline.monthly[1].cycles[0].year, 2027);
+  assert.match(
+    context.timeline.fieldSemantics['usefulGodImpact.gisinImpact.activated'],
+    /재성·재물 기능의 활성 여부가 아니며/
+  );
+  assert.equal(context.timeline.projection.annual.canonicalEngineFact, false);
 }
 
 function testRagEligibility() {
@@ -340,10 +448,82 @@ async function testChatIntegration() {
   });
   assert.equal(report.statusCode, 200);
   assert.equal(report.payload.reply, '기존 리포트 응답');
+
+  const current = analyzeFixture(2026);
+  const next = analyzeFixture(2027);
+  const currentDaewoonIndex = current.engineFacts.cycles.daewoon.findIndex((cycle) =>
+    cycle.startYear <= 2026 && cycle.endYear >= 2026
+  );
+  let capturedSystem = '';
+  let capturedTimelineQuery = null;
+  const timelineChat = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    cycle: '대운',
+    cycleIndex: currentDaewoonIndex,
+    messageId: 'timeline-u1',
+    sessionId: 'timeline-s1',
+    baseRevision: 0,
+    userMessage: '내 금전운은 언제 풀릴까',
+    history: [],
+    sajuContext: {
+      ...current,
+      timelineContexts: [{ referenceYear: 2027, ...compactTimelineFixture(next) }]
+    }
+  }, {
+    callProvider: async ({ systemInstruction }) => {
+      capturedSystem = systemInstruction;
+      return structuredProvider();
+    },
+    retrieveRag: async (queryPacket) => {
+      capturedTimelineQuery = queryPacket;
+      return { results: [] };
+    }
+  });
+  assert.equal(timelineChat.statusCode, 200);
+  assert.equal(timelineChat.payload.diagnostic.timeline.requested, true);
+  assert.equal(timelineChat.payload.diagnostic.timeline.domain, '재물운');
+  assert.deepEqual(timelineChat.payload.diagnostic.timeline.coverage.monthlyYears, [2026, 2027]);
+  assert.match(capturedSystem, /"annual"/);
+  assert.match(capturedSystem, /"monthly"/);
+  assert.match(capturedSystem, /기신 오행과의 일치 여부/);
+  assert.doesNotMatch(capturedSystem, /\[SajuGrap Interpretation Contract\]/);
+  assert.match(capturedSystem, /\[자유 상담 역할\]/);
+  assert.equal(capturedTimelineQuery.context.purpose, 'saju_interpretation');
+  assert.equal(capturedTimelineQuery.context.domain, 'wealth');
+  assert.equal(capturedTimelineQuery.context.cycleType, 'year');
+  assert.equal(capturedTimelineQuery.facts.activeCycle.cycleType, 'year');
+
+  let capturedMonthQuery = null;
+  const monthChat = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    cycle: '대운',
+    cycleIndex: currentDaewoonIndex,
+    messageId: 'timeline-month-u1',
+    sessionId: 'timeline-month-s1',
+    baseRevision: 0,
+    userMessage: '2026년 9월 금전운은 어때?',
+    history: [],
+    sajuContext: current
+  }, {
+    callProvider: async () => structuredProvider(),
+    retrieveRag: async (queryPacket) => {
+      capturedMonthQuery = queryPacket;
+      return { results: [] };
+    }
+  });
+  assert.equal(monthChat.statusCode, 200);
+  assert.equal(capturedMonthQuery.context.cycleType, 'month');
+  assert.equal(capturedMonthQuery.facts.activeCycle.cycleType, 'month');
+  assert.equal(capturedMonthQuery.facts.activeCycle.month, 9);
 }
 
 async function main() {
   await testRagPolicy();
+  testCounselingFactContext();
   testRagEligibility();
   testCounselingRagQuery();
   testCounselingState();

@@ -27,6 +27,10 @@ import {
 } from '../lib/counselingState.js';
 
 import {
+  buildCounselingFactContext
+} from '../lib/counselingFactContext.js';
+
+import {
   executeRagPolicy,
   resolveRagMode,
   shouldRetrieveForChat
@@ -1018,6 +1022,47 @@ function extractActiveCycleFact(
       cycle.cycleType ??
       cycleKey,
 
+    index:
+      Number.isFinite(Number(cycle.index))
+        ? Number(cycle.index)
+        : null,
+
+    year:
+      Number.isFinite(Number(cycle.year))
+        ? Number(cycle.year)
+        : null,
+
+    month:
+      Number.isFinite(Number(cycle.month))
+        ? Number(cycle.month)
+        : null,
+
+    startYear:
+      Number.isFinite(Number(cycle.startYear))
+        ? Number(cycle.startYear)
+        : null,
+
+    endYear:
+      Number.isFinite(Number(cycle.endYear))
+        ? Number(cycle.endYear)
+        : null,
+
+    ageRange:
+      cycle.ageRange ??
+      null,
+
+    referenceSolarDate:
+      cycle.referenceSolarDate ??
+      null,
+
+    startSolarDate:
+      cycle.startSolarDate ??
+      null,
+
+    boundaryPolicy:
+      cycle.boundaryPolicy ??
+      null,
+
     ganzhi:
       cycle.ganzhi ??
       null,
@@ -1641,13 +1686,18 @@ function buildWaveProjectionContext({
 }
 
 function buildFactContract(
-  engineFactPacket
+  engineFactPacket,
+  {
+    counseling = false
+  } = {}
 ) {
   const factJson =
     JSON.stringify(
       engineFactPacket,
       null,
-      2
+      counseling
+        ? 0
+        : 2
     );
 
   return `
@@ -1659,13 +1709,17 @@ ${factJson}
 [절대 규칙]
 1. 위 Engine Facts를 수정, 재판정, 재계산하거나 뒤집지 마세요.
 2. 사주팔자/천간지지/지장간/통근/투간/강약/특수격/용신/십신/12운성/귀인·신살/합충형파해/반합/합화/성국/relation dominance/대운·연운·월운·일운·시운 간지를 새로 계산하지 마세요.
-3. Engine Facts에 없는 명리 Fact는 추측하지 말고 "현재 전달된 Engine Facts에는 해당 정보가 없습니다"라고 처리하세요.
+3. ${counseling
+  ? '필요한 자료가 없으면 부족한 기간이나 범위를 일상어로 짧게 설명하세요. 사용자 답변에 Engine Facts, JSON, 필드명, activated 같은 내부 표현을 노출하지 말고, 빈 자료를 근거 없는 반대 결론이나 일반 조언으로 메우지 마세요.'
+  : 'Engine Facts에 없는 명리 Fact는 추측하지 말고 "현재 전달된 Engine Facts에는 해당 정보가 없습니다"라고 처리하세요.'}
 4. 두 Fact가 같이 있다는 이유만으로 인과관계를 만들지 마세요. Engine에 mechanism/evidence가 없는 인과는 단정하지 마세요.
 5. 용신=행운, 기신=불운, 충=나쁨, 신강=성공, 신약=약한 사람 같은 단정을 만들지 마세요.
 6. 12운성을 파동 점수(-100~+100)와 직접 대응시키지 마세요.
 7. 공식 Domain은 총운/사업운/재물운/심신운/연애운 5개뿐입니다. growth를 공식 6번째 Domain으로 만들지 마세요.
 8. diagnostics는 LLM 해석 재료가 아닙니다. 이 요청에도 diagnostics는 전달하지 않습니다.
 9. Engine Facts와 기존 룰북 문구가 충돌하면 Engine Facts v1 계약을 우선하세요.
+10. counselingTimeline.fieldSemantics가 있으면 필드 의미의 경계로 사용하세요. 특히 gisinImpact.activated는 재성 또는 재물 기능의 활성 여부가 아닙니다.
+11. 파동 projection은 비교용 UI 휴리스틱입니다. 실제 입금·수입·성공·사건의 발생 또는 확률로 바꾸지 마세요.
 `;
 }
 
@@ -1941,6 +1995,104 @@ function normalizeRagCycle(
   return null;
 }
 
+function resolveCounselingRagAnchor(
+  normalized,
+  intent
+) {
+  if (
+    !intent ||
+    intent.purpose !==
+      'saju_interpretation'
+  ) {
+    return {
+      domain:
+        normalized.domain,
+      cycle:
+        normalized.cycle,
+      cycleIndex:
+        normalized.cycleIndex
+    };
+  }
+
+  const cycles =
+    normalized.sajuContext
+      ?.engineFacts
+      ?.cycles ||
+    {};
+
+  const reference =
+    cycles.reference ||
+    {};
+
+  const targetYear =
+    intent.targetYears?.[0] ||
+    Number(reference.year);
+
+  const asksSpecificMonth =
+    intent.monthSpecific &&
+    (
+      !intent.targetYears?.length ||
+      Number(targetYear) ===
+        Number(reference.year)
+    );
+
+  if (asksSpecificMonth) {
+    const monthIndex =
+      Array.isArray(cycles.month)
+        ? cycles.month.findIndex(
+            (cycle) =>
+              Number(cycle?.month) ===
+                Number(
+                  intent.targetMonth ||
+                  reference.month
+                ) &&
+              Number(cycle?.year) ===
+                Number(reference.year)
+          )
+        : -1;
+
+    return {
+      domain:
+        intent.domain,
+      cycle:
+        'month',
+      cycleIndex:
+        monthIndex >= 0
+          ? monthIndex
+          : 0
+    };
+  }
+
+  const yearIndex =
+    Array.isArray(cycles.year)
+      ? cycles.year.findIndex(
+          (cycle) =>
+            Number(cycle?.year) ===
+            Number(targetYear)
+        )
+      : -1;
+
+  return {
+    domain:
+      intent.domain,
+    cycle:
+      'year',
+    cycleIndex:
+      yearIndex >= 0
+        ? yearIndex
+        : Math.max(
+            0,
+            Array.isArray(cycles.year)
+              ? cycles.year.findIndex(
+                  (cycle) =>
+                    Number(cycle?.year) ===
+                    Number(reference.year)
+                )
+              : 0
+          )
+  };
+}
+
 function buildRagUserQuery(
   normalized
 ) {
@@ -2094,7 +2246,9 @@ async function buildRagRuntimeContext(
   {
     ragVersion = null,
     knowledgeLayer = null,
-    retrieve = retrieveRag
+    retrieve = retrieveRag,
+    purpose = null,
+    anchor = null
   } = {}
 ) {
   const engineFacts =
@@ -2129,11 +2283,13 @@ async function buildRagRuntimeContext(
 
   const domain =
     normalizeRagDomain(
+      anchor?.domain ||
       normalized.domain
     );
 
   const cycleType =
     normalizeRagCycle(
+      anchor?.cycle ||
       normalized.cycle
     );
 
@@ -2153,16 +2309,23 @@ async function buildRagRuntimeContext(
           cycleType,
 
            cycleIndex:
-             normalized
-               .cycleIndex,
+             Number.isInteger(
+               anchor?.cycleIndex
+             )
+               ? anchor.cycleIndex
+               : normalized
+                   .cycleIndex,
 
           userQuery,
 
           purpose:
-            normalized.mode ===
-              'chat'
-              ? 'counseling_reference'
-              : 'saju_interpretation'
+            purpose ||
+            (
+              normalized.mode ===
+                'chat'
+                ? 'counseling_reference'
+                : 'saju_interpretation'
+            )
         }
       );
   } catch (
@@ -2317,14 +2480,16 @@ function buildSystemInstruction(
 ) {
   return (
     [
-      CHAT_SYSTEM,
-
       mode === 'chat'
         ? COUNSELING_CHAT_SYSTEM
-        : '',
+        : CHAT_SYSTEM,
 
       buildFactContract(
-        engineFactPacket
+        engineFactPacket,
+        {
+          counseling:
+            mode === 'chat'
+        }
       ),
 
       buildRagSystemContract(
@@ -3956,6 +4121,8 @@ export default async function handler(
   let task;
   let counselingState =
     null;
+  let counselingFactContext =
+    null;
 
   let ragRuntime = {
     status:
@@ -3997,6 +4164,37 @@ export default async function handler(
         normalized
           .cycleIndex
       );
+
+    if (
+      normalized.mode ===
+        'chat' &&
+      counselingPrototypeEnabled
+    ) {
+      counselingFactContext =
+        buildCounselingFactContext({
+          sajuContext:
+            normalized.sajuContext,
+
+          userMessage:
+            normalized.userMessage,
+
+          history:
+            normalized.history,
+
+          selectedDomain:
+            normalized.domain
+        });
+
+      engineFactPacket = {
+        ...engineFactPacket,
+
+        counselingIntent:
+          counselingFactContext.intent,
+
+        counselingTimeline:
+          counselingFactContext.timeline
+      };
+    }
 
     promptContext =
       buildPromptContext(
@@ -4042,7 +4240,20 @@ export default async function handler(
 
                 retrieve:
                   runtimeOptions.retrieveRag ||
-                  retrieveRag
+                  retrieveRag,
+
+                purpose:
+                  counselingFactContext
+                    ?.intent
+                    ?.purpose ||
+                  null,
+
+                anchor:
+                  resolveCounselingRagAnchor(
+                    normalized,
+                    counselingFactContext
+                      ?.intent
+                  )
               }
             )
       });
@@ -4446,6 +4657,26 @@ export default async function handler(
               engineFactsStatus:
                 engineFactPacket
                   .availability,
+
+              timeline: {
+                requested:
+                  counselingFactContext
+                    ?.intent
+                    ?.timelineRequested ===
+                  true,
+
+                domain:
+                  counselingFactContext
+                    ?.intent
+                    ?.domain ||
+                  null,
+
+                coverage:
+                  counselingFactContext
+                    ?.timeline
+                    ?.coverage ||
+                  null
+              },
 
               state: {
                 status:

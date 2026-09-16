@@ -54,13 +54,15 @@ const selected = options.scenarioIds.length
   ? scenarios.filter((scenario) => options.scenarioIds.includes(scenario.id))
   : scenarios;
 const plannedCalls = selected.reduce((total, scenario) => total + scenario.turns.length, 0);
+const needsNextYearTimeline = selected.some((scenario) => scenario.id === 'E07');
 
 const plan = {
   provider: options.provider,
   ragMode: options.ragMode,
   scenarioIds: selected.map((scenario) => scenario.id),
   plannedPaidChatCalls: plannedCalls,
-  note: 'One invocation tests one provider/RAG configuration. Run separately for each approved comparison.'
+  plannedAnalyzeCalls: 1 + (needsNextYearTimeline ? 1 : 0),
+  note: 'One invocation tests one provider/RAG configuration. Analyze calls use the deterministic engine; chat calls invoke the selected model.'
 };
 
 if (!options.confirmLive) {
@@ -73,7 +75,7 @@ if (!Number.isInteger(options.maxCalls) || options.maxCalls < plannedCalls) {
 }
 
 const baseUrl = options.baseUrl.replace(/\/$/, '');
-const analysis = await postJson(`${baseUrl}/api/analyze`, {
+const evaluationProfile = {
   name: '합성 평가 사용자',
   year: 1985,
   month: 10,
@@ -83,15 +85,44 @@ const analysis = await postJson(`${baseUrl}/api/analyze`, {
   gender: 1,
   calendarType: 'solar',
   timezone: 'Asia/Seoul'
-});
+};
+const analysis = await postJson(`${baseUrl}/api/analyze`, evaluationProfile);
 const engineData = analysis.json.data;
+const referenceYear = Number(engineData.engineFacts?.cycles?.reference?.year);
+const timelineContexts = [];
+if (needsNextYearTimeline && Number.isFinite(referenceYear)) {
+  const nextYear = referenceYear + 1;
+  const nextAnalysis = await postJson(`${baseUrl}/api/analyze`, {
+    ...evaluationProfile,
+    referenceDateTime: `${nextYear}-09-15T12:00:00+09:00`
+  });
+  timelineContexts.push({
+    referenceYear: nextYear,
+    engineFacts: {
+      schemaVersion: nextAnalysis.json.data.engineFacts.schemaVersion,
+      engineVersion: nextAnalysis.json.data.engineFacts.engineVersion,
+      cycles: {
+        reference: nextAnalysis.json.data.engineFacts.cycles?.reference,
+        month: nextAnalysis.json.data.engineFacts.cycles?.month
+      }
+    },
+    cyclesData: nextAnalysis.json.data.cyclesData?.month
+      ? { month: nextAnalysis.json.data.cyclesData.month }
+      : null
+  });
+}
 const sajuContext = {
   name: '합성 평가 사용자',
   pillars: engineData.pillars,
   dayPillar: engineData.pillars?.day,
   dayHanja: engineData.pillars?.dayHanja,
-  engineFacts: engineData.engineFacts
+  engineFacts: engineData.engineFacts,
+  cyclesData: engineData.cyclesData,
+  timelineContexts
 };
+const currentDaewoonIndex = Math.max(0, engineData.engineFacts?.cycles?.daewoon?.findIndex((cycle) =>
+  Number(cycle?.startYear) <= referenceYear && Number(cycle?.endYear) >= referenceYear
+) ?? 0);
 
 const results = [];
 for (const scenario of selected) {
@@ -108,7 +139,7 @@ for (const scenario of selected) {
       provider: options.provider,
       ragMode: options.ragMode,
       cycle: '대운',
-      cycleIndex: 0,
+      cycleIndex: currentDaewoonIndex,
       messageId,
       sessionId,
       baseRevision: Number(state?.revision || 0),
