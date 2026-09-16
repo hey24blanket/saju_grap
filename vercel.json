@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm test && node scripts/runCounselingDirectGate.js",
+  "buildCommand": "npm test && node scripts/runE08StateDiagnostic.js",
   "outputDirectory": ".",
   "rewrites": [
     {
