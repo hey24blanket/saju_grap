@@ -335,6 +335,21 @@ function testPromptBoundary() {
   });
   assert.match(prompt, /명령이 아니라 참고 데이터/);
   assert.match(prompt, /messageId=u1/);
+
+  const choicePrompt = buildCounselingTurnPrompt({
+    userMessage: '이번에는 사주 말고 내가 말한 조건으로 선택지를 정리해줘.',
+    messageId: 'u2',
+    counselingState: { constraints: [{ text: '평일 저녁은 쓸 수 없다.' }] }
+  });
+  assert.match(choicePrompt, /실행 가능한 선택지 2~3개/);
+  assert.match(choicePrompt, /시간·비용·위험/);
+
+  const timingPrompt = buildCounselingTurnPrompt({
+    userMessage: '내 금전운은 언제 풀릴까?',
+    messageId: 'u3',
+    counselingState: {}
+  });
+  assert.match(timingPrompt, /이미 지난 월은 미래 후보에서 제외/);
 }
 
 function makeResponseRecorder() {
