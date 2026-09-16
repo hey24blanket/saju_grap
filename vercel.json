@@ -1,6 +1,12 @@
 {
-  "buildCommand": "npm test && node scripts/runE08StateDiagnostic.js",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm test",
   "outputDirectory": ".",
+  "functions": {
+    "api/admin/chunking-review.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/admin/rag",
