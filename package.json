@@ -4,7 +4,8 @@
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "scripts": {
-    "test:chunking-express": "node scripts/testChunkingExpressImport.js"
+    "test:chunking-express": "node scripts/testChunkingExpressImport.js",
+    "test:chunking-review": "node --test scripts/testChunkingReviewRequest.js"
   },
   "dependencies": {
     "@google-cloud/firestore": "9.0.0",
