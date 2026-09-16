@@ -1,6 +1,10 @@
 import chatHandler from '../api/chat.js';
 import SajuGrapEngine from '../src/engine/SajuGrapEngine.js';
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function analyzeFixture(referenceYear) {
   const facts = SajuGrapEngine.analyze({
     name: '합성 평가 사용자', year: 1985, month: 10, day: 24,
@@ -30,7 +34,9 @@ async function invoke(body) {
     ragMode: 'off', counselingPrototypeEnabled: true
   });
   if (capture.statusCode >= 400 || !capture.body?.success) {
-    throw new Error(`HTTP ${capture.statusCode} ${capture.body?.error?.code || ''} ${capture.body?.error?.detail || ''}`);
+    const error = new Error(`HTTP ${capture.statusCode} ${capture.body?.error?.code || ''} ${capture.body?.error?.detail || ''}`);
+    error.statusCode = capture.statusCode;
+    throw error;
   }
   return capture.body;
 }
@@ -72,6 +78,12 @@ for (let index = 0; index < turns.length; index += 1) {
     } catch (error) {
       console.log(`TURN ${index + 1} ATTEMPT ${attempt} ERROR: ${error.message}`);
       if (attempt === 2) throw error;
+      if (error.statusCode === 429 || /HTTP 429/.test(error.message)) {
+        console.log('Gemini 429: waiting 30 seconds before one retry.');
+        await sleep(30000);
+      } else {
+        await sleep(1500);
+      }
     }
   }
   state = result.counselingState || state;
@@ -87,10 +99,33 @@ for (let index = 0; index < turns.length; index += 1) {
   console.log(`ATTEMPTS: ${JSON.stringify(state?.attempts || [])}`);
 }
 
+const finalConstraints = state?.constraints || [];
+const finalAttempts = state?.attempts || [];
+const rememberedNoMoreSideJobs = finalConstraints.some((item) =>
+  /(부업|새 일)/u.test(item?.text || '') && /(늘리지|추가하지|하지 않|안 함|중단)/u.test(item?.text || '')
+);
+const rememberedSaturdayMorning = finalConstraints.some((item) =>
+  /토요일/u.test(item?.text || '') && /오전/u.test(item?.text || '')
+);
+const rememberedPriorAttempts = finalAttempts.some((item) =>
+  /부업/u.test(item?.text || '') && /(두 번|2번|두차례|2회)/u.test(item?.text || '')
+);
+
 console.log('\n=== FINAL STATE ===');
 console.log(JSON.stringify({
   revision: state?.revision,
-  constraints: state?.constraints || [],
-  attempts: state?.attempts || [],
-  goals: state?.goals || []
+  constraints: finalConstraints,
+  attempts: finalAttempts,
+  goals: state?.goals || [],
+  checks: {
+    rememberedNoMoreSideJobs,
+    rememberedSaturdayMorning,
+    rememberedPriorAttempts
+  }
 }, null, 2));
+
+if (!rememberedNoMoreSideJobs || !rememberedSaturdayMorning || !rememberedPriorAttempts) {
+  console.error('E08 STATE GATE: FAIL');
+  process.exit(1);
+}
+console.log('E08 STATE GATE: PASS');
