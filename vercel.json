@@ -1,5 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm test",
+  "outputDirectory": ".",
   "functions": {
     "api/admin/chunking-review.js": {
       "maxDuration": 60
