@@ -9,12 +9,6 @@ const ALLOWED_MODELS = new Set([
   'gemini-3.5-flash',
   'gemini-3.5-flash-lite'
 ]);
-const REVIEWER_FALLBACK_MODELS = [
-  'gemini-3.7-flash',
-  'gemini-3.6-flash',
-  'gemini-3.5-flash',
-  'gemini-3.5-flash-lite'
-];
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const MAX_CARDS = 20;
 const MAX_SOURCES = 8;
@@ -22,9 +16,20 @@ const MAX_TOTAL_SOURCE_CHARS = 300000;
 const ACTIONS = new Set(['approve', 'revise', 'merge', 'hold', 'exclude']);
 const LEVELS = new Set(['high', 'medium', 'low']);
 const GENERALIZABILITY = new Set(['broad', 'moderate', 'limited']);
-const GEMINI_RETRYABLE_STATUSES = new Set([500, 502, 503, 504]);
-const GEMINI_RETRY_DELAYS_MS = [0, 1200, 3200];
-const GEMINI_FALLBACK_DELAYS_MS = [0, 1200];
+const GEMINI_KEY_NAMES = [
+  'GEMINI_API_KEY',
+  'GEMINI_API_KEY_2',
+  'GEMINI_API_KEY_3',
+  'GEMINI_API_KEY_4',
+  'GEMINI_API_KEY_5'
+];
+const GEMINI_ROTATE_STATUSES = new Set([401, 403, 429, 500, 502, 503, 504]);
+const GEMINI_QUOTA_COOLDOWN_MS = 60_000;
+const GEMINI_AUTH_COOLDOWN_MS = 5 * 60_000;
+const GEMINI_TRANSIENT_COOLDOWN_MS = 10_000;
+const GEMINI_FETCH_TIMEOUT_MS = 25_000;
+const keyCooldownUntil = new Map();
+let keyCursor = 0;
 
 function clean(value, max = 12000) {
   return value === null || value === undefined ? '' : String(value).trim().slice(0, max);
@@ -51,12 +56,52 @@ function sleep(ms) {
 }
 
 export function reviewerModelCandidates(preferred) {
-  const models = [preferred, ...REVIEWER_FALLBACK_MODELS];
-  return models.filter((model, index) => ALLOWED_MODELS.has(model) && models.indexOf(model) === index);
+  return ALLOWED_MODELS.has(preferred) ? [preferred] : [];
+}
+
+export function configuredGeminiKeyNames(env = process.env) {
+  return GEMINI_KEY_NAMES.filter((name) => clean(env?.[name], 1000));
+}
+
+function geminiKeyPool() {
+  return GEMINI_KEY_NAMES
+    .map((envName, index) => ({
+      envName,
+      slot: index + 1,
+      key: clean(process.env[envName], 1000)
+    }))
+    .filter((item) => item.key);
+}
+
+async function orderedGeminiKeys(pool) {
+  if (!pool.length) return [];
+  const start = keyCursor % pool.length;
+  keyCursor = (keyCursor + 1) % Number.MAX_SAFE_INTEGER;
+  const rotated = [...pool.slice(start), ...pool.slice(0, start)];
+  const now = Date.now();
+  const ready = rotated.filter((item) => (keyCooldownUntil.get(item.envName) || 0) <= now);
+  if (ready.length) return ready;
+
+  const earliest = [...rotated].sort(
+    (a, b) => (keyCooldownUntil.get(a.envName) || 0) - (keyCooldownUntil.get(b.envName) || 0)
+  );
+  const waitMs = Math.min(
+    5000,
+    Math.max(0, (keyCooldownUntil.get(earliest[0]?.envName) || now) - now)
+  );
+  if (waitMs) await sleep(waitMs);
+  return earliest;
+}
+
+function keyCooldownFor(status) {
+  if (status === 429) return GEMINI_QUOTA_COOLDOWN_MS;
+  if (status === 401 || status === 403) return GEMINI_AUTH_COOLDOWN_MS;
+  if (status >= 500) return GEMINI_TRANSIENT_COOLDOWN_MS;
+  return 0;
 }
 
 function validateInput(body) {
-  const model = clean(body?.model, 120) || 'gemini-3.8-flash';
+  const model = clean(body?.model, 120) || 'gemini-3.5-flash-lite';
   if (!ALLOWED_MODELS.has(model)) throw apiError('지원하는 Reviewer Gemini 모델을 선택해 주세요.', 'SG-CE-REVIEW-MODEL-001');
   if (!Array.isArray(body?.cards) || body.cards.length < 1 || body.cards.length > MAX_CARDS)
     throw apiError(`한 번에 1~${MAX_CARDS}개 지식 카드까지 검수할 수 있습니다.`, 'SG-CE-REVIEW-CARD-001');
@@ -169,100 +214,100 @@ function upstreamProviderCode(raw) {
 }
 
 function upstreamSafeMessage(status) {
-  if (status === 429) return `Gemini Reviewer 요청 한도에 도달했습니다. (upstream HTTP ${status})`;
-  if (status === 401 || status === 403) return `Gemini Reviewer 인증 또는 권한을 확인해 주세요. (upstream HTTP ${status})`;
+  if (status === 429) return `Gemini Reviewer 프로젝트 키 풀이 현재 요청 한도에 도달했습니다. (upstream HTTP ${status})`;
+  if (status === 401 || status === 403) return `Gemini Reviewer 프로젝트 키의 인증 또는 권한을 확인해 주세요. (upstream HTTP ${status})`;
   if (status === 404) return `선택한 Gemini Reviewer 모델을 사용할 수 없습니다. (upstream HTTP ${status})`;
   if (status >= 400 && status < 500) return `Gemini Reviewer 요청 형식을 처리하지 못했습니다. (upstream HTTP ${status})`;
   return `Gemini Reviewer 서비스가 일시적으로 요청을 처리하지 못했습니다. (upstream HTTP ${status})`;
 }
 
-async function requestGemini(input, policy, key) {
+async function requestGemini(input, policy, pool) {
   const body = JSON.stringify(buildGeminiRequest(input, policy));
-  const candidates = reviewerModelCandidates(input.model);
+  const model = input.model;
+  const url = `${API_BASE}/models/${encodeURIComponent(model)}:generateContent`;
+  const keys = await orderedGeminiKeys(pool);
   let lastResponse = null;
   let lastRaw = '';
-  let lastModel = input.model;
-  let totalAttempts = 0;
+  let lastSlot = null;
+  let attempts = 0;
 
-  for (let modelIndex = 0; modelIndex < candidates.length; modelIndex++) {
-    const model = candidates[modelIndex];
-    lastModel = model;
-    const url = `${API_BASE}/models/${encodeURIComponent(model)}:generateContent`;
-    const delays = modelIndex === 0 ? GEMINI_RETRY_DELAYS_MS : GEMINI_FALLBACK_DELAYS_MS;
-
-    for (let attempt = 0; attempt < delays.length; attempt++) {
-      const delay = delays[attempt];
-      if (delay) await sleep(delay);
-      totalAttempts++;
-
-      let response;
-      try {
-        response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-          body,
-          signal: AbortSignal.timeout(120000),
-          redirect: 'error'
-        });
-      } catch {
-        throw apiError(
-          'Gemini Reviewer 서버 연결이 지연되거나 끊겼습니다.',
-          'SG-CE-REVIEW-GEMINI-005',
-          502,
-          { provider: 'gemini', providerCode: 'FETCH_FAILED' }
-        );
-      }
-
-      const raw = await response.text();
-      if (response.ok) {
-        if (model !== input.model) {
-          console.warn(JSON.stringify({
-            event: 'chunking_reviewer_model_fallback_success',
-            provider: 'gemini',
-            requestedModel: input.model,
-            actualModel: model,
-            attempts: totalAttempts
-          }));
-        }
-        return { response, raw, attempts: totalAttempts, model, fallbackUsed: model !== input.model };
-      }
-
-      lastResponse = response;
-      lastRaw = raw;
-      const providerCode = upstreamProviderCode(raw);
-      const canRetry = GEMINI_RETRYABLE_STATUSES.has(response.status) && attempt < delays.length - 1;
-      if (!canRetry) break;
-
+  for (const entry of keys) {
+    attempts++;
+    lastSlot = entry.slot;
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': entry.key },
+        body,
+        signal: AbortSignal.timeout(GEMINI_FETCH_TIMEOUT_MS),
+        redirect: 'error'
+      });
+    } catch {
+      keyCooldownUntil.set(entry.envName, Date.now() + GEMINI_TRANSIENT_COOLDOWN_MS);
       console.warn(JSON.stringify({
-        event: 'chunking_reviewer_upstream_retry',
+        event: 'chunking_reviewer_key_transport_error',
         provider: 'gemini',
         model,
-        providerStatus: response.status,
-        providerCode,
-        attempt: attempt + 1,
-        nextAttempt: attempt + 2
+        keySlot: entry.slot,
+        attempt: attempts
       }));
+      continue;
     }
 
-    const providerCode = upstreamProviderCode(lastRaw);
-    const canFallback =
-      modelIndex < candidates.length - 1 &&
-      lastResponse &&
-      (lastResponse.status === 503 || providerCode === 'UNAVAILABLE');
-    if (!canFallback) break;
+    const raw = await response.text();
+    if (response.ok) {
+      keyCooldownUntil.delete(entry.envName);
+      if (attempts > 1) {
+        console.warn(JSON.stringify({
+          event: 'chunking_reviewer_key_rotation_success',
+          provider: 'gemini',
+          model,
+          keySlot: entry.slot,
+          attempts,
+          keyPoolSize: pool.length
+        }));
+      }
+      return {
+        response,
+        raw,
+        attempts,
+        model,
+        fallbackUsed: false,
+        keySlot: entry.slot,
+        keyPoolSize: pool.length
+      };
+    }
+
+    lastResponse = response;
+    lastRaw = raw;
+    const providerCode = upstreamProviderCode(raw);
+    const cooldownMs = keyCooldownFor(response.status);
+    if (cooldownMs) keyCooldownUntil.set(entry.envName, Date.now() + cooldownMs);
 
     console.warn(JSON.stringify({
-      event: 'chunking_reviewer_model_fallback',
+      event: 'chunking_reviewer_key_rotate',
       provider: 'gemini',
-      requestedModel: input.model,
-      fromModel: model,
-      toModel: candidates[modelIndex + 1],
-      providerStatus: lastResponse.status,
-      providerCode
+      model,
+      keySlot: entry.slot,
+      keyPoolSize: pool.length,
+      providerStatus: response.status,
+      providerCode,
+      attempt: attempts
     }));
+
+    if (!GEMINI_ROTATE_STATUSES.has(response.status)) break;
   }
 
-  return { response: lastResponse, raw: lastRaw, attempts: totalAttempts, model: lastModel, fallbackUsed: lastModel !== input.model };
+  return {
+    response: lastResponse,
+    raw: lastRaw,
+    attempts,
+    model,
+    fallbackUsed: false,
+    keySlot: lastSlot,
+    keyPoolSize: pool.length
+  };
 }
 
 function normalizeReview(raw, expectedIds) {
@@ -282,11 +327,17 @@ function normalizeReview(raw, expectedIds) {
 }
 
 async function callGemini(input, adminUid) {
-  const key = clean(process.env.GEMINI_API_KEY, 1000);
-  if (!key) throw apiError('SajuGrap 서버에 GEMINI_API_KEY가 없습니다.', 'SG-CE-REVIEW-ENV-001', 503);
+  const keyPool = geminiKeyPool();
+  if (!keyPool.length) {
+    throw apiError(
+      'SajuGrap 서버에 Gemini Reviewer API 키가 없습니다.',
+      'SG-CE-REVIEW-ENV-001',
+      503
+    );
+  }
   const connection = await getFirestoreClient();
   const policy = await getReviewerPrompt(connection.db, input.reviewerPromptId, adminUid);
-  const { response, raw, attempts, model, fallbackUsed } = await requestGemini(input, policy, key);
+  const { response, raw, attempts, model, fallbackUsed, keySlot, keyPoolSize } = await requestGemini(input, policy, keyPool);
   if (!response?.ok) {
     const providerCode = upstreamProviderCode(raw);
     console.error(JSON.stringify({
@@ -296,7 +347,9 @@ async function callGemini(input, adminUid) {
       actualModel: model,
       providerStatus: response?.status ?? null,
       providerCode,
-      attempts
+      attempts,
+      keySlot,
+      keyPoolSize
     }));
     const status = response?.status ?? 503;
     throw apiError(
@@ -325,7 +378,9 @@ async function callGemini(input, adminUid) {
     reviews,
     reviewedCount: reviews.length,
     usage: payload?.usageMetadata || null,
-    attempts
+    attempts,
+    apiKeySlot: keySlot,
+    apiKeyPoolSize: keyPoolSize
   };
 }
 
