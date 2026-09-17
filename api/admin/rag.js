@@ -25,6 +25,14 @@ import {
   createChunkingExpressInactiveChunk
 } from '../../lib/chunkingExpressImport.js';
 
+import {
+  validateGoldenCounselingExamples,
+  importCounselingExampleBatch,
+  getCounselingExampleStatus,
+  activateCounselingExamples,
+  searchCounselingExamples
+} from '../../lib/counselingExampleStore.js';
+
 import chatHandler from '../chat.js';
 
 function parseBody(body) {
@@ -82,7 +90,6 @@ function normalizeDomain(value) {
   const domain = String(value || '').trim();
   return domain || 'all';
 }
-
 
 async function assertTestableVersion(version) {
   const detail = await getVersionDetail(version);
@@ -245,6 +252,44 @@ export default async function handler(req, res) {
 
       case 'createInactiveChunk':
         data = await createChunkingExpressInactiveChunk(body.document);
+        break;
+
+      case 'counselingExampleValidate': {
+        const validation = validateGoldenCounselingExamples(body.rows || []);
+        data = {
+          valid: validation.valid,
+          summary: validation.summary,
+          errors: validation.errors.slice(0, 100)
+        };
+        break;
+      }
+
+      case 'counselingExampleImport':
+        data = await importCounselingExampleBatch({
+          rows: body.rows || [],
+          sourceFileName: body.sourceFileName || null,
+          adminUid: admin.uid
+        });
+        break;
+
+      case 'counselingExampleStatus':
+        data = await getCounselingExampleStatus();
+        break;
+
+      case 'counselingExampleActivate':
+        data = await activateCounselingExamples({
+          ids: body.ids || null,
+          adminUid: admin.uid
+        });
+        break;
+
+      case 'counselingExampleSearch':
+        data = await searchCounselingExamples({
+          query: body.query,
+          category: body.category || null,
+          limit: body.limit || 4,
+          includeInactive: body.includeInactive === true
+        });
         break;
 
       case 'quickSearch':
