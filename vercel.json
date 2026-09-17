@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/runProductionCounselingSmoke.js",
+  "buildCommand": "node scripts/runProductionE08ResumeSmoke.js",
   "outputDirectory": ".",
   "functions": {
     "api/admin/chunking-review.js": {
