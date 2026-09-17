@@ -32,9 +32,15 @@ import {
   resolveCounselingExampleCategory
 } from '../lib/counselingExampleChatRag.js';
 import {
+  mapChatDomainToV2ExampleDomain,
+  counselingExampleDomainMatchesFilter,
+  resolveV2ExampleSearchCategory
+} from '../lib/counselingExampleDomainMap.js';
+import {
   buildCounselingExampleContext,
   COUNSELING_EXAMPLE_SCHEMA_VERSION,
   COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+  filterCounselingExampleVectorCandidates,
   pickCounselingExampleSearchResults
 } from '../lib/counselingExampleStore.js';
 
@@ -377,16 +383,26 @@ function testCounselingExampleChatRag() {
   }, {
     intent: { domain: '재물운' }
   });
-  assert.match(query, /domain: 재물운/);
+  assert.match(query, /domain: wealth/);
   assert.match(query, /question:.*정산/);
   assert.match(query, /user:.*프리랜서/);
-  assert.equal(resolveCounselingExampleCategory({ domain: '총운' }, { intent: { domain: '연애운' } }), '연애운');
+  assert.equal(mapChatDomainToV2ExampleDomain('재물운'), 'wealth');
+  assert.equal(mapChatDomainToV2ExampleDomain('사업운'), 'career');
+  assert.equal(mapChatDomainToV2ExampleDomain('연애운'), 'romance');
+  assert.equal(mapChatDomainToV2ExampleDomain('심신운'), 'health');
+  assert.equal(resolveCounselingExampleCategory({ domain: '총운' }, { intent: { domain: '연애운' } }), 'romance');
   assert.equal(resolveCounselingExampleCategory({ domain: '총운' }, null), null);
+  assert.equal(resolveCounselingExampleCategory({ domain: '총운' }, { intent: { domain: '총운' } }), null);
+  assert.equal(resolveV2ExampleSearchCategory('unknown-label'), null);
+  assert.equal(counselingExampleDomainMatchesFilter('romance', 'romance'), true);
+  assert.equal(counselingExampleDomainMatchesFilter('romance', 'love'), true);
+  assert.equal(counselingExampleDomainMatchesFilter('health', 'mental'), true);
+  assert.equal(counselingExampleDomainMatchesFilter('wealth', '재물운'), false);
 
   const mockExample = {
     exampleId: 'ex.v2.1',
     schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
-    domain: '재물운',
+    domain: 'wealth',
     scenarioTitle: '정산 지연',
     arcType: 'constraint_first',
     plotPhases: ['opening', 'choice'],
@@ -418,7 +434,7 @@ async function testCounselingExampleRagPolicy() {
       results: [{
         exampleId: 'mock',
         schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
-        domain: '재물운',
+        domain: 'wealth',
         scenarioTitle: 'mock',
         arcType: 'test',
         plotPhases: [],
@@ -449,6 +465,78 @@ async function testCounselingExampleRagPolicy() {
   });
   assert.equal(failed.fallbackUsed, true);
   assert.equal(failed.contextText, '');
+}
+
+function testCounselingExampleDomainFilterAndPool() {
+  const makeV2 = (exampleId, domain, distance, active = true) => ({
+    id: exampleId,
+    vectorDistance: distance,
+    data: {
+      exampleId,
+      schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+      domain,
+      scenarioTitle: 'scenario',
+      status: active ? 'active' : 'inactive',
+      retrievalAllowed: active,
+      strategy: { turnGuidance: [] },
+      turns: [
+        { user: 'u1', assistant: 'a1', plotPhase: 'opening' },
+        { user: 'u2', assistant: 'a2', plotPhase: 'closing' }
+      ]
+    }
+  });
+
+  const wealthHit = makeV2('wealth-v2', 'wealth', 0.2);
+  const careerHit = makeV2('career-v2', 'career', 0.15);
+  const wealthFromKoreanIntent = filterCounselingExampleVectorCandidates(
+    [wealthHit, careerHit],
+    { wantedCanonical: 'wealth', v2Only: true, targetLimit: 3 }
+  );
+  assert.equal(wealthFromKoreanIntent.results.length, 1);
+  assert.equal(wealthFromKoreanIntent.results[0].exampleId, 'wealth-v2');
+
+  const v1Closer = Array.from({ length: 80 }, (_, index) => ({
+    id: `v1-${index}`,
+    vectorDistance: 0.01 + index * 0.0001,
+    data: {
+      exampleId: `v1-${index}`,
+      schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION,
+      domain: 'wealth',
+      status: 'active',
+      retrievalAllowed: true
+    }
+  }));
+  const distantV2 = makeV2('wealth-v2-far', 'wealth', 0.9);
+  const v2OnlyPool = filterCounselingExampleVectorCandidates(
+    [...v1Closer, distantV2],
+    { wantedCanonical: 'wealth', v2Only: true, targetLimit: 2 }
+  );
+  assert.equal(v2OnlyPool.results.length, 1);
+  assert.equal(v2OnlyPool.results[0].schemaVersion, COUNSELING_EXAMPLE_SCHEMA_VERSION_V2);
+
+  const inactiveOnly = filterCounselingExampleVectorCandidates(
+    [makeV2('inactive-v2', 'wealth', 0.01, false)],
+    { wantedCanonical: 'wealth', v2Only: true, targetLimit: 3 }
+  );
+  assert.equal(inactiveOnly.results.length, 0);
+
+  const noV2 = filterCounselingExampleVectorCandidates(
+    v1Closer,
+    { wantedCanonical: 'wealth', v2Only: true, targetLimit: 3 }
+  );
+  assert.equal(noV2.results.length, 0);
+
+  const romancePick = filterCounselingExampleVectorCandidates(
+    [makeV2('romance-v2', 'romance', 0.2), makeV2('wealth-v2', 'wealth', 0.1)],
+    { wantedCanonical: 'romance', v2Only: true, targetLimit: 3 }
+  );
+  assert.equal(romancePick.results[0].exampleId, 'romance-v2');
+
+  const healthPick = filterCounselingExampleVectorCandidates(
+    [makeV2('health-v2', 'health', 0.2), makeV2('career-v2', 'career', 0.1)],
+    { wantedCanonical: 'health', v2Only: true, targetLimit: 3 }
+  );
+  assert.equal(healthPick.results[0].exampleId, 'health-v2');
 }
 
 function testV2OnlyExampleSelection() {
@@ -856,6 +944,7 @@ async function main() {
   testCounselingState();
   testPromptBoundary();
   testCounselingExampleChatRag();
+  testCounselingExampleDomainFilterAndPool();
   testV2OnlyExampleSelection();
   await testCounselingExampleRagPolicy();
   await testExampleRagLimitsAndDiagnostics();

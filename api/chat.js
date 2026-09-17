@@ -4798,6 +4798,18 @@ export default async function handler(
                 fallbackUsed:
                   exampleRagRuntime.fallbackUsed,
 
+                resultCount:
+                  exampleRagRuntime
+                    .retrieval
+                    ?.count ??
+                  null,
+
+                preferredSchema:
+                  exampleRagRuntime
+                    .retrieval
+                    ?.preferredSchema ??
+                  null,
+
                 query:
                   normalized.includeTrainingTrace
                     ? exampleRagRuntime.query
