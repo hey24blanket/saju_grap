@@ -27,11 +27,14 @@ import {
 
 import {
   validateGoldenCounselingExamples,
-  importCounselingExampleBatch,
   getCounselingExampleStatus,
   activateCounselingExamples,
   searchCounselingExamples
 } from '../../lib/counselingExampleStore.js';
+
+import {
+  importCounselingExampleBatchResumable
+} from '../../lib/counselingExampleResumeImport.js';
 
 import chatHandler from '../chat.js';
 
@@ -265,7 +268,7 @@ export default async function handler(req, res) {
       }
 
       case 'counselingExampleImport':
-        data = await importCounselingExampleBatch({
+        data = await importCounselingExampleBatchResumable({
           rows: body.rows || [],
           sourceFileName: body.sourceFileName || null,
           adminUid: admin.uid
