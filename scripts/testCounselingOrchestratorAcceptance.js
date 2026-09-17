@@ -6,7 +6,10 @@ import {
 } from '../lib/counselingConversationFocus.js';
 import {
   selectRelevantSajuEvidence,
-  buildRelativeWindowRankingHints
+  buildRelativeWindowRankingHints,
+  inferCanonicalTimingDirection,
+  buildPeriodCandidate,
+  scoreCanonicalTimingSalience
 } from '../lib/counselingEvidenceSelector.js';
 import {
   buildCounselingKnowledgeRagQuery
@@ -278,12 +281,12 @@ function testTimingPeriodSelectionUsesCanonicalExplainability() {
     (item) => item.scope === 'month' && item.selectionRole === 'highlight'
   );
   for (const item of monthHighlights) {
-    assert.ok(item.explainability?.canonicalEngineFact);
-    assert.ok(item.explainability?.score >= 2);
-    assert.ok(Array.isArray(item.explainability?.signals));
+    assert.equal(item.periodCandidate?.direction?.value, 'supportive');
+    assert.ok(item.periodCandidate?.salience?.score >= 2);
+    assert.equal(item.periodCandidate?.canonicalEngineFact, true);
   }
 
-  if (packet.timingMonthGrounded) {
+  if (packet.timingMonthDirectional) {
     assert.ok(monthHighlights.length > 0);
   } else {
     assert.equal(monthHighlights.length, 0);
@@ -330,6 +333,225 @@ function testEvidenceSelectorDoesNotInterpret() {
   assert.doesNotMatch(serialized, /풀린다|좋다|나쁘다|들어온다/u);
 }
 
+function buildSyntheticEngine({ months = [], years = [] }) {
+  return {
+    schemaVersion: 'engine_facts_v1',
+    natal: { dayMaster: { stem: '甲' } },
+    strength: { band: 'medium' },
+    usefulGodProfile: {
+      yongsin: { element: 'water' },
+      dominantImbalance: { type: 'test' }
+    },
+    tenGodProfile: {
+      groups: { wealth: { strengthBand: 'medium', visibleCount: 1 } }
+    },
+    cycles: {
+      reference: { year: 2026, month: 9 },
+      daewoon: [{
+        cycleType: 'daewoon',
+        startYear: 2021,
+        endYear: 2030,
+        index: 0,
+        ganzhi: 'test',
+        stem: '甲',
+        branch: '子',
+        balanceImpact: { effect: 'neutral', dominantImbalance: 'test' }
+      }],
+      year: years,
+      month: months
+    }
+  };
+}
+
+function syntheticMonth({
+  year,
+  month,
+  effect,
+  relations = 0,
+  twelveStage = false,
+  wealthTenGod = false
+}) {
+  return {
+    cycleType: 'month',
+    year,
+    month,
+    ganzhi: '갑자',
+    stem: '甲',
+    branch: '子',
+    tenGod: wealthTenGod
+      ? { tenGodKo: '偏財', group: 'wealth' }
+      : { tenGodKo: '比肩', group: 'self' },
+    twelveStage: twelveStage
+      ? { stage: '장생', stageKey: 'jangsaeng' }
+      : null,
+    relationsWithNatal: relations
+      ? [{ relationType: 'clash', complete: true }]
+      : [],
+    usefulGodImpact: {
+      yongsinImpact: {
+        availability: effect === 'relieves' ? 'increased' : 'unchanged',
+        blocked: false,
+        overloaded: false
+      },
+      gisinImpact: {
+        activated: effect === 'aggravates' || effect === 'mixed'
+      }
+    },
+    balanceImpact: { effect, dominantImbalance: 'test' }
+  };
+}
+
+function testTimingSemanticsA_PressuredNotFavorable() {
+  const engineFacts = buildSyntheticEngine({
+    months: [
+      syntheticMonth({ year: 2026, month: 10, effect: 'aggravates', relations: 2, twelveStage: true }),
+      syntheticMonth({ year: 2026, month: 11, effect: 'neutral', relations: 1, twelveStage: true })
+    ]
+  });
+  const packet = selectRelevantSajuEvidence({
+    engineFacts,
+    focus: { domain: 'wealth', task: 'timing', targetYears: [2026] },
+    counselingFactContext: { timeline: null }
+  });
+  const monthHighlights = packet.evidence.filter(
+    (item) => item.scope === 'month' && item.selectionRole === 'highlight'
+  );
+  assert.equal(monthHighlights.length, 0);
+  assert.equal(packet.timingMonthDirectional, false);
+}
+
+function testTimingSemanticsB_ExplainableNotFavorable() {
+  const facts = syntheticMonth({
+    year: 2026,
+    month: 10,
+    effect: 'neutral',
+    relations: 2,
+    twelveStage: true
+  });
+  const candidate = buildPeriodCandidate({
+    compactFacts: facts,
+    period: '2026-10',
+    domain: 'wealth'
+  });
+  assert.ok(candidate.salience.score >= 2);
+  assert.equal(candidate.direction.value, 'unknown');
+  const engineFacts = buildSyntheticEngine({
+    months: [
+      facts,
+      syntheticMonth({ year: 2026, month: 11, effect: 'neutral', relations: 1, twelveStage: true })
+    ]
+  });
+  const packet = selectRelevantSajuEvidence({
+    engineFacts,
+    focus: { domain: 'wealth', task: 'timing', targetYears: [2026] },
+    counselingFactContext: { timeline: null }
+  });
+  assert.equal(packet.timingMonthExplainable, true);
+  assert.equal(packet.timingMonthDirectional, false);
+}
+
+function testTimingSemanticsC_RelativeHintWithoutDirection() {
+  const engineFacts = buildSyntheticEngine({
+    months: [
+      syntheticMonth({ year: 2026, month: 10, effect: 'neutral', relations: 2, twelveStage: true }),
+      syntheticMonth({ year: 2026, month: 11, effect: 'mixed', relations: 2, twelveStage: true })
+    ]
+  });
+  const packet = selectRelevantSajuEvidence({
+    engineFacts,
+    focus: { domain: 'wealth', task: 'timing', targetYears: [2026] },
+    counselingFactContext: {
+      timeline: {
+        relativeWindows: {
+          source: 'ui_compatibility_wave_projection',
+          monthly: [{
+            year: 2026,
+            fromReferenceMonth: {
+              flat: false,
+              relativelyStronger: [{ label: '10월', value: 10 }]
+            }
+          }]
+        }
+      }
+    }
+  });
+  const highlight = packet.evidence.find(
+    (item) => item.period === '2026-10' && item.selectionRole === 'highlight'
+  );
+  assert.equal(highlight, undefined);
+}
+
+function testTimingSemanticsD_SupportiveFavorableCandidate() {
+  const engineFacts = buildSyntheticEngine({
+    months: [
+      syntheticMonth({ year: 2026, month: 10, effect: 'relieves', relations: 1, twelveStage: true }),
+      syntheticMonth({ year: 2026, month: 11, effect: 'neutral', relations: 2, twelveStage: true })
+    ]
+  });
+  const packet = selectRelevantSajuEvidence({
+    engineFacts,
+    focus: { domain: 'wealth', task: 'timing', targetYears: [2026] },
+    counselingFactContext: { timeline: null }
+  });
+  assert.equal(packet.timingMonthDirectional, true);
+  const monthHighlights = packet.evidence.filter(
+    (item) => item.scope === 'month' && item.selectionRole === 'highlight'
+  );
+  assert.ok(monthHighlights.some((item) => item.period === '2026-10'));
+  assert.equal(monthHighlights[0].periodCandidate.direction.value, 'supportive');
+}
+
+function testTimingSemanticsE_FallbackWhenAllUnknown() {
+  const engineFacts = buildSyntheticEngine({
+    months: [
+      syntheticMonth({ year: 2026, month: 10, effect: 'mixed', relations: 2, twelveStage: true }),
+      syntheticMonth({ year: 2026, month: 11, effect: 'mixed', relations: 2, twelveStage: true })
+    ]
+  });
+  const packet = selectRelevantSajuEvidence({
+    engineFacts,
+    focus: { domain: 'wealth', task: 'timing', targetYears: [2026] },
+    counselingFactContext: { timeline: null }
+  });
+  assert.equal(packet.timingMonthDirectional, false);
+  assert.equal(
+    packet.timingFallbackLevel === 'daewoon' ||
+      packet.timingFallbackLevel === 'undifferentiated',
+    true
+  );
+}
+
+function testTimingSemanticsF_ExplanationKeepsWealthFocus() {
+  const turn2 = orchestrateTurn({
+    userMessage: '그렇게 보는 명리적인 이유는 뭐야?',
+    messageId: 'u2',
+    history: [{ id: 'u1', role: 'user', text: '내 금전운은 언제 좀 풀릴까요?' }]
+  });
+  assert.equal(turn2.focus.domain, 'wealth');
+  assert.equal(turn2.focus.task, 'explanation');
+  assert.ok(turn2.evidencePacket.evidence.some((item) => item.scope === 'daewoon'));
+}
+
+function testDirectionInferenceUsesBalanceImpactOnly() {
+  const pressured = inferCanonicalTimingDirection({
+    balanceImpact: { effect: 'aggravates' },
+    relationsWithNatal: [{ type: 'clash' }],
+    twelveStage: { stage: '장생' }
+  });
+  assert.equal(pressured.value, 'pressured');
+  const unknown = inferCanonicalTimingDirection({
+    balanceImpact: { effect: 'neutral' },
+    relationsWithNatal: [{ type: 'clash' }],
+    twelveStage: { stage: '장생' }
+  });
+  assert.equal(unknown.value, 'unknown');
+  assert.ok(scoreCanonicalTimingSalience({
+    relationsWithNatal: [{ type: 'clash' }],
+    twelveStage: { stage: '장생' },
+    ganzhi: '甲子'
+  }, 'wealth').score >= 2);
+}
+
 async function main() {
   testAcceptanceFlowWealthTimingFollowUps();
   testAcceptanceCorrectionTask();
@@ -340,6 +562,13 @@ async function main() {
   testOrchestratorDiagnosticShape();
   testTimingPeriodSelectionUsesCanonicalExplainability();
   testRelativeWindowsAreRankingHintsOnly();
+  testTimingSemanticsA_PressuredNotFavorable();
+  testTimingSemanticsB_ExplainableNotFavorable();
+  testTimingSemanticsC_RelativeHintWithoutDirection();
+  testTimingSemanticsD_SupportiveFavorableCandidate();
+  testTimingSemanticsE_FallbackWhenAllUnknown();
+  testTimingSemanticsF_ExplanationKeepsWealthFocus();
+  testDirectionInferenceUsesBalanceImpactOnly();
   testEvidenceSelectorDoesNotInterpret();
   console.log('testCounselingOrchestratorAcceptance: ok');
 }

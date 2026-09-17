@@ -4455,12 +4455,27 @@ export default async function handler(
 
               timingGrounded:
                 counselingOrchestration
-                  ?.timingMonthGrounded ??
+                  ?.timingMonthDirectional ??
                 null,
 
               timingYearGrounded:
                 counselingOrchestration
-                  ?.timingYearGrounded ??
+                  ?.timingYearDirectional ??
+                null,
+
+              timingMonthDirectional:
+                counselingOrchestration
+                  ?.timingMonthDirectional ??
+                null,
+
+              timingYearDirectional:
+                counselingOrchestration
+                  ?.timingYearDirectional ??
+                null,
+
+              timingFallbackLevel:
+                counselingOrchestration
+                  ?.timingFallbackLevel ??
                 null
             })
         };

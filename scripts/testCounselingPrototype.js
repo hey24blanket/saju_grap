@@ -366,7 +366,7 @@ function testPromptBoundary() {
     messageId: 'u3',
     counselingState: {}
   });
-  assert.match(timingPrompt, /구체적 연·월 단위 근거가 부족합니다|highlight month evidence/);
+  assert.match(timingPrompt, /시기 질문입니다/);
   assert.match(timingPrompt, /Counseling examples are behavioral references only/);
   assert.match(timingPrompt, /\[CONVERSATION FOCUS\]/);
   assert.match(timingPrompt, /\[RELEVANT SAJU EVIDENCE\]/);
