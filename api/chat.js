@@ -4314,10 +4314,15 @@ export default async function handler(
             ),
 
           category:
-            resolveCounselingExampleCategory(
-              normalized,
-              counselingFactContext
-            ),
+            counselingFactContext
+              ?.intent
+              ?.timelineRequested ===
+              true
+              ? null
+              : resolveCounselingExampleCategory(
+                  normalized,
+                  counselingFactContext
+                ),
 
           search:
             runtimeOptions.searchCounselingExamples ||
