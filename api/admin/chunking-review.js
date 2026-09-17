@@ -1,3 +1,4 @@
+import { FieldValue } from '@google-cloud/firestore';
 import { requireRagAdmin } from '../../lib/ragAdminAuth.js';
 import { getFirestoreClient } from '../../lib/ragRetriever.js';
 import { getReviewerPrompt } from '../../lib/chunkingReviewerPolicy.js';
@@ -16,18 +17,18 @@ const MAX_TOTAL_SOURCE_CHARS = 300000;
 const ACTIONS = new Set(['approve', 'revise', 'merge', 'hold', 'exclude']);
 const LEVELS = new Set(['high', 'medium', 'low']);
 const GENERALIZABILITY = new Set(['broad', 'moderate', 'limited']);
+const MAX_GEMINI_KEY_SLOTS = 20;
 const GEMINI_KEY_NAMES = [
   'GEMINI_API_KEY',
-  'GEMINI_API_KEY_2',
-  'GEMINI_API_KEY_3',
-  'GEMINI_API_KEY_4',
-  'GEMINI_API_KEY_5'
+  ...Array.from({ length: MAX_GEMINI_KEY_SLOTS - 1 }, (_, index) => `GEMINI_API_KEY_${index + 2}`)
 ];
 const GEMINI_ROTATE_STATUSES = new Set([401, 403, 429, 500, 502, 503, 504]);
 const GEMINI_QUOTA_COOLDOWN_MS = 60_000;
 const GEMINI_AUTH_COOLDOWN_MS = 5 * 60_000;
 const GEMINI_TRANSIENT_COOLDOWN_MS = 10_000;
 const GEMINI_FETCH_TIMEOUT_MS = 25_000;
+const TELEMETRY_COLLECTION = 'sajugrap_chunking_reviewer_telemetry';
+const KEY_STATS_COLLECTION = 'sajugrap_chunking_reviewer_key_stats';
 const keyCooldownUntil = new Map();
 let keyCursor = 0;
 
@@ -36,6 +37,10 @@ function clean(value, max = 12000) {
 }
 function exactText(value, max = MAX_TOTAL_SOURCE_CHARS) {
   return value === null || value === undefined ? '' : String(value).slice(0, max);
+}
+function positiveInt(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 0 ? number : fallback;
 }
 function send(res, status, payload) {
   res.setHeader('Cache-Control', 'no-store');
@@ -49,6 +54,10 @@ function apiError(message, code = 'SG-CE-REVIEW-001', httpStatus = 400, diagnost
   error.provider = diagnostics.provider || null;
   error.providerStatus = Number.isInteger(diagnostics.providerStatus) ? diagnostics.providerStatus : null;
   error.providerCode = clean(diagnostics.providerCode, 120) || null;
+  error.keySlot = Number.isInteger(diagnostics.keySlot) ? diagnostics.keySlot : null;
+  error.keyPoolSize = Number.isInteger(diagnostics.keyPoolSize) ? diagnostics.keyPoolSize : null;
+  error.keyTrace = Array.isArray(diagnostics.keyTrace) ? diagnostics.keyTrace.slice(-40) : [];
+  error.telemetryId = clean(diagnostics.telemetryId, 160) || null;
   return error;
 }
 function sleep(ms) {
@@ -100,6 +109,113 @@ function keyCooldownFor(status) {
   return 0;
 }
 
+function telemetryMeta(input) {
+  return {
+    telemetryId: clean(input?.telemetryId, 160),
+    reviewBatchNumber: positiveInt(input?.reviewBatchNumber),
+    reviewBatchTotal: positiveInt(input?.reviewBatchTotal),
+    reviewPartNumber: positiveInt(input?.reviewPartNumber),
+    reviewPartTotal: positiveInt(input?.reviewPartTotal),
+    reviewPartKind: clean(input?.reviewPartKind, 40)
+  };
+}
+
+function telemetryDocId(adminUid, telemetryId) {
+  const safeUid = clean(adminUid, 128).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeId = clean(telemetryId, 160).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `${safeUid}__${safeId}`;
+}
+
+async function appendTelemetryEvent(db, adminUid, input, event) {
+  const meta = telemetryMeta(input);
+  if (!meta.telemetryId) return;
+  const ref = db.collection(TELEMETRY_COLLECTION).doc(telemetryDocId(adminUid, meta.telemetryId));
+  const snapshot = await ref.get();
+  const previous = snapshot.exists ? snapshot.data() || {} : {};
+  const now = new Date().toISOString();
+  const item = {
+    at: now,
+    type: clean(event?.type, 40),
+    message: clean(event?.message, 500),
+    keySlot: positiveInt(event?.keySlot),
+    keyPoolSize: positiveInt(event?.keyPoolSize),
+    providerStatus: Number.isInteger(event?.providerStatus) ? event.providerStatus : null,
+    providerCode: clean(event?.providerCode, 120) || null,
+    nextKeySlot: positiveInt(event?.nextKeySlot) || null,
+    cooldownSeconds: positiveInt(event?.cooldownSeconds),
+    completedBatch: Boolean(event?.completedBatch),
+    ...meta
+  };
+  const events = [...(Array.isArray(previous.events) ? previous.events : []), item].slice(-80);
+  await ref.set({
+    adminUid: clean(adminUid, 128),
+    telemetryId: meta.telemetryId,
+    model: clean(input?.model, 120),
+    current: item,
+    events,
+    updatedAt: now,
+    createdAt: previous.createdAt || now
+  }, { merge: true });
+}
+
+async function recordKeyStats(db, slot, update = {}) {
+  if (!slot) return;
+  const now = new Date().toISOString();
+  const payload = {
+    slot,
+    updatedAt: now,
+    lastStatus: Number.isInteger(update.status) ? update.status : null,
+    lastProviderCode: clean(update.providerCode, 120) || null
+  };
+  if (update.attempt) payload.attempts = FieldValue.increment(1);
+  if (update.success) {
+    payload.successes = FieldValue.increment(1);
+    payload.lastSuccessAt = now;
+  }
+  if (update.completedPart) payload.completedParts = FieldValue.increment(1);
+  if (update.completedBatch) payload.completedBatches = FieldValue.increment(1);
+  if (update.status === 429) payload.status429 = FieldValue.increment(1);
+  if (update.status === 401) payload.status401 = FieldValue.increment(1);
+  if (update.status === 403) payload.status403 = FieldValue.increment(1);
+  if (update.status >= 500) payload.transient5xx = FieldValue.increment(1);
+  if (update.transportError) payload.transportErrors = FieldValue.increment(1);
+  if (update.failure) payload.lastFailureAt = now;
+  await db.collection(KEY_STATS_COLLECTION).doc(`slot-${slot}`).set(payload, { merge: true });
+}
+
+async function readTelemetry(db, adminUid, telemetryId, pool) {
+  const id = clean(telemetryId, 160);
+  let telemetry = null;
+  if (id) {
+    const snapshot = await db.collection(TELEMETRY_COLLECTION).doc(telemetryDocId(adminUid, id)).get();
+    telemetry = snapshot.exists ? snapshot.data() : null;
+  }
+  const keyStats = await Promise.all(pool.map(async (entry) => {
+    const snapshot = await db.collection(KEY_STATS_COLLECTION).doc(`slot-${entry.slot}`).get();
+    const data = snapshot.exists ? snapshot.data() || {} : {};
+    const attempts = positiveInt(data.attempts);
+    const successes = positiveInt(data.successes);
+    return {
+      slot: entry.slot,
+      attempts,
+      successes,
+      successRate: attempts ? Number(((successes / attempts) * 100).toFixed(1)) : 0,
+      completedParts: positiveInt(data.completedParts),
+      completedBatches: positiveInt(data.completedBatches),
+      status429: positiveInt(data.status429),
+      status401: positiveInt(data.status401),
+      status403: positiveInt(data.status403),
+      transient5xx: positiveInt(data.transient5xx),
+      transportErrors: positiveInt(data.transportErrors),
+      lastStatus: Number.isInteger(data.lastStatus) ? data.lastStatus : null,
+      lastProviderCode: clean(data.lastProviderCode, 120) || null,
+      lastSuccessAt: clean(data.lastSuccessAt, 80) || null,
+      lastFailureAt: clean(data.lastFailureAt, 80) || null
+    };
+  }));
+  return { telemetry, keyStats, keyPoolSize: pool.length };
+}
+
 function validateInput(body) {
   const model = clean(body?.model, 120) || 'gemini-3.5-flash-lite';
   if (!ALLOWED_MODELS.has(model)) throw apiError('지원하는 Reviewer Gemini 모델을 선택해 주세요.', 'SG-CE-REVIEW-MODEL-001');
@@ -140,7 +256,14 @@ function validateInput(body) {
   const existingUnits = Array.isArray(body?.existingUnits)
     ? body.existingUnits.slice(0, 250).map((raw) => ({ id: clean(raw?.id, 160), title: clean(raw?.title, 300), claim: clean(raw?.claim, 3000) })).filter((item) => item.id && item.title && item.claim)
     : [];
-  return { model, cards, sources, existingUnits, reviewerPromptId: clean(body?.reviewerPromptId, 200) };
+  return {
+    model,
+    cards,
+    sources,
+    existingUnits,
+    reviewerPromptId: clean(body?.reviewerPromptId, 200),
+    ...telemetryMeta(body)
+  };
 }
 
 function responseSchema() {
@@ -221,7 +344,7 @@ function upstreamSafeMessage(status) {
   return `Gemini Reviewer 서비스가 일시적으로 요청을 처리하지 못했습니다. (upstream HTTP ${status})`;
 }
 
-async function requestGemini(input, policy, pool) {
+async function requestGemini(input, policy, pool, db, adminUid) {
   const body = JSON.stringify(buildGeminiRequest(input, policy));
   const model = input.model;
   const url = `${API_BASE}/models/${encodeURIComponent(model)}:generateContent`;
@@ -230,10 +353,30 @@ async function requestGemini(input, policy, pool) {
   let lastRaw = '';
   let lastSlot = null;
   let attempts = 0;
+  const keyTrace = [];
 
-  for (const entry of keys) {
+  for (let index = 0; index < keys.length; index++) {
+    const entry = keys[index];
+    const nextEntry = keys[index + 1] || null;
     attempts++;
     lastSlot = entry.slot;
+    const attemptEvent = {
+      type: 'attempt',
+      message: `키 슬롯 ${entry.slot}/${pool.length} 실행 중`,
+      keySlot: entry.slot,
+      keyPoolSize: pool.length,
+      nextKeySlot: null,
+      providerStatus: null,
+      providerCode: null,
+      cooldownSeconds: 0,
+      completedBatch: false
+    };
+    keyTrace.push({ at: new Date().toISOString(), ...attemptEvent, ...telemetryMeta(input) });
+    await Promise.all([
+      appendTelemetryEvent(db, adminUid, input, attemptEvent),
+      recordKeyStats(db, entry.slot, { attempt: true })
+    ]).catch(() => undefined);
+
     let response;
     try {
       response = await fetch(url, {
@@ -245,28 +388,51 @@ async function requestGemini(input, policy, pool) {
       });
     } catch {
       keyCooldownUntil.set(entry.envName, Date.now() + GEMINI_TRANSIENT_COOLDOWN_MS);
-      console.warn(JSON.stringify({
-        event: 'chunking_reviewer_key_transport_error',
-        provider: 'gemini',
-        model,
+      const event = {
+        type: 'transport_error',
+        message: `키 슬롯 ${entry.slot} 연결 오류${nextEntry ? ` → 슬롯 ${nextEntry.slot} 전환` : ''}`,
         keySlot: entry.slot,
-        attempt: attempts
-      }));
+        keyPoolSize: pool.length,
+        nextKeySlot: nextEntry?.slot || null,
+        providerStatus: null,
+        providerCode: 'FETCH_FAILED',
+        cooldownSeconds: Math.round(GEMINI_TRANSIENT_COOLDOWN_MS / 1000),
+        completedBatch: false
+      };
+      keyTrace.push({ at: new Date().toISOString(), ...event, ...telemetryMeta(input) });
+      await Promise.all([
+        appendTelemetryEvent(db, adminUid, input, event),
+        recordKeyStats(db, entry.slot, { transportError: true, failure: true })
+      ]).catch(() => undefined);
+      console.warn(JSON.stringify({ event: 'chunking_reviewer_key_transport_error', provider: 'gemini', model, keySlot: entry.slot, attempt: attempts }));
       continue;
     }
 
     const raw = await response.text();
     if (response.ok) {
       keyCooldownUntil.delete(entry.envName);
+      const meta = telemetryMeta(input);
+      const completedBatch = meta.reviewPartTotal > 0 && meta.reviewPartNumber === meta.reviewPartTotal;
+      const event = {
+        type: 'success',
+        message: completedBatch
+          ? `키 슬롯 ${entry.slot} 성공 · 배치 ${meta.reviewBatchNumber || '?'} 완료`
+          : `키 슬롯 ${entry.slot} 성공 · 파트 ${meta.reviewPartNumber || '?'} 완료`,
+        keySlot: entry.slot,
+        keyPoolSize: pool.length,
+        nextKeySlot: null,
+        providerStatus: 200,
+        providerCode: null,
+        cooldownSeconds: 0,
+        completedBatch
+      };
+      keyTrace.push({ at: new Date().toISOString(), ...event, ...meta });
+      await Promise.all([
+        appendTelemetryEvent(db, adminUid, input, event),
+        recordKeyStats(db, entry.slot, { success: true, completedPart: true, completedBatch, status: 200 })
+      ]).catch(() => undefined);
       if (attempts > 1) {
-        console.warn(JSON.stringify({
-          event: 'chunking_reviewer_key_rotation_success',
-          provider: 'gemini',
-          model,
-          keySlot: entry.slot,
-          attempts,
-          keyPoolSize: pool.length
-        }));
+        console.warn(JSON.stringify({ event: 'chunking_reviewer_key_rotation_success', provider: 'gemini', model, keySlot: entry.slot, attempts, keyPoolSize: pool.length }));
       }
       return {
         response,
@@ -275,7 +441,8 @@ async function requestGemini(input, policy, pool) {
         model,
         fallbackUsed: false,
         keySlot: entry.slot,
-        keyPoolSize: pool.length
+        keyPoolSize: pool.length,
+        keyTrace
       };
     }
 
@@ -284,6 +451,22 @@ async function requestGemini(input, policy, pool) {
     const providerCode = upstreamProviderCode(raw);
     const cooldownMs = keyCooldownFor(response.status);
     if (cooldownMs) keyCooldownUntil.set(entry.envName, Date.now() + cooldownMs);
+    const event = {
+      type: 'error',
+      message: `키 슬롯 ${entry.slot} HTTP ${response.status}${providerCode ? ` ${providerCode}` : ''}${nextEntry ? ` → 슬롯 ${nextEntry.slot} 전환` : ''}`,
+      keySlot: entry.slot,
+      keyPoolSize: pool.length,
+      nextKeySlot: nextEntry?.slot || null,
+      providerStatus: response.status,
+      providerCode,
+      cooldownSeconds: Math.round(cooldownMs / 1000),
+      completedBatch: false
+    };
+    keyTrace.push({ at: new Date().toISOString(), ...event, ...telemetryMeta(input) });
+    await Promise.all([
+      appendTelemetryEvent(db, adminUid, input, event),
+      recordKeyStats(db, entry.slot, { status: response.status, providerCode, failure: true })
+    ]).catch(() => undefined);
 
     console.warn(JSON.stringify({
       event: 'chunking_reviewer_key_rotate',
@@ -306,7 +489,8 @@ async function requestGemini(input, policy, pool) {
     model,
     fallbackUsed: false,
     keySlot: lastSlot,
-    keyPoolSize: pool.length
+    keyPoolSize: pool.length,
+    keyTrace
   };
 }
 
@@ -329,15 +513,17 @@ function normalizeReview(raw, expectedIds) {
 async function callGemini(input, adminUid) {
   const keyPool = geminiKeyPool();
   if (!keyPool.length) {
-    throw apiError(
-      'SajuGrap 서버에 Gemini Reviewer API 키가 없습니다.',
-      'SG-CE-REVIEW-ENV-001',
-      503
-    );
+    throw apiError('SajuGrap 서버에 Gemini Reviewer API 키가 없습니다.', 'SG-CE-REVIEW-ENV-001', 503);
   }
   const connection = await getFirestoreClient();
   const policy = await getReviewerPrompt(connection.db, input.reviewerPromptId, adminUid);
-  const { response, raw, attempts, model, fallbackUsed, keySlot, keyPoolSize } = await requestGemini(input, policy, keyPool);
+  const { response, raw, attempts, model, fallbackUsed, keySlot, keyPoolSize, keyTrace } = await requestGemini(
+    input,
+    policy,
+    keyPool,
+    connection.db,
+    adminUid
+  );
   if (!response?.ok) {
     const providerCode = upstreamProviderCode(raw);
     console.error(JSON.stringify({
@@ -356,7 +542,15 @@ async function callGemini(input, adminUid) {
       upstreamSafeMessage(status),
       status === 429 ? 'SG-CE-REVIEW-QUOTA-001' : 'SG-CE-REVIEW-GEMINI-001',
       status === 429 ? 429 : 502,
-      { provider: 'gemini', providerStatus: response?.status, providerCode }
+      {
+        provider: 'gemini',
+        providerStatus: response?.status,
+        providerCode,
+        keySlot,
+        keyPoolSize,
+        keyTrace,
+        telemetryId: input.telemetryId
+      }
     );
   }
   let payload;
@@ -380,16 +574,32 @@ async function callGemini(input, adminUid) {
     usage: payload?.usageMetadata || null,
     attempts,
     apiKeySlot: keySlot,
-    apiKeyPoolSize: keyPoolSize
+    apiKeyPoolSize: keyPoolSize,
+    keyTrace,
+    telemetryId: input.telemetryId || null
   };
 }
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return send(res, 405, { success: false, error: { code: 'SG-CE-REVIEW-405', message: 'POST만 허용됩니다.' } });
+  if (!['GET', 'POST'].includes(req.method)) {
+    return send(res, 405, { success: false, error: { code: 'SG-CE-REVIEW-405', message: 'GET/POST만 허용됩니다.' } });
+  }
   let admin;
   try { admin = await requireRagAdmin(req); }
   catch (error) { return send(res, error.httpStatus || 401, { success: false, error: { code: error.code || 'SG-CE-REVIEW-AUTH-001', message: error.message } }); }
+
+  if (req.method === 'GET') {
+    try {
+      const connection = await getFirestoreClient();
+      const pool = geminiKeyPool();
+      const data = await readTelemetry(connection.db, admin.uid, req.query?.telemetryId, pool);
+      return send(res, 200, { success: true, data });
+    } catch (error) {
+      return send(res, 500, { success: false, error: { code: 'SG-CE-REVIEW-TELEMETRY-001', message: 'Reviewer 상태를 읽지 못했습니다.' } });
+    }
+  }
+
   try {
     const input = validateInput(typeof req.body === 'object' && req.body ? req.body : {});
     return send(res, 200, { success: true, data: await callGemini(input, admin.uid) });
@@ -402,7 +612,11 @@ export default async function handler(req, res) {
         httpStatus: error.httpStatus || 500,
         provider: error.provider || null,
         providerStatus: error.providerStatus ?? null,
-        providerCode: error.providerCode || null
+        providerCode: error.providerCode || null,
+        keySlot: error.keySlot ?? null,
+        keyPoolSize: error.keyPoolSize ?? null,
+        keyTrace: error.keyTrace || [],
+        telemetryId: error.telemetryId || null
       }
     });
   }
