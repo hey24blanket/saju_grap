@@ -26,6 +26,17 @@ import {
 import {
   buildRagQuery
 } from '../lib/ragQueryBuilder.js';
+import {
+  buildCounselingExampleSearchQuery,
+  executeCounselingExampleRag,
+  resolveCounselingExampleCategory
+} from '../lib/counselingExampleChatRag.js';
+import {
+  buildCounselingExampleContext,
+  COUNSELING_EXAMPLE_SCHEMA_VERSION,
+  COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+  pickCounselingExampleSearchResults
+} from '../lib/counselingExampleStore.js';
 
 async function testRagPolicy() {
   assert.equal(resolveRagMode({ chat: true, legacyRequired: undefined }), 'optional');
@@ -350,6 +361,205 @@ function testPromptBoundary() {
     counselingState: {}
   });
   assert.match(timingPrompt, /이미 지난 월은 미래 후보에서 제외/);
+  assert.match(timingPrompt, /Counseling examples are behavioral references only/);
+}
+
+function testCounselingExampleChatRag() {
+  const query = buildCounselingExampleSearchQuery({
+    domain: '총운',
+    userMessage: '거래처 정산이 늦을 때 현실적으로 어떻게 대응할까?',
+    history: [
+      { role: 'user', text: '프리랜서로 일하고 있어.' },
+      { role: 'model', text: '현재 구조를 먼저 정리해 볼게요.' },
+      { role: 'user', text: '정산이 자주 늦어져.' }
+    ],
+    sajuContext: { name: '테스트사용자' }
+  }, {
+    intent: { domain: '재물운' }
+  });
+  assert.match(query, /domain: 재물운/);
+  assert.match(query, /question:.*정산/);
+  assert.match(query, /user:.*프리랜서/);
+  assert.equal(resolveCounselingExampleCategory({ domain: '총운' }, { intent: { domain: '연애운' } }), '연애운');
+  assert.equal(resolveCounselingExampleCategory({ domain: '총운' }, null), null);
+
+  const mockExample = {
+    exampleId: 'ex.v2.1',
+    schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+    domain: '재물운',
+    scenarioTitle: '정산 지연',
+    arcType: 'constraint_first',
+    plotPhases: ['opening', 'choice'],
+    strategy: {
+      turnGuidance: [{
+        plotPhase: 'opening',
+        counselingGoal: ['현실 조건 확인'],
+        interpretationBridge: ['Engine Fact는 현재 사용자 것만'],
+        forbiddenInference: ['예시의 가상 수입을 현재 사용자 사실로']
+      }]
+    },
+    turns: [
+      { user: '예시 사용자 질문', assistant: '예시 답변', plotPhase: 'opening' },
+      { user: '후속', assistant: '후속 답', plotPhase: 'choice' }
+    ]
+  };
+  const context = buildCounselingExampleContext([mockExample], { maxExamples: 1 });
+  assert.match(context, /COUNSELING EPISODE EXAMPLE/);
+  assert.match(context, /Never copy its Engine Facts/);
+  assert.match(context, /forbidden=예시의 가상 수입/);
+}
+
+async function testCounselingExampleRagPolicy() {
+  const used = await executeCounselingExampleRag({
+    needed: true,
+    query: '재물운 정산',
+    search: async () => ({
+      preferredSchema: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+      results: [{
+        exampleId: 'mock',
+        schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+        domain: '재물운',
+        scenarioTitle: 'mock',
+        arcType: 'test',
+        plotPhases: [],
+        strategy: { turnGuidance: [{ plotPhase: 'a', counselingGoal: ['goal'], interpretationBridge: [], forbiddenInference: [] }] },
+        turns: [
+          { user: 'u1', assistant: 'a1', plotPhase: 'a' },
+          { user: 'u2', assistant: 'a2', plotPhase: 'b' }
+        ]
+      }]
+    })
+  });
+  assert.equal(used.status, 'used');
+  assert.match(used.contextText, /COUNSELING EPISODE EXAMPLE/);
+
+  const empty = await executeCounselingExampleRag({
+    needed: true,
+    query: '재물운',
+    search: async () => ({ results: [] })
+  });
+  assert.equal(empty.status, 'no_relevant_results');
+  assert.equal(empty.fallbackUsed, true);
+  assert.equal(empty.contextText, '');
+
+  const failed = await executeCounselingExampleRag({
+    needed: true,
+    query: '재물운',
+    search: async () => { throw new Error('firestore down'); }
+  });
+  assert.equal(failed.fallbackUsed, true);
+  assert.equal(failed.contextText, '');
+}
+
+function testV2OnlyExampleSelection() {
+  const v1Only = [{
+    exampleId: 'v1.only',
+    schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION,
+    category: '재물운'
+  }];
+  const v2Hit = [{
+    exampleId: 'v2.one',
+    schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+    domain: '재물운'
+  }];
+
+  const chatPick = pickCounselingExampleSearchResults({
+    v2: [],
+    v1: v1Only,
+    v2Only: true,
+    targetLimit: 3
+  });
+  assert.equal(chatPick.results.length, 0);
+  assert.equal(chatPick.preferredSchema, COUNSELING_EXAMPLE_SCHEMA_VERSION_V2);
+
+  const adminPick = pickCounselingExampleSearchResults({
+    v2: [],
+    v1: v1Only,
+    v2Only: false,
+    targetLimit: 3
+  });
+  assert.equal(adminPick.results.length, 1);
+  assert.equal(adminPick.results[0].exampleId, 'v1.only');
+
+  const v1Context = buildCounselingExampleContext(v1Only, { maxExamples: 1 });
+  assert.match(v1Context, /GOOD RESPONSE/);
+  assert.doesNotMatch(
+    buildCounselingTurnPrompt({
+      userMessage: '어떻게 대응할까?',
+      messageId: 'u-v2',
+      counselingState: {},
+      exampleContextText: ''
+    }),
+    /GOOD RESPONSE/
+  );
+}
+
+async function testExampleRagLimitsAndDiagnostics() {
+  let capturedLimit = null;
+  let capturedV2Only = null;
+  const used = await executeCounselingExampleRag({
+    needed: true,
+    limit: 5,
+    query: '재물운',
+    search: async ({ limit, v2Only }) => {
+      capturedLimit = limit;
+      capturedV2Only = v2Only;
+      return {
+        preferredSchema: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+        results: new Array(5).fill(null).map((_, index) => ({
+          exampleId: `ex-${index}`,
+          schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+          domain: '재물운',
+          scenarioTitle: `scenario-${index}`,
+          arcType: 'arc',
+          plotPhases: ['opening'],
+          strategy: {
+            turnGuidance: [{
+              plotPhase: 'opening',
+              counselingGoal: ['goal'],
+              interpretationBridge: [],
+              forbiddenInference: ['가상 Engine Fact 복사 금지']
+            }]
+          },
+          turns: [
+            { user: 'u1', assistant: 'a1', plotPhase: 'opening' },
+            { user: 'u2', assistant: 'a2', plotPhase: 'opening' }
+          ]
+        }))
+      };
+    }
+  });
+  assert.equal(capturedV2Only, true);
+  assert.equal(capturedLimit, 3);
+  assert.equal(used.status, 'used');
+  assert.ok(used.contextText.length <= 14000);
+  assert.equal((used.contextText.match(/COUNSELING EPISODE EXAMPLE/g) || []).length, 3);
+
+  const res = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    messageId: 'diag-u1',
+    sessionId: 'diag-s1',
+    baseRevision: 0,
+    userMessage: '거래처 정산이 늦을 때 현실적으로 어떻게 대응할까?',
+    history: [],
+    sajuContext: {}
+  }, {
+    callProvider: async () => ({
+      text: JSON.stringify({ reply: 'ok', stateDelta: {} }),
+      provider: 'mock',
+      model: 'mock',
+      usage: null
+    }),
+    searchCounselingExamples: async () => ({ results: [], preferredSchema: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2 })
+  });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.payload.success, true);
+  assert.ok(res.payload.diagnostic.exampleRag);
+  assert.ok(Object.prototype.hasOwnProperty.call(res.payload.diagnostic.exampleRag, 'status'));
+  assert.ok(Object.prototype.hasOwnProperty.call(res.payload.diagnostic.exampleRag, 'fallbackUsed'));
+  assert.equal(res.payload.diagnostic.exampleRag.status, 'no_relevant_results');
 }
 
 function makeResponseRecorder() {
@@ -546,6 +756,96 @@ async function testChatIntegration() {
   assert.equal(capturedMonthQuery.context.cycleType, 'month');
   assert.equal(capturedMonthQuery.facts.activeCycle.cycleType, 'month');
   assert.equal(capturedMonthQuery.facts.activeCycle.month, 9);
+
+  let capturedUserPrompt = '';
+  const exampleChat = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    messageId: 'ex-u1',
+    sessionId: 'ex-s1',
+    baseRevision: 0,
+    userMessage: '거래처 정산이 늦을 때 현실적으로 어떻게 대응할까?',
+    history: [{ role: 'user', text: '프리랜서로 일하고 있어.' }],
+    sajuContext: {
+      engineFacts: {
+        schemaVersion: 'engine_facts_v1',
+        engineVersion: 'test',
+        natal: {},
+        strength: {},
+        usefulGodProfile: {},
+        tenGodProfile: { groups: {} },
+        relations: { items: [] },
+        cycles: { reference: { year: 2026, month: 9 } }
+      }
+    }
+  }, {
+    callProvider: async ({ userPrompt }) => {
+      capturedUserPrompt = userPrompt;
+      return structuredProvider();
+    },
+    retrieveRag: async () => ({
+      results: [{
+        chunkId: 'k1',
+        content: 'Knowledge RAG chunk 내용',
+        retrieval: { finalScore: 0.9 },
+        source: {}
+      }]
+    }),
+    searchCounselingExamples: async ({ query, limit, v2Only }) => {
+      assert.equal(v2Only, true);
+      assert.ok(limit >= 2 && limit <= 3);
+      return {
+        preferredSchema: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+        results: [{
+          exampleId: 'chat-mock',
+          schemaVersion: COUNSELING_EXAMPLE_SCHEMA_VERSION_V2,
+          domain: '재물운',
+          scenarioTitle: '정산 지연',
+          arcType: 'constraint_first',
+          plotPhases: ['opening'],
+          strategy: {
+            turnGuidance: [{
+              plotPhase: 'opening',
+              counselingGoal: ['현실 조건'],
+              interpretationBridge: [],
+              forbiddenInference: ['예시 Engine Fact 복사 금지']
+            }]
+          },
+          turns: [
+            { user: '예시 질문', assistant: '예시 답', plotPhase: 'opening' },
+            { user: '예시 후속', assistant: '예시 후속 답', plotPhase: 'opening' }
+          ]
+        }]
+      };
+    }
+  });
+  assert.equal(exampleChat.statusCode, 200);
+  assert.equal(exampleChat.payload.diagnostic.exampleRag.status, 'used');
+  assert.match(capturedUserPrompt, /\[RAG REFERENCE — KNOWLEDGE\]/);
+  assert.match(capturedUserPrompt, /Knowledge RAG chunk/);
+  assert.match(capturedUserPrompt, /\[COUNSELING EXAMPLE REFERENCES — BEHAVIOR ONLY\]/);
+  assert.match(capturedUserPrompt, /COUNSELING EPISODE EXAMPLE/);
+  assert.match(capturedUserPrompt, /Counseling examples are behavioral references only/);
+  assert.match(capturedUserPrompt, /Never copy their Engine Facts/);
+
+  const exampleFail = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    messageId: 'ex-u2',
+    sessionId: 'ex-s2',
+    baseRevision: 0,
+    userMessage: '거래처 정산이 늦을 때 현실적으로 어떻게 대응할까?',
+    history: [],
+    sajuContext: {}
+  }, {
+    callProvider: structuredProvider,
+    searchCounselingExamples: async () => { throw new Error('embedding failed'); }
+  });
+  assert.equal(exampleFail.statusCode, 200);
+  assert.equal(exampleFail.payload.diagnostic.exampleRag.fallbackUsed, true);
+  assert.notEqual(exampleFail.payload.diagnostic.exampleRag.status, 'used');
 }
 
 async function main() {
@@ -555,6 +855,10 @@ async function main() {
   testCounselingRagQuery();
   testCounselingState();
   testPromptBoundary();
+  testCounselingExampleChatRag();
+  testV2OnlyExampleSelection();
+  await testCounselingExampleRagPolicy();
+  await testExampleRagLimitsAndDiagnostics();
   await testChatIntegration();
   console.log('All counseling prototype tests passed.');
 }

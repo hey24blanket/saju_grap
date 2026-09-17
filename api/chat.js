@@ -52,6 +52,16 @@ import {
   summarizeRagRetrieval
 } from '../lib/ragRetriever.js';
 
+import {
+  buildCounselingExampleSearchQuery,
+  executeCounselingExampleRag,
+  resolveCounselingExampleCategory
+} from '../lib/counselingExampleChatRag.js';
+
+import {
+  searchCounselingExamples
+} from '../lib/counselingExampleStore.js';
+
 const API_VERSION =
   'chat_api_v3_counseling_prototype';
 
@@ -4148,6 +4158,26 @@ export default async function handler(
       false
   };
 
+  let exampleRagRuntime = {
+    status:
+      'not_started',
+
+    required:
+      false,
+
+    query:
+      null,
+
+    retrieval:
+      null,
+
+    contextText:
+      '',
+
+    fallbackUsed:
+      false
+  };
+
   try {
     stage =
       STAGE
@@ -4258,6 +4288,43 @@ export default async function handler(
             )
       });
 
+    if (
+      normalized.mode ===
+        'chat' &&
+      counselingPrototypeEnabled
+    ) {
+      exampleRagRuntime =
+        await executeCounselingExampleRag({
+          needed:
+            shouldRetrieveForChat(
+              normalized.userMessage
+            ),
+
+          timeoutMs:
+            Number.isFinite(
+              runtimeOptions.counselingExampleRagTimeoutMs
+            )
+              ? runtimeOptions.counselingExampleRagTimeoutMs
+              : RAG_TIMEOUT_MS,
+
+          query:
+            buildCounselingExampleSearchQuery(
+              normalized,
+              counselingFactContext
+            ),
+
+          category:
+            resolveCounselingExampleCategory(
+              normalized,
+              counselingFactContext
+            ),
+
+          search:
+            runtimeOptions.searchCounselingExamples ||
+            searchCounselingExamples
+        });
+    }
+
     stage =
       STAGE.PROMPT;
 
@@ -4321,7 +4388,10 @@ export default async function handler(
                 ),
 
               ragContextText:
-                ragRuntime.contextText
+                ragRuntime.contextText,
+
+              exampleContextText:
+                exampleRagRuntime.contextText
             })
         };
       } else {
@@ -4715,6 +4785,27 @@ export default async function handler(
                 retrieval:
                   normalized.includeTrainingTrace
                     ? ragRuntime.retrieval
+                    : null
+              },
+
+              exampleRag: {
+                status:
+                  exampleRagRuntime.status,
+
+                required:
+                  exampleRagRuntime.required,
+
+                fallbackUsed:
+                  exampleRagRuntime.fallbackUsed,
+
+                query:
+                  normalized.includeTrainingTrace
+                    ? exampleRagRuntime.query
+                    : null,
+
+                retrieval:
+                  normalized.includeTrainingTrace
+                    ? exampleRagRuntime.retrieval
                     : null
               },
 
