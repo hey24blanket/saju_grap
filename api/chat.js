@@ -31,6 +31,11 @@ import {
 } from '../lib/counselingFactContext.js';
 
 import {
+  buildCounselingOrchestration,
+  buildCounselingOrchestratorDiagnostic
+} from '../lib/counselingOrchestrator.js';
+
+import {
   executeRagPolicy,
   resolveRagMode,
   shouldRetrieveForChat
@@ -2258,7 +2263,8 @@ async function buildRagRuntimeContext(
     knowledgeLayer = null,
     retrieve = retrieveRag,
     purpose = null,
-    anchor = null
+    anchor = null,
+    userQueryOverride = null
   } = {}
 ) {
   const engineFacts =
@@ -2304,6 +2310,10 @@ async function buildRagRuntimeContext(
     );
 
   const userQuery =
+    cleanText(
+      userQueryOverride,
+      2500
+    ) ||
     buildRagUserQuery(
       normalized
     );
@@ -4158,6 +4168,9 @@ export default async function handler(
       false
   };
 
+  let counselingOrchestration =
+    null;
+
   let exampleRagRuntime = {
     status:
       'not_started',
@@ -4224,6 +4237,26 @@ export default async function handler(
         counselingTimeline:
           counselingFactContext.timeline
       };
+
+      counselingOrchestration =
+        buildCounselingOrchestration({
+          userMessage:
+            normalized.userMessage,
+
+          messageId:
+            normalized.messageId,
+
+          history:
+            normalized.history,
+
+          sajuContext:
+            normalized.sajuContext,
+
+          counselingFactContext,
+
+          selectedDomain:
+            normalized.domain
+        });
     }
 
     promptContext =
@@ -4273,6 +4306,9 @@ export default async function handler(
                   retrieveRag,
 
                 purpose:
+                  counselingOrchestration
+                    ?.ragIntentPatch
+                    ?.purpose ||
                   counselingFactContext
                     ?.intent
                     ?.purpose ||
@@ -4281,9 +4317,21 @@ export default async function handler(
                 anchor:
                   resolveCounselingRagAnchor(
                     normalized,
-                    counselingFactContext
-                      ?.intent
-                  )
+                    counselingOrchestration
+                      ? {
+                          ...counselingFactContext
+                            ?.intent,
+                          ...counselingOrchestration
+                            .ragIntentPatch
+                        }
+                      : counselingFactContext
+                          ?.intent
+                  ),
+
+                userQueryOverride:
+                  counselingOrchestration
+                    ?.knowledgeRagQuery ||
+                  null
               }
             )
       });
@@ -4314,15 +4362,12 @@ export default async function handler(
             ),
 
           category:
-            counselingFactContext
-              ?.intent
-              ?.timelineRequested ===
-              true
-              ? null
-              : resolveCounselingExampleCategory(
-                  normalized,
-                  counselingFactContext
-                ),
+            counselingOrchestration
+              ?.exampleCategory ??
+            resolveCounselingExampleCategory(
+              normalized,
+              counselingFactContext
+            ),
 
           search:
             runtimeOptions.searchCounselingExamples ||
@@ -4392,11 +4437,31 @@ export default async function handler(
                   counselingState
                 ),
 
+              conversationFocus:
+                counselingOrchestration
+                  ?.focus ||
+                null,
+
+              relevantEvidenceText:
+                counselingOrchestration
+                  ?.relevantEvidenceText ||
+                '',
+
               ragContextText:
                 ragRuntime.contextText,
 
               exampleContextText:
-                exampleRagRuntime.contextText
+                exampleRagRuntime.contextText,
+
+              timingGrounded:
+                counselingOrchestration
+                  ?.timingMonthGrounded ??
+                null,
+
+              timingYearGrounded:
+                counselingOrchestration
+                  ?.timingYearGrounded ??
+                null
             })
         };
       } else {
@@ -4825,6 +4890,25 @@ export default async function handler(
                     ? exampleRagRuntime.retrieval
                     : null
               },
+
+              counselingOrchestrator:
+                counselingOrchestration
+                  ? buildCounselingOrchestratorDiagnostic(
+                      {
+                        focus:
+                          counselingOrchestration
+                            .focus,
+
+                        evidencePacket:
+                          counselingOrchestration
+                            .evidencePacket,
+
+                        ragRuntime,
+
+                        exampleRagRuntime
+                      }
+                    )
+                  : null,
 
               timestamp:
                 nowIso()

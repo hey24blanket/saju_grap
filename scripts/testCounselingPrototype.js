@@ -366,8 +366,10 @@ function testPromptBoundary() {
     messageId: 'u3',
     counselingState: {}
   });
-  assert.match(timingPrompt, /이미 지난 월은 미래 후보에서 제외/);
+  assert.match(timingPrompt, /구체적 연·월 단위 근거가 부족합니다|highlight month evidence/);
   assert.match(timingPrompt, /Counseling examples are behavioral references only/);
+  assert.match(timingPrompt, /\[CONVERSATION FOCUS\]/);
+  assert.match(timingPrompt, /\[RELEVANT SAJU EVIDENCE\]/);
 }
 
 function testCounselingExampleChatRag() {
@@ -420,9 +422,10 @@ function testCounselingExampleChatRag() {
     ]
   };
   const context = buildCounselingExampleContext([mockExample], { maxExamples: 1 });
-  assert.match(context, /COUNSELING EPISODE EXAMPLE/);
-  assert.match(context, /Never copy its Engine Facts/);
+  assert.match(context, /COUNSELING STRATEGY EXAMPLE/);
+  assert.match(context, /Strategy only/);
   assert.match(context, /forbidden=예시의 가상 수입/);
+  assert.doesNotMatch(context, /ASSISTANT EXAMPLE/);
 }
 
 async function testCounselingExampleRagPolicy() {
@@ -447,7 +450,8 @@ async function testCounselingExampleRagPolicy() {
     })
   });
   assert.equal(used.status, 'used');
-  assert.match(used.contextText, /COUNSELING EPISODE EXAMPLE/);
+  assert.match(used.contextText, /COUNSELING STRATEGY EXAMPLE/);
+  assert.doesNotMatch(used.contextText, /ASSISTANT EXAMPLE/);
 
   const empty = await executeCounselingExampleRag({
     needed: true,
@@ -621,7 +625,7 @@ async function testExampleRagLimitsAndDiagnostics() {
   assert.equal(capturedLimit, 3);
   assert.equal(used.status, 'used');
   assert.ok(used.contextText.length <= 14000);
-  assert.equal((used.contextText.match(/COUNSELING EPISODE EXAMPLE/g) || []).length, 3);
+  assert.equal((used.contextText.match(/COUNSELING STRATEGY EXAMPLE/g) || []).length, 3);
 
   const res = await callChat({
     mode: 'chat',
@@ -912,10 +916,15 @@ async function testChatIntegration() {
   assert.equal(exampleChat.payload.diagnostic.exampleRag.status, 'used');
   assert.match(capturedUserPrompt, /\[RAG REFERENCE — KNOWLEDGE\]/);
   assert.match(capturedUserPrompt, /Knowledge RAG chunk/);
-  assert.match(capturedUserPrompt, /\[COUNSELING EXAMPLE REFERENCES — BEHAVIOR ONLY\]/);
-  assert.match(capturedUserPrompt, /COUNSELING EPISODE EXAMPLE/);
+  assert.match(capturedUserPrompt, /\[COUNSELING STRATEGY — EXAMPLE RAG\]/);
+  assert.match(capturedUserPrompt, /COUNSELING STRATEGY EXAMPLE/);
   assert.match(capturedUserPrompt, /Counseling examples are behavioral references only/);
-  assert.match(capturedUserPrompt, /Never copy their Engine Facts/);
+  assert.doesNotMatch(capturedUserPrompt, /ASSISTANT EXAMPLE/);
+  assert.ok(exampleChat.payload.diagnostic.counselingOrchestrator);
+  assert.equal(
+    exampleChat.payload.diagnostic.counselingOrchestrator.focus.domain,
+    'wealth'
+  );
 
   const exampleFail = await callChat({
     mode: 'chat',
