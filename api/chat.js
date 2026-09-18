@@ -38,7 +38,9 @@ import {
 import {
   executeRagPolicy,
   resolveRagMode,
-  shouldRetrieveForChat
+  shouldRetrieveForChat,
+  shouldRetrieveKnowledgeForFocus,
+  shouldRetrieveExampleStrategyForFocus
 } from '../lib/counselingRagPolicy.js';
 
 import {
@@ -66,6 +68,10 @@ import {
 import {
   searchCounselingExamples
 } from '../lib/counselingExampleStore.js';
+
+import {
+  stripChallengedUserFactsFromDelta
+} from '../lib/correctionTranscriptAudit.js';
 
 const API_VERSION =
   'chat_api_v3_counseling_prototype';
@@ -4277,8 +4283,26 @@ export default async function handler(
         needed:
           normalized.mode !==
             'chat' ||
-          shouldRetrieveForChat(
-            normalized.userMessage
+          (
+            counselingPrototypeEnabled &&
+            counselingOrchestration
+              ? shouldRetrieveKnowledgeForFocus(
+                  {
+                    focus:
+                      counselingOrchestration
+                        .focus,
+
+                    evidencePacket:
+                      counselingOrchestration
+                        .evidencePacket,
+
+                    userMessage:
+                      normalized.userMessage
+                  }
+                )
+              : shouldRetrieveForChat(
+                  normalized.userMessage
+                )
           ),
 
         timeoutMs:
@@ -4344,9 +4368,20 @@ export default async function handler(
       exampleRagRuntime =
         await executeCounselingExampleRag({
           needed:
-            shouldRetrieveForChat(
-              normalized.userMessage
-            ),
+            counselingOrchestration
+              ? shouldRetrieveExampleStrategyForFocus(
+                  {
+                    focus:
+                      counselingOrchestration
+                        .focus,
+
+                    userMessage:
+                      normalized.userMessage
+                  }
+                )
+              : shouldRetrieveForChat(
+                  normalized.userMessage
+                ),
 
           timeoutMs:
             Number.isFinite(
@@ -4358,7 +4393,10 @@ export default async function handler(
           query:
             buildCounselingExampleSearchQuery(
               normalized,
-              counselingFactContext
+              counselingFactContext,
+              counselingOrchestration
+                ?.focus ||
+                null
             ),
 
           category:
@@ -4476,6 +4514,11 @@ export default async function handler(
               timingFallbackLevel:
                 counselingOrchestration
                   ?.timingFallbackLevel ??
+                null,
+
+              correctionAudit:
+                counselingOrchestration
+                  ?.correctionAudit ||
                 null
             })
         };
@@ -4725,8 +4768,13 @@ export default async function handler(
             counselingState,
 
           delta:
-            counselingResult
-              .stateDelta,
+            stripChallengedUserFactsFromDelta(
+              counselingResult
+                .stateDelta,
+              counselingOrchestration
+                ?.correctionAudit ||
+                null
+            ),
 
           sessionId:
             normalized.sessionId,
@@ -4920,7 +4968,11 @@ export default async function handler(
 
                         ragRuntime,
 
-                        exampleRagRuntime
+                        exampleRagRuntime,
+
+                        correctionAudit:
+                          counselingOrchestration
+                            .correctionAudit
                       }
                     )
                   : null,

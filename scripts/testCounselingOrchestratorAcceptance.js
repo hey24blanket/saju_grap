@@ -19,6 +19,15 @@ import {
   buildCounselingOrchestratorDiagnostic
 } from '../lib/counselingOrchestrator.js';
 import {
+  buildCorrectionTranscriptAudit,
+  stripChallengedUserFactsFromDelta
+} from '../lib/correctionTranscriptAudit.js';
+import {
+  shouldRetrieveForChat,
+  shouldRetrieveKnowledgeForFocus,
+  shouldRetrieveExampleStrategyForFocus
+} from '../lib/counselingRagPolicy.js';
+import {
   buildCounselingFactContext
 } from '../lib/counselingFactContext.js';
 import {
@@ -29,6 +38,7 @@ import {
   buildCounselingTurnPrompt
 } from '../lib/counselingPrompt.js';
 import {
+  buildCounselingExampleSearchQuery,
   executeCounselingExampleRag
 } from '../lib/counselingExampleChatRag.js';
 
@@ -140,6 +150,125 @@ function testAcceptanceCorrectionTask() {
   });
   assert.equal(focus.task, 'correction');
   assert.equal(focus.domain, 'wealth');
+}
+
+function testAcceptanceGeneralFollowUpInheritsWealth() {
+  const history = [
+    { id: 'u1', role: 'user', text: '내 금전운은 언제 좀 풀릴까요?' },
+    { id: 'a1', role: 'model', text: '연애 얘기는 하지 않았습니다. 단번에 풀린다고 보기 어렵습니다.' },
+    { id: 'u2', role: 'user', text: '그렇게 보는 명리적인 이유는 뭐야?' },
+    { id: 'a2', role: 'model', text: '주변 에너지가 강한 구조입니다.' },
+    { id: 'u3', role: 'user', text: '그럼 현실에서는 뭘 먼저 확인해야 해?' },
+    { id: 'a3', role: 'model', text: '수입과 지출이 고정인지 보면 됩니다.' }
+  ];
+
+  const t5 = orchestrateTurn({
+    userMessage: '그러면 지금 내 사주에서 실제로 중요하게 봐야 할 건 뭐야?',
+    messageId: 'u5',
+    history
+  });
+  assert.equal(t5.focus.domain, 'wealth');
+  assert.equal(t5.focus.task, 'general');
+  assert.equal(t5.focus.inherited, true);
+  assert.ok(t5.evidencePacket.evidence.some((item) => item.scope === 'natal'));
+  assert.ok(t5.evidencePacket.evidence.some((item) => item.scope === 'daewoon'));
+
+  const nowFocus = buildCounselingConversationFocus({
+    userMessage: '그럼 지금은?',
+    messageId: 'u-now',
+    history: [{ id: 'u1', role: 'user', text: '내 금전운은 언제 풀릴까요?' }]
+  });
+  assert.equal(nowFocus.domain, 'wealth');
+  assert.equal(nowFocus.task, 'general');
+  assert.equal(nowFocus.inherited, true);
+
+  const explicit = buildCounselingConversationFocus({
+    userMessage: '그러면 내 연애운은 어때?',
+    messageId: 'u-love',
+    history: [{ id: 'u1', role: 'user', text: '내 금전운은 언제 풀릴까요?' }]
+  });
+  assert.equal(explicit.domain, 'romance');
+  assert.equal(explicit.inherited, false);
+}
+
+function testCorrectionTranscriptAudit() {
+  const challenge = '내가 그런 정산 문제 있다고 말한 적 없는데?';
+  const missing = buildCorrectionTranscriptAudit({
+    userMessage: challenge,
+    history: [
+      { id: 'u1', role: 'user', text: '내 금전운은 언제 좀 풀릴까요?' },
+      { id: 'a1', role: 'model', text: '돈의 흐름이 단번에 풀린다고 보기 어렵습니다.' }
+    ]
+  });
+  assert.deepEqual(missing.challengedTerms, ['정산 문제']);
+  assert.equal(missing.priorAssistantMatch, false);
+  assert.deepEqual(missing.matchedAssistantMessageIds, []);
+
+  const present = buildCorrectionTranscriptAudit({
+    userMessage: challenge,
+    history: [
+      { id: 'a1', role: 'model', text: '정산이 늦어지는 구조로 보입니다.' }
+    ]
+  });
+  assert.equal(present.priorAssistantMatch, true);
+  assert.deepEqual(present.matchedAssistantMessageIds, ['a1']);
+
+  const noStore = stripChallengedUserFactsFromDelta({
+    observations: [
+      { text: '사용자는 정산 문제가 있다.', sourceMessageIds: ['u4'] },
+      { text: '금전 흐름이 답답하다.', sourceMessageIds: ['u4'] }
+    ]
+  }, missing);
+  assert.equal(noStore.observations.length, 1);
+  assert.match(noStore.observations[0].text, /금전 흐름/);
+
+  const prompt = buildCounselingTurnPrompt({
+    userMessage: challenge,
+    messageId: 'u4',
+    counselingState: {},
+    conversationFocus: { domain: 'wealth', task: 'correction', inherited: false },
+    correctionAudit: missing
+  });
+  assert.match(prompt, /\[CORRECTION AUDIT\]/);
+  assert.match(prompt, /priorAssistantMatch": false/);
+  assert.match(prompt, /허위로 인정하지 마세요/);
+  assert.doesNotMatch(prompt, /제가 앞서 정산 문제라고 말했습니다/);
+}
+
+function testKnowledgeAndExampleRagFocusRouting() {
+  assert.equal(shouldRetrieveForChat('ㅎㅎ'), false);
+  assert.equal(shouldRetrieveKnowledgeForFocus({
+    focus: { domain: 'wealth', task: 'explanation', inherited: true },
+    userMessage: 'ㅎㅎ'
+  }), true);
+  assert.equal(shouldRetrieveKnowledgeForFocus({
+    focus: { domain: 'wealth', task: 'reality_bridge', inherited: true },
+    userMessage: 'ㅎㅎ'
+  }), true);
+  assert.equal(shouldRetrieveKnowledgeForFocus({
+    focus: { domain: 'wealth', task: 'general', inherited: true },
+    evidencePacket: { evidence: [{ scope: 'natal' }] },
+    userMessage: 'ㅎㅎ'
+  }), true);
+  assert.equal(shouldRetrieveKnowledgeForFocus({
+    focus: { domain: 'all', task: 'general', inherited: false },
+    userMessage: '고마워'
+  }), false);
+  assert.equal(shouldRetrieveExampleStrategyForFocus({
+    focus: { domain: 'wealth', task: 'correction' },
+    userMessage: 'ㅎㅎ'
+  }), true);
+  assert.equal(shouldRetrieveExampleStrategyForFocus({
+    focus: { domain: 'all', task: 'general' },
+    userMessage: '고마워'
+  }), false);
+
+  const query = buildCounselingExampleSearchQuery({
+    domain: '총운',
+    userMessage: '그렇게 보는 명리적인 이유는 뭐야?',
+    history: []
+  }, { intent: { domain: '재물운' } }, { domain: 'wealth', task: 'explanation' });
+  assert.match(query, /focus domain=wealth task=explanation/);
 }
 
 function testAcceptanceRealityBridgeColdStart() {
@@ -555,6 +684,9 @@ function testDirectionInferenceUsesBalanceImpactOnly() {
 async function main() {
   testAcceptanceFlowWealthTimingFollowUps();
   testAcceptanceCorrectionTask();
+  testAcceptanceGeneralFollowUpInheritsWealth();
+  testCorrectionTranscriptAudit();
+  testKnowledgeAndExampleRagFocusRouting();
   testAcceptanceRealityBridgeColdStart();
   testKnowledgeRagQueryUsesFocusAndEvidence();
   testExampleStrategyOnlyContext();

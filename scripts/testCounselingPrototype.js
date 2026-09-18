@@ -370,6 +370,20 @@ function testPromptBoundary() {
   assert.match(timingPrompt, /Counseling examples are behavioral references only/);
   assert.match(timingPrompt, /\[CONVERSATION FOCUS\]/);
   assert.match(timingPrompt, /\[RELEVANT SAJU EVIDENCE\]/);
+
+  const correctionPrompt = buildCounselingTurnPrompt({
+    userMessage: '내가 그런 정산 문제 있다고 말한 적 없는데?',
+    messageId: 'u4',
+    counselingState: {},
+    conversationFocus: { domain: 'wealth', task: 'correction', inherited: false },
+    correctionAudit: {
+      challengedTerms: ['정산 문제'],
+      priorAssistantMatch: false,
+      matchedAssistantMessageIds: []
+    }
+  });
+  assert.match(correctionPrompt, /\[CORRECTION AUDIT\]/);
+  assert.match(correctionPrompt, /허위로 인정하지 마세요/);
 }
 
 function testCounselingExampleChatRag() {
@@ -388,6 +402,7 @@ function testCounselingExampleChatRag() {
   assert.match(query, /domain: wealth/);
   assert.match(query, /question:.*정산/);
   assert.match(query, /user:.*프리랜서/);
+  assert.match(query, /focus domain=wealth task=general/);
   assert.equal(mapChatDomainToV2ExampleDomain('재물운'), 'wealth');
   assert.equal(mapChatDomainToV2ExampleDomain('사업운'), 'career');
   assert.equal(mapChatDomainToV2ExampleDomain('연애운'), 'romance');
@@ -945,6 +960,96 @@ async function testChatIntegration() {
   assert.notEqual(exampleFail.payload.diagnostic.exampleRag.status, 'used');
 }
 
+async function testFocusRagRoutingAndCorrectionStrip() {
+  const sajuContext = analyzeFixture(2026);
+  const structuredProvider = async (reply = '정리해 볼게요.') => ({
+    text: JSON.stringify({
+      reply,
+      stateDelta: {
+        observations: [{ text: '정산 문제가 있다.', sourceMessageIds: ['u4'] }]
+      }
+    }),
+    provider: 'mock',
+    model: 'mock-counselor',
+    usage: { input_tokens: 1, output_tokens: 1 }
+  });
+
+  const explanation = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    domain: '총운',
+    messageId: 'u2',
+    sessionId: 'focus-s1',
+    baseRevision: 0,
+    userMessage: '그렇게 보는 명리적인 이유는 뭐야?',
+    history: [{ id: 'u1', role: 'user', text: '내 금전운은 언제 좀 풀릴까요?' }],
+    sajuContext
+  }, {
+    callProvider: () => structuredProvider(),
+    retrieveRag: async () => ({ results: [] }),
+    searchCounselingExamples: async () => ({ results: [] })
+  });
+  assert.equal(explanation.statusCode, 200);
+  assert.equal(explanation.payload.diagnostic.counselingOrchestrator.focus.domain, 'wealth');
+  assert.equal(explanation.payload.diagnostic.counselingOrchestrator.focus.task, 'explanation');
+  assert.notEqual(explanation.payload.diagnostic.rag.status, 'skipped_not_needed');
+  assert.notEqual(explanation.payload.diagnostic.exampleRag.status, 'skipped_not_needed');
+
+  const reality = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    domain: '총운',
+    messageId: 'u3',
+    sessionId: 'focus-s2',
+    baseRevision: 0,
+    userMessage: '그럼 현실에서는 뭘 먼저 확인해야 해?',
+    history: [
+      { id: 'u1', role: 'user', text: '내 금전운은 언제 좀 풀릴까요?' },
+      { id: 'u2', role: 'user', text: '그렇게 보는 명리적인 이유는 뭐야?' }
+    ],
+    sajuContext
+  }, {
+    callProvider: () => structuredProvider(),
+    retrieveRag: async () => ({ results: [] }),
+    searchCounselingExamples: async () => ({ results: [] })
+  });
+  assert.equal(reality.payload.diagnostic.counselingOrchestrator.focus.task, 'reality_bridge');
+  assert.notEqual(reality.payload.diagnostic.rag.status, 'skipped_not_needed');
+  assert.notEqual(reality.payload.diagnostic.exampleRag.status, 'skipped_not_needed');
+
+  const correction = await callChat({
+    mode: 'chat',
+    provider: 'gemini',
+    ragMode: 'optional',
+    domain: '총운',
+    messageId: 'u4',
+    sessionId: 'focus-s3',
+    baseRevision: 0,
+    userMessage: '내가 그런 정산 문제 있다고 말한 적 없는데?',
+    history: [
+      { id: 'u1', role: 'user', text: '내 금전운은 언제 좀 풀릴까요?' },
+      { id: 'a1', role: 'model', text: '돈의 흐름이 단번에 풀린다고 보기 어렵습니다.' }
+    ],
+    sajuContext
+  }, {
+    callProvider: () => structuredProvider('제가 정산 문제라고 섣부르게 짚었습니다.'),
+    retrieveRag: async () => ({ results: [] }),
+    searchCounselingExamples: async () => ({ results: [] })
+  });
+  assert.equal(correction.payload.diagnostic.counselingOrchestrator.focus.task, 'correction');
+  assert.equal(
+    correction.payload.diagnostic.counselingOrchestrator.correctionAudit.priorAssistantMatch,
+    false
+  );
+  assert.equal(
+    (correction.payload.counselingState.observations || []).some((item) => /정산/.test(item.text)),
+    false
+  );
+  assert.notEqual(correction.payload.diagnostic.exampleRag.status, 'skipped_not_needed');
+}
+
 async function main() {
   await testRagPolicy();
   testCounselingFactContext();
@@ -958,6 +1063,7 @@ async function main() {
   await testCounselingExampleRagPolicy();
   await testExampleRagLimitsAndDiagnostics();
   await testChatIntegration();
+  await testFocusRagRoutingAndCorrectionStrip();
   console.log('All counseling prototype tests passed.');
 }
 
