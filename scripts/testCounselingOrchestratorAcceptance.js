@@ -217,6 +217,20 @@ function testCorrectionTranscriptAudit() {
   assert.equal(present.priorAssistantMatch, true);
   assert.deepEqual(present.matchedAssistantMessageIds, ['a1']);
 
+  const bridgeQuestion = buildCorrectionTranscriptAudit({
+    userMessage: challenge,
+    history: [
+      {
+        id: 'a3',
+        role: 'model',
+        text:
+          '마감 조건을 점검해보세요. 혹시 요즘 들어오는 제안 중에서 마감이나 정산 조건이 불명확하게 느껴지는 부분이 있으신가요?'
+      }
+    ]
+  });
+  assert.equal(bridgeQuestion.priorAssistantMatch, false);
+  assert.deepEqual(bridgeQuestion.matchedAssistantMessageIds, []);
+
   const noStore = stripChallengedUserFactsFromDelta({
     observations: [
       { text: '사용자는 정산 문제가 있다.', sourceMessageIds: ['u4'] },
