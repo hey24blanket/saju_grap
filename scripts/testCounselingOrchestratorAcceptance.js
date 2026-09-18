@@ -364,6 +364,15 @@ function testKnowledgeAndExampleRagFocusRouting() {
     focus: { domain: 'all', task: 'general' },
     userMessage: '고마워'
   }), false);
+  assert.equal(shouldRetrieveKnowledgeForFocus({
+    focus: { domain: 'career', task: 'general', inherited: false },
+    evidencePacket: { evidence: [{ scope: 'natal' }] },
+    userMessage: '요즘 회사를 계속 다녀야 할지 고민돼.'
+  }), true);
+  assert.equal(shouldRetrieveExampleStrategyForFocus({
+    focus: { domain: 'relationships', task: 'general', inherited: false },
+    userMessage: '사람 관계가 자꾸 꼬이는 느낌이야.'
+  }), true);
 
   const query = buildCounselingExampleSearchQuery({
     domain: '총운',
@@ -783,6 +792,60 @@ function testDirectionInferenceUsesBalanceImpactOnly() {
   }, 'wealth').score >= 2);
 }
 
+function testCrossDomainFocusRouting() {
+  const careerT1 = buildCounselingConversationFocus({
+    userMessage: '요즘 회사를 계속 다녀야 할지 고민돼.',
+    messageId: 'c1'
+  });
+  assert.equal(careerT1.domain, 'career');
+  assert.equal(careerT1.task, 'general');
+  assert.equal(careerT1.inherited, false);
+
+  const relT1 = buildCounselingConversationFocus({
+    userMessage: '사람 관계가 자꾸 꼬이는 느낌이야.',
+    messageId: 'r1'
+  });
+  assert.equal(relT1.domain, 'relationships');
+
+  const relT2 = buildCounselingConversationFocus({
+    userMessage: '사주에서 그렇게 볼 근거가 있어?',
+    messageId: 'r2',
+    history: [
+      { id: 'r1', role: 'user', text: '사람 관계가 자꾸 꼬이는 느낌이야.' }
+    ]
+  });
+  assert.equal(relT2.domain, 'relationships');
+  assert.equal(relT2.task, 'explanation');
+  assert.equal(relT2.inherited, true);
+
+  const familyFocus = buildCounselingConversationFocus({
+    userMessage: '가족 문제 때문에 마음이 복잡해.',
+    messageId: 'f1'
+  });
+  assert.equal(familyFocus.domain, 'family');
+  assert.notEqual(familyFocus.domain, 'health');
+
+  const romanceFocus = buildCounselingConversationFocus({
+    userMessage: '연애 때문에 마음이 복잡해.',
+    messageId: 'ro1'
+  });
+  assert.equal(romanceFocus.domain, 'romance');
+  assert.notEqual(romanceFocus.domain, 'health');
+
+  const healthFocus = buildCounselingConversationFocus({
+    userMessage: '요즘 몸이 아프고 잠도 못 자서 마음이 힘들어.',
+    messageId: 'h1'
+  });
+  assert.equal(healthFocus.domain, 'health');
+
+  const wealthRegression = buildCounselingConversationFocus({
+    userMessage: '내 금전운은 언제 좀 풀릴까요?',
+    messageId: 'w1'
+  });
+  assert.equal(wealthRegression.domain, 'wealth');
+  assert.equal(wealthRegression.task, 'timing');
+}
+
 async function main() {
   testAcceptanceFlowWealthTimingFollowUps();
   testAcceptanceCorrectionTask();
@@ -793,6 +856,7 @@ async function main() {
   testCorrectionReplyControlPreventsHistoryContamination();
   testCorrectionChallengedTermNotStored();
   testKnowledgeAndExampleRagFocusRouting();
+  testCrossDomainFocusRouting();
   testAcceptanceRealityBridgeColdStart();
   testKnowledgeRagQueryUsesFocusAndEvidence();
   testExampleStrategyOnlyContext();
