@@ -71,7 +71,8 @@ import {
 
 import {
   stripChallengedUserFactsFromDelta,
-  finalizeCorrectionReply
+  finalizeCorrectionReply,
+  enforceTranscriptConsistentReply
 } from '../lib/correctionTranscriptAudit.js';
 
 const API_VERSION =
@@ -4787,6 +4788,13 @@ export default async function handler(
                 'none'
             };
 
+      let visibleReply =
+        enforceTranscriptConsistentReply(
+          finalizedReply.reply,
+          normalized.history,
+          normalized.userMessage
+        );
+
       const stateUpdate =
         applyCounselingStateDelta({
           state:
@@ -4833,7 +4841,7 @@ export default async function handler(
               true,
 
             reply:
-              finalizedReply.reply,
+              visibleReply,
 
             counselingState:
               stateUpdate.state,

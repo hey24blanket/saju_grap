@@ -23,7 +23,8 @@ import {
   stripChallengedUserFactsFromDelta,
   finalizeCorrectionReply,
   containsFalsePriorAdmission,
-  buildCorrectionNoPriorMatchFrame
+  buildCorrectionNoPriorMatchFrame,
+  enforceTranscriptConsistentReply
 } from '../lib/correctionTranscriptAudit.js';
 import {
   shouldRetrieveForChat,
@@ -298,6 +299,14 @@ function testCorrectionReplyControlPreventsHistoryContamination() {
     historyAfterT4.find((item) => item.id === 'a4').text,
     /제가\s*.*정산/
   );
+
+  const t5Reply = enforceTranscriptConsistentReply(
+    '앞서 제가 정산 문제를 짚어냈다고 사과드립니다. wealth focus reply',
+    historyAfterT4,
+    '그러면 지금 내 사주에서 실제로 중요하게 봐야 할 건 뭐야?'
+  );
+  assert.equal(containsFalsePriorAdmission(t5Reply, audit), false);
+  assert.doesNotMatch(t5Reply, /정산/);
 }
 
 function testCorrectionChallengedTermNotStored() {
