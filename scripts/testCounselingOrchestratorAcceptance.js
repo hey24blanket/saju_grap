@@ -26,6 +26,7 @@ import {
   buildCorrectionNoPriorMatchFrame,
   enforceTranscriptConsistentReply
 } from '../lib/correctionTranscriptAudit.js';
+import { buildIssueOverlap } from '../lib/counselingIssueOverlap.js';
 import {
   shouldRetrieveForChat,
   shouldRetrieveKnowledgeForFocus,
@@ -846,6 +847,64 @@ function testCrossDomainFocusRouting() {
   assert.equal(wealthRegression.task, 'timing');
 }
 
+function testIssueOverlapScenarios() {
+  function overlapFor(message) {
+    const turn = orchestrateTurn({ userMessage: message, messageId: 'u', history: [] });
+    return buildIssueOverlap({
+      userMessage: message,
+      focus: turn.focus,
+      evidencePacket: turn.evidencePacket
+    });
+  }
+
+  const caseA = overlapFor('올해 금전운 언제 좀 나아져?');
+  assert.equal(caseA.mode, 'simple');
+  assert.equal(caseA.strands.length, 0);
+
+  const caseB = overlapFor(
+    '요즘 일은 너무 많은데\n내가 이렇게까지 해도 회사에서 인정받는 느낌이 없어서\n그만두야 하나 싶어.'
+  );
+  assert.equal(caseB.mode, 'compound');
+  assert.ok(caseB.strands.length >= 2 && caseB.strands.length <= 3);
+  assert.ok(caseB.strands.some((s) => s.kind === 'reality' && s.grounding === 'user'));
+  assert.ok(
+    caseB.strands.some(
+      (s) =>
+        (s.kind === 'interpretation' || s.kind === 'emotion') &&
+        s.grounding === 'user'
+    )
+  );
+
+  const caseC = overlapFor(
+    '친구가 요즘 연락도 잘 안 하고\n나도 서운해서 먼저 연락하기 싫어.'
+  );
+  assert.equal(caseC.mode, 'compound');
+  assert.ok(caseC.strands.some((s) => s.kind === 'reality'));
+  assert.ok(caseC.strands.some((s) => s.kind === 'emotion'));
+
+  const caseD = overlapFor(
+    '부모님 일은 내가 챙겨야 할 것 같은데\n계속 내가 다 하는 게 너무 답답해.'
+  );
+  assert.equal(caseD.mode, 'compound');
+
+  const caseE = overlapFor('내 사주에서 재성이 강한 편이야?');
+  assert.equal(caseE.mode, 'simple');
+
+  const caseF = overlapFor('요즘 그냥 다 싫어.');
+  assert.equal(caseF.mode, 'uncertain');
+  assert.equal(caseF.strands.length, 0);
+
+  const compoundPrompt = buildCounselingTurnPrompt({
+    userMessage: caseB ? 'x' : '',
+    messageId: 'b1',
+    counselingState: {},
+    conversationFocus: { domain: 'career', task: 'general', inherited: false },
+    issueOverlap: caseB
+  });
+  assert.match(compoundPrompt, /\[ISSUE OVERLAP/);
+  assert.doesNotMatch(compoundPrompt, /현실적으로는/);
+}
+
 async function main() {
   testAcceptanceFlowWealthTimingFollowUps();
   testAcceptanceCorrectionTask();
@@ -857,6 +916,7 @@ async function main() {
   testCorrectionChallengedTermNotStored();
   testKnowledgeAndExampleRagFocusRouting();
   testCrossDomainFocusRouting();
+  testIssueOverlapScenarios();
   testAcceptanceRealityBridgeColdStart();
   testKnowledgeRagQueryUsesFocusAndEvidence();
   testExampleStrategyOnlyContext();
