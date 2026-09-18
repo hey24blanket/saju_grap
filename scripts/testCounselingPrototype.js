@@ -383,7 +383,7 @@ function testPromptBoundary() {
     }
   });
   assert.match(correctionPrompt, /\[CORRECTION AUDIT\]/);
-  assert.match(correctionPrompt, /허위로 인정하지 마세요/);
+  assert.match(correctionPrompt, /서버가 correction frame을 확정합니다/);
 }
 
 function testCounselingExampleChatRag() {
@@ -1047,6 +1047,10 @@ async function testFocusRagRoutingAndCorrectionStrip() {
     (correction.payload.counselingState.observations || []).some((item) => /정산/.test(item.text)),
     false
   );
+  assert.match(correction.payload.reply, /확인하신 사실로 남아 있지 않습니다/);
+  assert.match(correction.payload.reply, /전제를 사용하지 않겠습니다/);
+  assert.doesNotMatch(correction.payload.reply, /제가\s*.*정산/);
+  assert.doesNotMatch(correction.payload.reply, /혼란을\s*드려.*죄송/);
   assert.notEqual(correction.payload.diagnostic.exampleRag.status, 'skipped_not_needed');
 }
 

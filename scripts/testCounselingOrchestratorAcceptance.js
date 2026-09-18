@@ -20,7 +20,10 @@ import {
 } from '../lib/counselingOrchestrator.js';
 import {
   buildCorrectionTranscriptAudit,
-  stripChallengedUserFactsFromDelta
+  stripChallengedUserFactsFromDelta,
+  finalizeCorrectionReply,
+  containsFalsePriorAdmission,
+  buildCorrectionNoPriorMatchFrame
 } from '../lib/correctionTranscriptAudit.js';
 import {
   shouldRetrieveForChat,
@@ -231,8 +234,84 @@ function testCorrectionTranscriptAudit() {
   });
   assert.match(prompt, /\[CORRECTION AUDIT\]/);
   assert.match(prompt, /priorAssistantMatch": false/);
-  assert.match(prompt, /허위로 인정하지 마세요/);
+  assert.match(prompt, /서버가 correction frame을 확정합니다/);
   assert.doesNotMatch(prompt, /제가 앞서 정산 문제라고 말했습니다/);
+}
+
+function testCorrectionReplyControlFalseMatch() {
+  const audit = buildCorrectionTranscriptAudit({
+    userMessage: '내가 그런 정산 문제 있다고 말한 적 없는데?',
+    history: [
+      { id: 'a1', role: 'model', text: '돈의 흐름이 단번에 풀린다고 보기 어렵습니다.' }
+    ]
+  });
+  assert.equal(audit.priorAssistantMatch, false);
+
+  const badReply =
+    '제가 앞서 그런 정산 문제를 전제로 말씀드렸군요. 확인해 보니 그 부분은 제가 먼저 짚어낸 내용이었습니다. 혼란을 드려 죄송합니다.';
+
+  const finalized = finalizeCorrectionReply(badReply, audit);
+  assert.equal(finalized.correctionFrameApplied, true);
+  assert.equal(finalized.frameMode, 'no_prior_match');
+  assert.equal(containsFalsePriorAdmission(finalized.reply, audit), false);
+  assert.match(finalized.reply, /사용자께서 확인하신 사실로 남아 있지 않습니다/);
+  assert.match(finalized.reply, /전제를 사용하지 않겠습니다/);
+  assert.doesNotMatch(finalized.reply, /정산/);
+  assert.doesNotMatch(finalized.reply, /제가\s*먼저\s*짚/);
+}
+
+function testCorrectionReplyControlTrueMatch() {
+  const audit = buildCorrectionTranscriptAudit({
+    userMessage: '내가 그런 정산 문제 있다고 말한 적 없는데?',
+    history: [
+      { id: 'a1', role: 'model', text: '정산 지연이 문제입니다.' }
+    ]
+  });
+  assert.equal(audit.priorAssistantMatch, true);
+
+  const reply =
+    '앞서 정산 지연을 문제로 말씀드린 부분은 제 추론이 앞섰습니다. 그 전제는 철회하겠습니다.';
+
+  const finalized = finalizeCorrectionReply(reply, audit);
+  assert.equal(finalized.frameMode, 'prior_match');
+  assert.equal(finalized.reply, reply);
+  assert.match(finalized.reply, /철회/);
+}
+
+function testCorrectionReplyControlPreventsHistoryContamination() {
+  const audit = buildCorrectionTranscriptAudit({
+    userMessage: '내가 그런 정산 문제 있다고 말한 적 없는데?',
+    history: [{ id: 'a1', role: 'model', text: '금전 흐름을 살펴보겠습니다.' }]
+  });
+  const t4Reply = finalizeCorrectionReply(
+    '제가 정산 문제라고 짚었습니다. 혼란을 드려 죄송합니다. 금전 흐름을 이어가겠습니다.',
+    audit
+  ).reply;
+
+  const historyAfterT4 = [
+    { id: 'u4', role: 'user', text: '내가 그런 정산 문제 있다고 말한 적 없는데?' },
+    { id: 'a4', role: 'model', text: t4Reply }
+  ];
+  assert.equal(containsFalsePriorAdmission(t4Reply, audit), false);
+  assert.doesNotMatch(t4Reply, /정산/);
+  assert.doesNotMatch(
+    historyAfterT4.find((item) => item.id === 'a4').text,
+    /제가\s*.*정산/
+  );
+}
+
+function testCorrectionChallengedTermNotStored() {
+  const audit = buildCorrectionTranscriptAudit({
+    userMessage: '내가 그런 정산 문제 있다고 말한 적 없는데?',
+    history: []
+  });
+  const delta = stripChallengedUserFactsFromDelta({
+    observations: [{ text: '사용자는 정산 문제가 있다.', sourceMessageIds: ['u4'] }],
+    goals: [{ text: '정산 문제를 해결하고 싶다.', sourceMessageIds: ['u4'] }]
+  }, audit);
+  assert.equal(delta.observations.length, 0);
+  assert.equal(delta.goals.length, 0);
+  assert.ok(buildCorrectionNoPriorMatchFrame(audit).length > 20);
 }
 
 function testKnowledgeAndExampleRagFocusRouting() {
@@ -686,6 +765,10 @@ async function main() {
   testAcceptanceCorrectionTask();
   testAcceptanceGeneralFollowUpInheritsWealth();
   testCorrectionTranscriptAudit();
+  testCorrectionReplyControlFalseMatch();
+  testCorrectionReplyControlTrueMatch();
+  testCorrectionReplyControlPreventsHistoryContamination();
+  testCorrectionChallengedTermNotStored();
   testKnowledgeAndExampleRagFocusRouting();
   testAcceptanceRealityBridgeColdStart();
   testKnowledgeRagQueryUsesFocusAndEvidence();

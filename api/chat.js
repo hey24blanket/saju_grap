@@ -70,7 +70,8 @@ import {
 } from '../lib/counselingExampleStore.js';
 
 import {
-  stripChallengedUserFactsFromDelta
+  stripChallengedUserFactsFromDelta,
+  finalizeCorrectionReply
 } from '../lib/correctionTranscriptAudit.js';
 
 const API_VERSION =
@@ -4762,6 +4763,30 @@ export default async function handler(
             .text
         );
 
+      const correctionAudit =
+        counselingOrchestration
+          ?.correctionAudit ||
+        null;
+
+      const finalizedReply =
+        counselingOrchestration
+          ?.focus
+          ?.task ===
+          'correction' &&
+        correctionAudit
+          ? finalizeCorrectionReply(
+              counselingResult.reply,
+              correctionAudit
+            )
+          : {
+              reply:
+                counselingResult.reply,
+              correctionFrameApplied:
+                false,
+              frameMode:
+                'none'
+            };
+
       const stateUpdate =
         applyCounselingStateDelta({
           state:
@@ -4771,9 +4796,7 @@ export default async function handler(
             stripChallengedUserFactsFromDelta(
               counselingResult
                 .stateDelta,
-              counselingOrchestration
-                ?.correctionAudit ||
-                null
+              correctionAudit
             ),
 
           sessionId:
@@ -4810,7 +4833,7 @@ export default async function handler(
               true,
 
             reply:
-              counselingResult.reply,
+              finalizedReply.reply,
 
             counselingState:
               stateUpdate.state,
