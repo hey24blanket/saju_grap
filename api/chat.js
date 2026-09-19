@@ -4526,6 +4526,11 @@ export default async function handler(
               issueOverlap:
                 counselingOrchestration
                   ?.issueOverlap ||
+                null,
+
+              interpretationBrief:
+                counselingOrchestration
+                  ?.interpretationBrief ||
                 null
             })
         };
@@ -5012,7 +5017,15 @@ export default async function handler(
 
                         issueOverlap:
                           counselingOrchestration
-                            .issueOverlap
+                            .issueOverlap,
+
+                        interpretationBrief:
+                          counselingOrchestration
+                            .interpretationBrief,
+
+                        includeRawInterpretationBrief:
+                          normalized
+                            .includeTrainingTrace
                       }
                     )
                   : null,
