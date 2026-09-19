@@ -4,7 +4,8 @@
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "scripts": {
-    "test": "npm run test:counseling && npm run test:counseling-orchestrator && npm run test:scope && npm run test:counseling-recovery && npm run test:chunking-review",
+    "test": "npm run test:counseling && npm run test:counseling-orchestrator && npm run test:interpretation-brief && npm run test:scope && npm run test:counseling-recovery && npm run test:chunking-review",
+    "test:interpretation-brief": "node scripts/testCounselingInterpretationBrief.js",
     "test:counseling-orchestrator": "node scripts/testCounselingOrchestratorAcceptance.js",
     "test:counseling": "node -e \"delete process.env.RAG_MODE; delete process.env.RAG_REQUIRED; import('./scripts/testCounselingPrototype.js')\"",
     "test:scope": "node scripts/testChatScopeGuard.js",
