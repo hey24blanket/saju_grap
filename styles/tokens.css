@@ -412,6 +412,7 @@
   --chart-total-muted: var(--amber-600-a-10);
   --chart-career: var(--amber-500-solid);
   --chart-career-muted: var(--amber-500-a-10);
+  --chart-zero-line: var(--slate-950-a-06);
   --chart-wealth: var(--green-500-solid);
   --chart-wealth-muted: var(--green-500-a-10);
   --chart-mental: var(--purple-500-solid);
