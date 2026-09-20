@@ -349,6 +349,15 @@
   --bottom-nav-radius: var(--radius-4xl);
   --bottom-nav-pad: var(--space-2);
 
+  --bottom-nav-counsel-icon-size: 2.25rem;
+  --bottom-nav-counsel-icon-radius: var(--radius-pill);
+  --bottom-nav-counsel-icon-bg: var(--color-accent-soft);
+  --bottom-nav-counsel-icon-bg-active: var(--color-accent-primary);
+  --bottom-nav-counsel-icon-fg: var(--color-accent-primary);
+  --bottom-nav-counsel-icon-fg-active: var(--color-text-inverse);
+  --bottom-nav-counsel-label: var(--color-text-secondary);
+  --bottom-nav-counsel-label-active: var(--color-accent-secondary);
+
   --glass-bg: var(--color-bg-surface);
   --glass-blur: none;
   --glass-border: var(--border-width-thin) solid var(--color-border-subtle);
