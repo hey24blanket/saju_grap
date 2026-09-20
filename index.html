@@ -896,6 +896,51 @@
     .dash-nav-item i { font-size: var(--text-body-lg); }
     .dash-nav-item.is-active { color: var(--color-accent-secondary); }
 
+    .dash-nav-counsel {
+      color: var(--bottom-nav-counsel-label);
+      transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    .dash-nav-counsel .dash-nav-counsel-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--bottom-nav-counsel-icon-size);
+      height: var(--bottom-nav-counsel-icon-size);
+      border-radius: var(--bottom-nav-counsel-icon-radius);
+      background: var(--bottom-nav-counsel-icon-bg);
+      color: var(--bottom-nav-counsel-icon-fg);
+      transition:
+        background var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard),
+        transform var(--duration-fast) var(--ease-standard);
+    }
+
+    .dash-nav-counsel .dash-nav-counsel-icon i {
+      font-size: calc(var(--text-body-lg) + 0.05rem);
+    }
+
+    .dash-nav-counsel span:last-child {
+      color: inherit;
+      font-weight: var(--font-weight-extrabold);
+    }
+
+    .dash-nav-counsel:hover .dash-nav-counsel-icon,
+    .dash-nav-counsel:focus-visible .dash-nav-counsel-icon {
+      transform: translateY(-1px);
+    }
+
+    .dash-nav-counsel.is-chat-open .dash-nav-counsel-icon,
+    .dash-nav-counsel.is-active .dash-nav-counsel-icon {
+      background: var(--bottom-nav-counsel-icon-bg-active);
+      color: var(--bottom-nav-counsel-icon-fg-active);
+    }
+
+    .dash-nav-counsel.is-chat-open,
+    .dash-nav-counsel.is-active {
+      color: var(--bottom-nav-counsel-label-active);
+    }
+
     .dash-chart-wrap {
       width: 100%;
       height: var(--size-chart-compact);
@@ -1015,8 +1060,8 @@
           <button
             type="button"
             id="btnGenderMale"
-            aria-pressed="true"
-            class="gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]"
+            aria-pressed="false"
+            class="gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]"
             data-gender="1"
           >
             남자
@@ -1064,6 +1109,9 @@
           </button>
           <button id="btnEditInput" class="dash-icon-btn" type="button" aria-label="입력 다시 하기">
             <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button id="btnClearProfile" class="dash-icon-btn" type="button" aria-label="내 정보 지우기" title="내 정보 지우기">
+            <i class="fa-solid fa-eraser"></i>
           </button>
         </div>
       </div>
@@ -1201,7 +1249,7 @@
     <nav class="dash-bottom-nav" aria-label="주요 이동">
       <button type="button" id="navHomeTab" class="dash-nav-item is-active" aria-current="page"><i class="fa-solid fa-house"></i><span>홈</span></button>
       <button type="button" id="navWeatherTab" class="dash-nav-item"><i class="fa-solid fa-cloud-sun"></i><span>기상도</span></button>
-      <button type="button" id="btnCenterChat" class="dash-nav-item" aria-label="상담 대화"><i class="fa-solid fa-comment-dots"></i><span>상담</span></button>
+      <button type="button" id="btnCenterChat" class="dash-nav-item dash-nav-counsel" aria-label="상담 대화"><span class="dash-nav-counsel-icon" aria-hidden="true"><i class="fa-solid fa-comment-dots"></i></span><span>상담</span></button>
       <button type="button" id="navDetailTab" class="dash-nav-item"><i class="fa-solid fa-magnifying-glass-chart"></i><span>상세분석</span></button>
       <button type="button" id="navProfileTab" class="dash-nav-item"><i class="fa-solid fa-user"></i><span>내 정보</span></button>
     </nav>
@@ -1336,8 +1384,15 @@
 
 
   <!-- 6. 프론트엔드 연동 스크립트 -->
-  <script>
-    const CACHE_KEY = 'saju_grap_user_profile_cache';
+  <script type="module">
+    import {
+      EMPTY_PROFILE_STATE,
+      USER_PROFILE_CACHE_KEY,
+      isValidGender,
+      normalizeCachedProfile
+    } from './lib/userProfileCache.js';
+
+    const CACHE_KEY = USER_PROFILE_CACHE_KEY;
     const COUNSELING_SESSION_KEY = 'saju_grap_counseling_session_v1';
     const ADMIN_DIAGNOSTICS_ENABLED = new URLSearchParams(window.location.search).get('debug') === '1';
 
@@ -2240,17 +2295,27 @@
     });
 
 
-    let state = { name: '', year: 1985, month: 10, day: 24, hour: 11, minute: 45, gender: 1 };
+    let state = { ...EMPTY_PROFILE_STATE };
 
     function pad2(value) {
       return String(value).padStart(2, '0');
     }
 
     function birthDateValueFromState() {
+      if (
+        state.year == null ||
+        state.month == null ||
+        state.day == null
+      ) {
+        return '';
+      }
       return `${state.year}${pad2(state.month)}${pad2(state.day)}`;
     }
 
     function birthTimeValueFromState() {
+      if (state.hour == null || state.minute == null) {
+        return '';
+      }
       return `${pad2(state.hour)}${pad2(state.minute)}`;
     }
 
@@ -2276,17 +2341,16 @@
       const male = document.getElementById('btnGenderMale');
       const female = document.getElementById('btnGenderFemale');
       const maleSelected = Number(state.gender) === 1;
+      const femaleSelected = Number(state.gender) === 2;
+      const selectedClass =
+        'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
+      const unselectedClass =
+        'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
 
       male.setAttribute('aria-pressed', maleSelected ? 'true' : 'false');
-      female.setAttribute('aria-pressed', maleSelected ? 'false' : 'true');
-
-      male.className = maleSelected
-        ? 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]'
-        : 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
-
-      female.className = !maleSelected
-        ? 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]'
-        : 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
+      female.setAttribute('aria-pressed', femaleSelected ? 'true' : 'false');
+      male.className = maleSelected ? selectedClass : unselectedClass;
+      female.className = femaleSelected ? selectedClass : unselectedClass;
     }
 
     function updateFieldUI() {
@@ -2300,9 +2364,12 @@
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         try {
-          const parsed = JSON.parse(cached);
-          state = { ...state, ...parsed };
-        } catch (e) {}
+          state = normalizeCachedProfile(JSON.parse(cached));
+        } catch (e) {
+          state = { ...EMPTY_PROFILE_STATE };
+        }
+      } else {
+        state = { ...EMPTY_PROFILE_STATE };
       }
       updateFieldUI();
     }
@@ -2368,6 +2435,10 @@
 
       if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
         return fail('태어난 시각의 분은 00~59로 입력해 주세요.');
+      }
+
+      if (!isValidGender(state.gender)) {
+        return fail('성별을 선택해 주세요.');
       }
 
       state.year = year;
@@ -3135,11 +3206,22 @@
       if (render) renderCounselingHistory();
     }
 
+    function setCounselingNavOpen(open) {
+      document.getElementById('btnCenterChat')?.classList.toggle('is-chat-open', Boolean(open));
+    }
+
+    function closeChatDrawer() {
+      document.getElementById('modalChatDrawer').classList.add('hidden');
+      document.getElementById('modalChatDrawer').classList.remove('flex');
+      setCounselingNavOpen(false);
+    }
+
     function openChatDrawer() {
       playTickSound();
       renderCounselingHistory();
       document.getElementById('modalChatDrawer').classList.remove('hidden');
       document.getElementById('modalChatDrawer').classList.add('flex');
+      setCounselingNavOpen(true);
       document.getElementById('chatInputText').focus();
     }
     document.getElementById('btnCenterChat').addEventListener('click', openChatDrawer);
@@ -3149,15 +3231,11 @@
       resetCounselingSession({ render: true });
       document.getElementById('chatInputText').focus();
     });
-    document.getElementById('btnCloseChatDrawer').addEventListener('click', () => {
-      document.getElementById('modalChatDrawer').classList.add('hidden');
-      document.getElementById('modalChatDrawer').classList.remove('flex');
-    });
+    document.getElementById('btnCloseChatDrawer').addEventListener('click', closeChatDrawer);
 
     document.getElementById('modalChatDrawer').addEventListener('click', (e) => {
       if (e.target.id === 'modalChatDrawer') {
-        document.getElementById('modalChatDrawer').classList.add('hidden');
-        document.getElementById('modalChatDrawer').classList.remove('flex');
+        closeChatDrawer();
       }
     });
 
@@ -3353,11 +3431,44 @@
     renderCounselingHistory();
 
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
-    document.getElementById('btnEditInput').addEventListener('click', () => {
+    function showOnboardingView() {
       document.getElementById('viewDashboard').classList.add('hidden');
       document.getElementById('viewDashboard').classList.remove('flex');
       document.body.classList.remove('dashboard-open');
       document.getElementById('viewOnboarding').classList.remove('hidden');
+      setOnboardingInputError('');
+      closeChatDrawer();
+      closeUnifiedModal();
+      setDashNavActive('navHomeTab');
+    }
+
+    function clearUserProfile() {
+      const confirmed = window.confirm(
+        '이 브라우저에 저장된 이름·생년월일시와 상담 기록을 모두 지울까요?\n다른 기기나 브라우저의 정보는 삭제되지 않습니다.'
+      );
+      if (!confirmed) return;
+
+      try {
+        localStorage.removeItem(CACHE_KEY);
+      } catch (error) {}
+
+      state = { ...EMPTY_PROFILE_STATE };
+      currentPayload = null;
+      currentAnalysisData = null;
+      cachedAiPack = null;
+      timelineAnalysisCache = new Map();
+      resetCounselingSession({ render: true, profileKey: null });
+      updateFieldUI();
+      showOnboardingView();
+    }
+
+    document.getElementById('btnEditInput').addEventListener('click', () => {
+      showOnboardingView();
+    });
+
+    document.getElementById('btnClearProfile').addEventListener('click', () => {
+      playTickSound();
+      clearUserProfile();
     });
 
     loadCachedState();
