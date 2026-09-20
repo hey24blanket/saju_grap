@@ -898,9 +898,39 @@
 
     .dash-chart-wrap {
       width: 100%;
-      height: var(--size-chart-height);
+      height: var(--size-chart-compact);
       position: relative;
-      overflow: hidden;
+      overflow: visible;
+    }
+
+    .graph-point-float {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: var(--z-content);
+      max-width: var(--tooltip-max-width);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--tooltip-radius);
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      font-size: var(--text-caption-size);
+      font-weight: var(--font-weight-extrabold);
+      letter-spacing: var(--tracking-label);
+      line-height: var(--leading-none);
+      box-shadow: var(--tooltip-shadow);
+      pointer-events: none;
+      white-space: nowrap;
+      transform: translate(-50%, calc(-100% - var(--space-2)));
+    }
+
+    .graph-point-float[hidden] { display: none; }
+
+    #dashGraphSection,
+    #dashAdvancedSection,
+    #dashNatalSection,
+    .dash-greeting {
+      scroll-margin-top: var(--space-section);
+      scroll-margin-bottom: var(--bottom-nav-height);
     }
 
     .dash-top-grid,
@@ -913,7 +943,7 @@
       body.dashboard-open { padding-left: var(--space-page-x-md); padding-right: var(--space-page-x-md); }
       .dash-top-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
       .dash-advanced-grid { grid-template-columns: 1fr 1fr; }
-      .dash-chart-wrap { height: 22rem; }
+      .dash-chart-wrap { height: var(--size-chart-height); }
     }
   </style>
 </head>
@@ -1086,6 +1116,7 @@
       <div id="chartContainerBox" class="relative">
         <div class="dash-chart-wrap">
           <canvas id="daewoonChart"></canvas>
+          <div id="graphPointFloat" class="graph-point-float" hidden></div>
         </div>
         <p id="txtCycleGuide" class="text-[10px] text-stone-400 mt-1.5 font-semibold px-1">그래프 위를 따라가며 시점을 확인해 보세요</p>
       </div>
@@ -2632,7 +2663,11 @@
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
 
       if (chartInstance) chartInstance.destroy();
-      if (!cycleData?.labels?.length) return;
+      if (!cycleData?.labels?.length) {
+        const floatEl = document.getElementById('graphPointFloat');
+        if (floatEl) floatEl.hidden = true;
+        return;
+      }
 
       const getStyle = (domain, activeColor, inactiveColor) => {
         const active = highlightDomain === domain;
@@ -2692,6 +2727,30 @@
         });
       };
 
+      const syncGraphFloat = (chart, index) => {
+        const floatEl = document.getElementById('graphPointFloat');
+        if (!floatEl) return;
+        const meta = chart.getDatasetMeta(activeSeriesIndex);
+        const point = meta?.data?.[index];
+        const pointLabel = labels[index];
+        if (!point || pointLabel == null) {
+          floatEl.hidden = true;
+          return;
+        }
+        const { x, y } = point.getProps(['x', 'y'], true);
+        const series = currentAnalysisData?.cyclesData?.[currentCycle];
+        const domainKey = domainKeys[currentDomainIndex] || 'all';
+        const values = series?.[domainSeriesKey(domainKey)] || series?.total || [];
+        const score = values[index];
+        const signed = Number.isFinite(Number(score))
+          ? `${Number(score) >= 0 ? '+' : ''}${Math.round(Number(score))}`
+          : '';
+        floatEl.hidden = false;
+        floatEl.textContent = signed ? `${pointLabel} ${signed}` : String(pointLabel);
+        floatEl.style.left = `${x}px`;
+        floatEl.style.top = `${y}px`;
+      };
+
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -2718,6 +2777,7 @@
                 applyPointRadii(chart, selectedGraphIndex);
                 updateGraphPoint(selectedGraphIndex);
                 chart.update('none');
+                syncGraphFloat(chart, selectedGraphIndex);
               }
               return;
             }
@@ -2725,6 +2785,7 @@
             updateGraphPoint(hoverIndex);
             applyPointRadii(chart, hoverIndex);
             chart.update('none');
+            syncGraphFloat(chart, hoverIndex);
           },
           onClick(event, _elements, chart) {
             const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
@@ -2733,6 +2794,7 @@
             updateGraphPoint(selectedGraphIndex, { persist: true });
             applyPointRadii(chart, selectedGraphIndex);
             chart.update('none');
+            syncGraphFloat(chart, selectedGraphIndex);
           },
           plugins: {
             legend: { display: false },
@@ -2766,6 +2828,8 @@
           }
         }
       });
+
+      syncGraphFloat(chartInstance, selectedGraphIndex);
     }
 
     // 주기 탭 전환 시 그래프 변경 + 백그라운드 프리페치 동시 가동

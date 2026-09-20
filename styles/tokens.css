@@ -241,6 +241,7 @@
   --size-saju-char: 48px;
   --size-saju-char-sm: 44px;
   --size-saju-char-compact: 46px;
+  --size-chart-compact: 14.5rem;
   --size-chart-height: 17.5rem;
   --size-trace-max-height: 240px;
   --size-chat-height: 80vh;
@@ -432,6 +433,10 @@
 html,
 body {
   font-family: var(--font-family-ui);
+}
+
+html {
+  scroll-padding-bottom: var(--bottom-nav-height);
 }
 
 .z-base { z-index: var(--z-base); }
