@@ -21,6 +21,10 @@ import {
 } from '../lib/counselingPrompt.js';
 
 import {
+  COUNSELING_CHAT_MAX_OUTPUT_TOKENS
+} from '../lib/counselingInterpretationPolicy.js';
+
+import {
   applyCounselingStateDelta,
   buildCounselingStateContext,
   normalizeCounselingState
@@ -1708,15 +1712,56 @@ function buildWaveProjectionContext({
   };
 }
 
+function slimCounselingTimeline(timeline) {
+  if (!timeline || typeof timeline !== 'object') return null;
+  return {
+    schemaVersion: timeline.schemaVersion ?? null,
+    reference: timeline.reference ?? null,
+    selectedDomain: timeline.selectedDomain ?? null,
+    currentDaewoon: timeline.currentDaewoon
+      ? {
+          ganzhi: timeline.currentDaewoon.ganzhi ?? null,
+          stem: timeline.currentDaewoon.stem ?? null,
+          branch: timeline.currentDaewoon.branch ?? null,
+          tenGod: timeline.currentDaewoon.tenGod ?? null,
+          startYear: timeline.currentDaewoon.startYear ?? null,
+          endYear: timeline.currentDaewoon.endYear ?? null
+        }
+      : null,
+    coverage: timeline.coverage ?? null,
+    relativeWindows: timeline.relativeWindows ?? null,
+    fieldSemantics: timeline.fieldSemantics ?? null
+  };
+}
+
 function buildFactContract(
   engineFactPacket,
   {
     counseling = false
   } = {}
 ) {
+  const packet = counseling && engineFactPacket
+    ? {
+        schemaVersion: engineFactPacket.schemaVersion ?? null,
+        engineVersion: engineFactPacket.engineVersion ?? null,
+        natal: engineFactPacket.natal ?? null,
+        strength: engineFactPacket.strength
+          ? {
+              band: engineFactPacket.strength.band ?? null,
+              score: engineFactPacket.strength.score ?? null
+            }
+          : null,
+        counselingIntent: engineFactPacket.counselingIntent ?? null,
+        counselingTimeline: slimCounselingTimeline(
+          engineFactPacket.counselingTimeline
+        ),
+        note: 'cycle Fact 근거는 사용자 메시지의 RELEVANT SAJU EVIDENCE만 사용한다.'
+      }
+    : engineFactPacket;
+
   const factJson =
     JSON.stringify(
-      engineFactPacket,
+      packet,
       null,
       counseling
         ? 0
@@ -1731,18 +1776,14 @@ ${factJson}
 
 [절대 규칙]
 1. 위 Engine Facts를 수정, 재판정, 재계산하거나 뒤집지 마세요.
-2. 사주팔자/천간지지/지장간/통근/투간/강약/특수격/용신/십신/12운성/귀인·신살/합충형파해/반합/합화/성국/relation dominance/대운·연운·월운·일운·시운 간지를 새로 계산하지 마세요.
+2. 사주팔자/천간지지/강약/용신/십신/12운성/합충형파해/운 간지를 새로 계산하지 마세요.
 3. ${counseling
-  ? '필요한 자료가 없으면 부족한 기간이나 범위를 일상어로 짧게 설명하세요. 사용자 답변에 Engine Facts, JSON, 필드명, activated 같은 내부 표현을 노출하지 말고, 빈 자료를 근거 없는 반대 결론이나 일반 조언으로 메우지 마세요.'
+  ? '필요한 자료가 없으면 부족한 범위를 일상어로 짧게 설명하세요. 내부 필드명을 사용자 답변에 쓰지 마세요. 근거 있는 명리 해석은 선명히 말하되 현실 사건 발생은 보장하지 마세요.'
   : 'Engine Facts에 없는 명리 Fact는 추측하지 말고 "현재 전달된 Engine Facts에는 해당 정보가 없습니다"라고 처리하세요.'}
-4. 두 Fact가 같이 있다는 이유만으로 인과관계를 만들지 마세요. Engine에 mechanism/evidence가 없는 인과는 단정하지 마세요.
-5. 용신=행운, 기신=불운, 충=나쁨, 신강=성공, 신약=약한 사람 같은 단정을 만들지 마세요.
-6. 12운성을 파동 점수(-100~+100)와 직접 대응시키지 마세요.
-7. 공식 Domain은 총운/사업운/재물운/심신운/연애운 5개뿐입니다. growth를 공식 6번째 Domain으로 만들지 마세요.
-8. diagnostics는 LLM 해석 재료가 아닙니다. 이 요청에도 diagnostics는 전달하지 않습니다.
-9. Engine Facts와 기존 룰북 문구가 충돌하면 Engine Facts v1 계약을 우선하세요.
-10. counselingTimeline.fieldSemantics가 있으면 필드 의미의 경계로 사용하세요. 특히 gisinImpact.activated는 재성 또는 재물 기능의 활성 여부가 아닙니다.
-11. 파동 projection은 비교용 UI 휴리스틱입니다. 실제 입금·수입·성공·사건의 발생 또는 확률로 바꾸지 마세요.
+4. 두 Fact가 같이 있다는 이유만으로 인과관계를 만들지 마세요.
+5. 용신=행운, 기신=불운, 충=나쁨, 신강=성공 같은 단정을 만들지 마세요.
+6. 파동 projection은 비교용 UI 휴리스틱입니다. 실제 사건이나 확률로 바꾸지 마세요.
+7. gisinImpact.activated는 기신 오행과의 일치 여부이며 재성 활성화가 아닙니다.
 `;
 }
 
@@ -2506,23 +2547,29 @@ function buildSystemInstruction(
   ragContextText = '',
   mode = 'summary'
 ) {
+  const counseling = mode === 'chat';
+  const ragContract = counseling
+    ? (ragContextText
+      ? `[RAG 사용 계약]
+검색 지식은 사용자 메시지의 KNOWLEDGE RAG 블록만 사용하세요. Engine Facts와 충돌하면 Engine을 우선하세요. RAG로 재계산하지 마세요.`
+      : `[RETRIEVED RAG KNOWLEDGE]
+이번 요청에는 검색된 RAG 지식이 없습니다.`)
+    : buildRagSystemContract(ragContextText);
+
   return (
     [
-      mode === 'chat'
+      counseling
         ? COUNSELING_CHAT_SYSTEM
         : CHAT_SYSTEM,
 
       buildFactContract(
         engineFactPacket,
         {
-          counseling:
-            mode === 'chat'
+          counseling
         }
       ),
 
-      buildRagSystemContract(
-        ragContextText
-      )
+      ragContract
     ].filter(Boolean).join(
       '\n\n'
     )
@@ -4459,7 +4506,7 @@ export default async function handler(
             'counseling',
 
           maxOutputTokens:
-            1800,
+            COUNSELING_CHAT_MAX_OUTPUT_TOKENS,
 
           thinkingLevel:
             'low',
