@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>사주 Grap - 인생 파동 분석 엔진</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -60,121 +60,145 @@
 
     .liquid-pill-amber {
       background: var(--pill-amber-bg);
-      border: var(--border-width-thin) solid var(--white-a-60);
-      box-shadow: 0 8px 20px -4px var(--amber-500-a-40), inset 0 1.5px 2px var(--white-a-80), inset 0 -2px 4px var(--black-a-15);
+      color: var(--color-text-inverse);
+      border: var(--border-width-thin) solid transparent;
+      box-shadow: none;
     }
 
     .liquid-pill-dark {
       background: var(--pill-dark-bg);
-      border: var(--border-width-thin) solid var(--white-a-25);
-      box-shadow: 0 8px 18px -4px var(--black-a-25), inset 0 1px 1.5px var(--white-a-40), inset 0 -2px 3px var(--black-a-30);
+      color: var(--color-text-inverse);
+      border: var(--border-width-thin) solid transparent;
+      box-shadow: none;
     }
 
     .liquid-pill-emerald {
       background: var(--pill-emerald-bg);
-      border: var(--border-width-thin) solid var(--white-a-60);
-      box-shadow: 0 8px 18px -4px var(--green-500-a-40), inset 0 1.5px 2px var(--white-a-80);
+      color: var(--color-text-inverse);
+      border: var(--border-width-thin) solid transparent;
+      box-shadow: none;
     }
 
     .liquid-pill-purple {
       background: var(--pill-purple-bg);
-      border: var(--border-width-thin) solid var(--white-a-60);
-      box-shadow: 0 8px 18px -4px var(--purple-500-a-40), inset 0 1.5px 2px var(--white-a-80);
+      color: var(--color-text-inverse);
+      border: var(--border-width-thin) solid transparent;
+      box-shadow: none;
     }
 
     .liquid-pill-rose {
       background: var(--pill-rose-bg);
-      border: var(--border-width-thin) solid var(--white-a-60);
-      box-shadow: 0 8px 18px -4px var(--rose-500-a-40), inset 0 1.5px 2px var(--white-a-80);
+      color: var(--color-text-inverse);
+      border: var(--border-width-thin) solid transparent;
+      box-shadow: none;
     }
 
     .liquid-pill-clear {
       background: var(--pill-clear-bg);
-      border: var(--border-width-thin) solid var(--color-border-default);
-      box-shadow: 0 6px 16px -2px var(--black-a-03), inset 0 1.5px 2px var(--white-a-90);
+      color: var(--color-text-secondary);
+      border: var(--border-width-thin) solid transparent;
+      box-shadow: none;
     }
 
     .liquid-ampoule {
-      background: var(--white-a-35);
-      border: var(--border-width-hairline) solid var(--white-a-70);
-      box-shadow: inset 0 2px 6px var(--black-a-04), inset 0 -2px 6px var(--white-a-80);
+      background: var(--color-bg-surface-muted);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      box-shadow: none;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-accent-primary);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in { animation: none; }
+      .tube-fill { transition: none; }
+      .saju-bubble,
+      .cycle-tab,
+      .domain-chip,
+      .dash-acc-chevron,
+      .dash-nav-item {
+        transition: none !important;
+      }
     }
 
 
-    /* Engine Facts visual diagnostics -------------------------------------- */
+    /* Engine Facts / dashboard cards -------------------------------------- */
     .engine-facts-shell {
-      background: var(--white-a-38);
-      border: var(--border-width-thin) solid var(--white-a-78);
-      border-radius: var(--radius-card);
-      padding: var(--space-card);
-      box-shadow: inset 0 1px 1.5px var(--white-a-85);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
     }
 
     .engine-section-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: var(--space-2-5);
+      margin-bottom: var(--space-3);
     }
 
     .engine-section-title h5 {
       margin: 0;
-      color: var(--color-text-secondary);
-      font-size: var(--text-body-sm);
+      color: var(--color-text-primary);
+      font-size: var(--text-heading-lg);
       font-weight: var(--font-weight-black);
       letter-spacing: var(--tracking-snug);
     }
 
     .engine-section-title span {
       color: var(--color-text-faint);
-      font-size: var(--text-xs);
+      font-size: var(--text-caption-size);
       font-weight: var(--font-weight-extrabold);
     }
 
     .manse-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--space-2);
+      gap: var(--card-gap);
     }
 
     .manse-pillar {
       min-width: 0;
-      border-radius: var(--radius-18);
-      padding: 9px 7px 8px;
-      background: var(--white-a-48);
-      border: var(--border-width-thin) solid var(--white-a-80);
-      box-shadow: var(--shadow-sm), inset 0 1px 1.5px var(--white-a-85);
+      border-radius: var(--radius-card-sm);
+      padding: var(--space-2-5) var(--space-1-5) var(--space-2);
+      background: var(--color-bg-surface);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      box-shadow: var(--shadow-xs);
       text-align: center;
     }
 
     .manse-pillar.day-master-pillar {
-      border-color: var(--amber-500-a-42);
-      box-shadow: 0 8px 20px var(--amber-500-a-08), inset 0 1px 1.5px var(--white-a-90);
+      background: var(--color-accent-soft);
+      border-color: var(--amber-500-a-35);
+      box-shadow: var(--shadow-xs);
     }
 
     .manse-pillar-label {
       color: var(--color-text-muted);
-      font-size: var(--text-caption);
+      font-size: var(--text-caption-size);
       font-weight: var(--font-weight-black);
-      margin-bottom: var(--space-1-75);
+      margin-bottom: var(--space-2);
       white-space: nowrap;
     }
 
     .manse-pillar-label .dm-mark {
       display: inline-flex;
       margin-left: var(--space-0-75);
-      padding: 1px 4px;
+      padding: var(--space-px) var(--space-1);
       border-radius: var(--radius-pill);
-      background: var(--color-accent-soft);
-      color: var(--color-text-accent);
-      font-size: 7px;
+      background: var(--color-accent-primary);
+      color: var(--color-text-inverse);
+      font-size: var(--text-2xs);
       vertical-align: 1px;
     }
 
     .saju-char-card {
       height: var(--size-saju-char);
-      border-radius: var(--radius-15);
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -183,7 +207,7 @@
       font-weight: var(--font-weight-black);
       line-height: var(--leading-none);
       border: var(--border-width-thin) solid transparent;
-      box-shadow: inset 0 1px 1.5px var(--white-a-65), var(--shadow-xs);
+      box-shadow: none;
     }
 
     .saju-char-card-compact {
@@ -223,13 +247,12 @@
       background: var(--element-water-fill);
       border-color: var(--element-water-border);
       color: var(--element-water);
-      box-shadow: inset 0 1px 1.5px var(--white-a-18), 0 5px 14px var(--gray-900-a-12);
     }
 
     .el-unknown {
-      background: rgba(245, 245, 244, 0.9);
+      background: var(--color-bg-surface-muted);
       color: var(--element-unknown);
-      border-color: rgba(214, 211, 209, 0.5);
+      border-color: var(--color-border-default);
     }
 
     .element-legend {
@@ -243,10 +266,10 @@
       display: inline-flex;
       align-items: center;
       gap: var(--space-1);
-      padding: 3px 7px;
+      padding: var(--space-0-75) var(--space-1-75);
       border-radius: var(--radius-pill);
-      background: var(--white-a-62);
-      border: var(--border-width-thin) solid var(--white-a-82);
+      background: var(--color-bg-surface);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
       color: var(--color-text-muted);
       font-size: var(--text-2xs);
       font-weight: var(--font-weight-extrabold);
@@ -275,41 +298,45 @@
     .core-facts-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--space-2);
+      gap: var(--card-gap);
     }
 
     .core-fact-card {
       min-width: 0;
-      padding: var(--space-2-75);
-      border-radius: var(--radius-17);
-      background: var(--white-a-53);
-      border: var(--border-width-thin) solid var(--white-a-80);
-      box-shadow: inset 0 1px 1.5px var(--white-a-86);
-    }
-
-    .core-fact-label {
-      font-size: var(--text-2xs);
-      font-weight: var(--font-weight-black);
-      color: var(--color-text-faint);
-      margin-bottom: var(--space-1-25);
-      letter-spacing: var(--tracking-wide);
-      text-transform: uppercase;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding: var(--space-card-inner);
+      border-radius: var(--radius-card-sm);
+      background: var(--color-bg-surface);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      box-shadow: var(--shadow-xs);
     }
 
     .core-fact-value {
-      color: var(--color-text-secondary);
-      font-size: var(--text-body-md);
+      color: var(--color-text-primary);
+      font-size: var(--text-heading-sm);
       font-weight: var(--font-weight-black);
       line-height: var(--leading-tight);
       word-break: keep-all;
+      order: 1;
     }
 
     .core-fact-sub {
       color: var(--color-text-muted);
-      font-size: var(--text-2xs-plus);
+      font-size: var(--text-caption-size);
       font-weight: var(--font-weight-bold);
       line-height: var(--leading-body);
-      margin-top: var(--space-1);
+      order: 2;
+    }
+
+    .core-fact-label {
+      font-size: var(--text-caption-size);
+      font-weight: var(--font-weight-extrabold);
+      color: var(--color-text-faint);
+      letter-spacing: var(--tracking-wide);
+      margin: var(--space-1) 0 0;
+      order: 3;
     }
 
     .fact-element-chip {
@@ -317,9 +344,9 @@
       align-items: center;
       gap: var(--space-1-25);
       max-width: 100%;
-      padding: 5px 8px;
+      padding: var(--space-1) var(--space-2);
       border-radius: var(--radius-sm);
-      font-size: var(--text-caption);
+      font-size: var(--text-caption-size);
       font-weight: var(--font-weight-black);
     }
 
@@ -340,16 +367,16 @@
 
     .role-card {
       min-width: 0;
-      padding: 8px 5px;
-      border-radius: var(--radius-15);
+      padding: var(--space-2) var(--space-1-25);
+      border-radius: var(--radius-card-sm);
       text-align: center;
-      background: var(--white-a-48);
-      border: var(--border-width-thin) solid var(--white-a-78);
+      background: var(--color-bg-surface-muted);
+      border: var(--border-width-thin) solid transparent;
     }
 
     .role-card.primary-role {
       border-color: var(--amber-500-a-35);
-      background: var(--amber-50-a-60);
+      background: var(--color-accent-soft);
     }
 
     .role-name {
@@ -382,10 +409,10 @@
 
     .engine-mini-card {
       min-width: 0;
-      border-radius: var(--radius-15);
-      padding: var(--space-2-25);
-      background: var(--white-a-44);
-      border: var(--border-width-thin) solid var(--white-a-76);
+      border-radius: var(--radius-card-sm);
+      padding: var(--space-3);
+      background: var(--color-bg-surface-muted);
+      border: var(--border-width-thin) solid transparent;
     }
 
     .engine-mini-card .label {
@@ -404,8 +431,8 @@
     }
 
     .tech-log-box {
-      margin-top: 10px;
-      border-radius: var(--radius-15);
+      margin-top: var(--space-2-5);
+      border-radius: var(--radius-md);
       background: var(--color-bg-inverse-soft);
       border: var(--border-width-thin) solid var(--color-border-inverse);
       overflow: hidden;
@@ -414,7 +441,7 @@
     .tech-log-box summary {
       cursor: pointer;
       list-style: none;
-      padding: 9px 11px;
+      padding: var(--space-2-25) var(--space-2-75);
       color: var(--color-text-inverse-muted);
       font-size: var(--text-xs);
       font-weight: var(--font-weight-black);
@@ -497,25 +524,39 @@
     }
 
     @media (max-width: 640px) {
-      .core-facts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-1-5); }
+      .core-facts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
       .role-strip { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; }
       .engine-mini-grid { grid-template-columns: 1fr; }
       .saju-char-card { height: var(--size-saju-char-sm); font-size: var(--text-saju-char-sm); }
-      .manse-grid { gap: var(--space-1-5); }
-      .manse-pillar { padding: 8px 5px 7px; }
-      .core-fact-card { padding: 8px 7px; }
-      .core-fact-value { font-size: var(--text-label); }
+      .manse-grid { gap: var(--space-2); }
+      .manse-pillar { padding: var(--space-2) var(--space-1) var(--space-1-75); }
+      .core-fact-card { padding: var(--space-3) var(--space-2); }
+      .core-fact-value { font-size: var(--text-body-lg); }
     }
 
     body.dashboard-open {
       justify-content: flex-start;
-      padding-bottom: var(--bottom-nav-height);
+      padding: var(--space-5) var(--space-page-x) calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
     }
+
+    body.dashboard-open .ambient-blob { display: none; }
 
     .dash-page {
       width: 100%;
       max-width: var(--page-max-width);
       padding-bottom: var(--page-padding-y);
+      gap: var(--space-section);
+    }
+
+    .dash-greeting {
+      width: 100%;
+    }
+
+    .dash-greeting-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-3);
     }
 
     .dash-greeting h2 {
@@ -527,30 +568,162 @@
       line-height: var(--leading-snug);
     }
 
-    .dash-greeting p {
-      margin: 6px 0 0;
-      font-size: var(--text-body-sm);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-muted);
-      line-height: 1.5;
+    .dash-greeting-lead {
+      display: block;
+      font-size: var(--text-heading-lg);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-secondary);
     }
 
-    .dash-section-kicker {
-      font-size: var(--text-caption);
+    .dash-greeting-name {
+      display: block;
+      font-size: var(--text-display-size);
+      font-weight: var(--font-weight-black);
+      letter-spacing: var(--tracking-tight);
+      color: var(--color-text-primary);
+      line-height: var(--leading-tight);
+    }
+
+    .dash-greeting-name:empty { display: none; }
+
+    .dash-greeting p {
+      margin: var(--space-2) 0 0;
+      font-size: var(--text-body-lg-size);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
+      line-height: var(--leading-relaxed);
+    }
+
+    .dash-icon-btn {
+      width: var(--control-height-md);
+      height: var(--control-height-md);
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--color-bg-surface);
+      color: var(--color-text-secondary);
+      box-shadow: var(--shadow-xs);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+    }
+
+    .dash-icon-btn:active { transform: scale(0.96); }
+
+    .dash-section {
+      width: 100%;
+    }
+
+    .dash-section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .dash-section-title {
+      margin: 0;
+      font-size: var(--text-heading-lg);
+      font-weight: var(--font-weight-black);
+      letter-spacing: var(--tracking-tight);
+      color: var(--color-text-primary);
+    }
+
+    .dash-section-meta {
+      font-size: var(--text-caption-size);
       font-weight: var(--font-weight-extrabold);
-      color: var(--color-text-faint);
-      letter-spacing: var(--tracking-kicker);
-      text-transform: uppercase;
-      margin-bottom: var(--space-1);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+
+    .dash-card {
+      width: 100%;
+      background: var(--color-bg-surface);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-card);
+    }
+
+    .dash-card-lg {
+      padding: var(--space-5);
+    }
+
+    .dash-seg {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-1);
+      border-radius: var(--radius-pill);
+      background: var(--color-bg-surface-muted);
+    }
+
+    .cycle-tab {
+      flex: 1;
+      min-width: 0;
+      height: var(--control-height-sm);
+      border: 0;
+      background: transparent;
+      color: var(--color-text-muted);
+      border-radius: var(--radius-pill);
+      font-size: var(--text-caption-size);
+      font-weight: var(--font-weight-extrabold);
+      transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+    }
+
+    .cycle-tab.is-active {
+      background: var(--color-accent-primary);
+      color: var(--color-text-inverse);
+    }
+
+    .dash-chips {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1-5);
+      overflow-x: auto;
+    }
+
+    .domain-chip {
+      flex: 0 0 auto;
+      border: 0;
+      background: var(--color-bg-surface-muted);
+      color: var(--color-text-muted);
+      border-radius: var(--radius-pill);
+      padding: var(--space-1-5) var(--space-3-5);
+      font-size: var(--text-body-sm-size);
+      font-weight: var(--font-weight-extrabold);
+      transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+    }
+
+    .domain-chip.is-active,
+    .domain-chip.active {
+      background: var(--color-bg-inverse);
+      color: var(--color-text-inverse);
+    }
+
+    .dash-advanced {
+      width: 100%;
+      background: var(--color-bg-surface);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .dash-advanced-head {
+      padding: var(--space-4) var(--space-4) var(--space-2);
     }
 
     .dash-accordion {
       width: 100%;
-      border-radius: var(--radius-card);
-      overflow: hidden;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      border-top: var(--border-width-thin) solid var(--color-border-subtle);
     }
 
-    .dash-accordion + .dash-accordion { margin-top: 10px; }
+    .dash-accordion + .dash-accordion { margin-top: 0; }
 
     .dash-accordion summary {
       list-style: none;
@@ -558,9 +731,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 14px 16px;
-      font-size: var(--text-body-md);
+      gap: var(--space-2-5);
+      min-height: var(--control-height-lg);
+      padding: var(--space-3-5) var(--space-4);
+      font-size: var(--text-body-lg-size);
       font-weight: var(--font-weight-black);
       color: var(--color-text-secondary);
       user-select: none;
@@ -568,14 +742,14 @@
 
     .dash-accordion summary::-webkit-details-marker { display: none; }
 
-    .dash-accordion summary .dash-acc-hint {
-      font-size: var(--text-caption);
-      font-weight: var(--font-weight-extrabold);
+    .dash-acc-chevron {
       color: var(--color-text-faint);
+      font-size: var(--text-caption-size);
+      transition: transform var(--duration-fast) var(--ease-standard);
     }
 
-    .dash-accordion[open] summary .dash-acc-hint { color: var(--color-text-accent); }
-    .dash-accordion .dash-acc-body { padding: 0 14px 14px; }
+    .dash-accordion[open] .dash-acc-chevron { transform: rotate(180deg); }
+    .dash-accordion .dash-acc-body { padding: 0 var(--space-4) var(--space-4); }
 
     .saju-tip {
       position: relative;
@@ -602,11 +776,11 @@
     .saju-bubble {
       position: absolute;
       left: 50%;
-      bottom: calc(100% + 10px);
-      transform: translateX(-50%) translateY(4px);
+      bottom: calc(100% + var(--space-3));
+      transform: translateX(-50%) translateY(var(--space-1));
       width: max-content;
       max-width: var(--tooltip-max-width);
-      padding: 8px 10px;
+      padding: var(--space-2) var(--space-2-5);
       border-radius: var(--tooltip-radius);
       background: var(--tooltip-bg);
       color: var(--tooltip-text);
@@ -628,8 +802,8 @@
       position: absolute;
       top: 100%;
       left: 50%;
-      margin-left: -6px;
-      border: 6px solid transparent;
+      margin-left: calc(var(--space-1-5) * -1);
+      border: var(--space-1-5) solid transparent;
       border-top-color: var(--tooltip-bg);
     }
 
@@ -648,50 +822,136 @@
       }
     }
 
-    .graph-note {
-      border-radius: var(--radius-xl);
-      padding: 12px 14px;
-      background: var(--white-a-50);
-      border: var(--border-width-thin) solid var(--white-a-80);
+    .graph-explain {
+      margin: var(--space-4) calc(var(--space-5) * -1) calc(var(--space-5) * -1);
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-bg-surface-muted);
+      border-radius: 0 0 var(--radius-card) var(--radius-card);
     }
 
     .graph-note .kicker {
-      font-size: var(--text-caption);
+      font-size: var(--text-caption-size);
       font-weight: var(--font-weight-black);
       color: var(--color-text-accent);
       margin-bottom: var(--space-1);
     }
 
+    .graph-note .point-title {
+      margin: 0 0 var(--space-1);
+      font-size: var(--text-heading-sm);
+      font-weight: var(--font-weight-black);
+      color: var(--color-text-primary);
+      letter-spacing: var(--tracking-snug);
+    }
+
     .graph-note p {
       margin: 0;
-      font-size: var(--text-body-sm);
+      font-size: var(--text-body-lg-size);
       font-weight: var(--font-weight-semibold);
       color: var(--color-text-body);
       line-height: var(--leading-relaxed);
     }
 
+    .graph-note .context-copy {
+      margin-top: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: var(--text-body-md-size);
+    }
+
     .dash-bottom-nav {
       position: fixed;
       left: 50%;
-      bottom: var(--bottom-nav-offset);
+      bottom: calc(var(--bottom-nav-offset) + env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
-      width: min(calc(100% - var(--bottom-nav-inset)), var(--page-max-width));
+      width: min(calc(100% - var(--bottom-nav-inset) * 2), var(--page-max-width));
       z-index: var(--z-bottom-nav);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-1);
+      padding: var(--bottom-nav-pad) var(--space-2);
+      background: var(--color-bg-surface);
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      border-radius: var(--bottom-nav-radius);
+      box-shadow: var(--shadow-lg);
     }
+
+    .dash-nav-item {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: var(--color-text-faint);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-0-5);
+      min-height: var(--control-height-lg);
+      font-size: var(--text-caption-size);
+      font-weight: var(--font-weight-extrabold);
+      transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    .dash-nav-item i { font-size: var(--text-body-lg); }
+    .dash-nav-item.is-active { color: var(--color-accent-secondary); }
 
     .dash-chart-wrap {
       width: 100%;
-      height: var(--size-chart-height);
+      height: var(--size-chart-compact);
       position: relative;
-      overflow: hidden;
+      overflow: visible;
+    }
+
+    .graph-point-float {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: var(--z-content);
+      max-width: var(--tooltip-max-width);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--tooltip-radius);
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      font-size: var(--text-caption-size);
+      font-weight: var(--font-weight-extrabold);
+      letter-spacing: var(--tracking-label);
+      line-height: var(--leading-none);
+      box-shadow: var(--tooltip-shadow);
+      pointer-events: none;
+      white-space: nowrap;
+      transform: translate(-50%, calc(-100% - var(--space-2)));
+    }
+
+    .graph-point-float[hidden] { display: none; }
+
+    #dashGraphSection,
+    #dashAdvancedSection,
+    #dashNatalSection,
+    .dash-greeting {
+      scroll-margin-top: var(--space-section);
+      scroll-margin-bottom: var(--bottom-nav-height);
+    }
+
+    .dash-top-grid,
+    .dash-advanced-grid {
+      display: grid;
+      gap: var(--space-section);
+    }
+
+    @media (min-width: 768px) {
+      body.dashboard-open { padding-left: var(--space-page-x-md); padding-right: var(--space-page-x-md); }
+      .dash-top-grid { grid-template-columns: 1.15fr 0.85fr; align-items: start; }
+      .dash-advanced-grid { grid-template-columns: 1fr 1fr; }
+      .dash-chart-wrap { height: var(--size-chart-height); }
     }
   </style>
 </head>
 <body class="bg-[var(--color-bg-app)] text-stone-800 min-h-screen flex flex-col items-center justify-center p-2 md:p-6 select-none relative overflow-x-hidden">
 
-  <div class="fixed top-12 -left-20 w-80 h-80 rounded-full bg-amber-300/30 blur-[70px] pointer-events-none z-base"></div>
-  <div class="fixed top-1/3 -right-20 w-96 h-96 rounded-full bg-purple-300/25 blur-[80px] pointer-events-none z-base"></div>
-  <div class="fixed bottom-10 left-1/4 w-80 h-80 rounded-full bg-emerald-300/25 blur-[70px] pointer-events-none z-base"></div>
+  <div class="ambient-blob fixed top-12 -left-20 w-80 h-80 rounded-full bg-amber-300/30 blur-[70px] pointer-events-none z-base"></div>
+  <div class="ambient-blob fixed top-1/3 -right-20 w-96 h-96 rounded-full bg-purple-300/25 blur-[80px] pointer-events-none z-base"></div>
+  <div class="ambient-blob fixed bottom-10 left-1/4 w-80 h-80 rounded-full bg-emerald-300/25 blur-[70px] pointer-events-none z-base"></div>
 
   <!-- 1. 온보딩 화면 -->
   <div id="viewOnboarding" class="w-full max-w-md liquid-glass rounded-[var(--radius-sheet)] p-6 md:p-8 fade-in flex flex-col justify-between my-auto relative z-content shadow-2xl">
@@ -786,126 +1046,134 @@
 
 
   <!-- 2. 사주 대시보드: 단일 스크롤 -->
-  <div id="viewDashboard" class="dash-page hidden flex-col items-stretch gap-3 fade-in relative z-content">
+  <div id="viewDashboard" class="dash-page hidden flex-col items-stretch fade-in relative z-content">
 
-    <header class="w-full liquid-glass rounded-[var(--radius-3xl)] p-3.5 px-5 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="flex items-center gap-1.5">
-          <span id="dashElemBadge" class="text-xs font-black text-stone-600 liquid-pill-clear px-2.5 py-1 rounded-xl">불</span>
-          <div class="w-9 h-9 rounded-2xl liquid-pill-dark text-white font-black flex items-center justify-center text-base shadow-sm" id="dashGanBadge">丙</div>
-        </div>
+    <section class="dash-greeting">
+      <div class="dash-greeting-row">
         <div class="min-w-0">
-          <h2 class="font-black text-stone-900 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
-            <span id="dashUserName">사용자</span>
-            <span id="dashPillarTag" class="text-[11px] font-bold liquid-pill-clear text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/50">丙申일주</span>
+          <h2>
+            <span class="dash-greeting-lead"><span id="dashGreetingLead">반가워요</span><span id="dashGreetingComma" class="hidden">,</span></span>
+            <span id="dashGreetingName" class="dash-greeting-name"></span>
           </h2>
+          <p>오늘의 원국과 흐름을 한눈에 살펴보세요.</p>
+          <span id="txtUserPillar" class="hidden">분석 완료</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="btnSaveToCloud" class="dash-icon-btn" type="button" aria-label="클라우드에 저장">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </button>
+          <button id="btnEditInput" class="dash-icon-btn" type="button" aria-label="입력 다시 하기">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
         </div>
       </div>
-
-      <div class="flex items-center gap-2 text-xs shrink-0">
-        <button id="btnSaveToCloud" class="px-3.5 py-2 liquid-pill-dark text-white font-bold rounded-2xl transition flex items-center gap-1.5 shadow-sm">
-          <i class="fa-solid fa-cloud-arrow-up text-amber-400 text-xs"></i>
-          <span>저장</span>
-        </button>
-        <button id="btnEditInput" class="w-9 h-9 liquid-pill-clear text-stone-700 font-bold rounded-2xl flex items-center justify-center transition">
-          <i class="fa-solid fa-rotate-left text-xs"></i>
-        </button>
+      <div class="hidden" aria-hidden="true">
+        <span id="dashElemBadge">불</span>
+        <div id="dashGanBadge">丙</div>
+        <span id="dashUserName">사용자</span>
+        <span id="dashPillarTag">丙申일주</span>
       </div>
-    </header>
-
-    <section class="dash-greeting w-full px-1.5 pt-1 pb-0.5">
-      <p class="dash-section-kicker">Saju Dashboard</p>
-      <h2>반가워요<span id="dashGreetingComma" class="hidden">, </span><span id="dashGreetingName"></span></h2>
-      <p>오늘은 원국과 흐름을 한눈에 살펴볼 수 있어요.</p>
-      <span id="txtUserPillar" class="hidden">분석 완료</span>
     </section>
 
-    <section id="dashNatalSection" class="w-full liquid-glass rounded-[var(--radius-3xl)] p-4">
-      <div id="dashNatalMount" class="text-[12px] text-stone-400 font-bold">원국을 불러오는 중…</div>
-    </section>
+    <div class="dash-top-grid">
+      <section id="dashNatalSection" class="dash-section">
+        <div class="dash-section-head">
+          <h3 class="dash-section-title">원국 8자</h3>
+        </div>
+        <div id="dashNatalMount" class="text-[12px] text-stone-400 font-bold">원국을 불러오는 중…</div>
+      </section>
 
-    <section id="dashCoreFactsSection" class="w-full liquid-glass rounded-[var(--radius-3xl)] p-4">
-      <div id="dashCoreFactsMount" class="text-[12px] text-stone-400 font-bold">핵심 명리를 불러오는 중…</div>
-    </section>
+      <section id="dashCoreFactsSection" class="dash-section">
+        <div class="dash-section-head">
+          <h3 class="dash-section-title">핵심 명리</h3>
+        </div>
+        <div id="dashCoreFactsMount" class="text-[12px] text-stone-400 font-bold">핵심 명리를 불러오는 중…</div>
+      </section>
+    </div>
 
-    <section id="dashGraphSection" class="w-full liquid-glass rounded-[var(--radius-3xl)] p-4 md:p-5">
-      <div class="mb-3">
-        <p class="dash-section-kicker">흐름 그래프</p>
-        <h3 class="text-base font-black text-stone-900">시간과 영역을 골라 살펴보세요</h3>
+    <section id="dashGraphSection" class="dash-card dash-card-lg">
+      <div class="dash-section-head">
+        <h3 class="dash-section-title">운의 흐름</h3>
+        <span class="dash-section-meta" id="graphContextTitle">대운 · 총운</span>
       </div>
 
-      <div class="flex items-center gap-1 liquid-card-inner p-1.5 rounded-2xl mb-2.5 text-[11px] font-bold text-stone-500">
-        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="hour">시운</button>
-        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="day">일운</button>
-        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="month">월운</button>
-        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="year">연운</button>
-        <button class="cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm" data-cycle="daewoon">대운</button>
+      <div class="dash-seg mb-3" role="tablist" aria-label="시간 단위">
+        <button type="button" class="cycle-tab" data-cycle="hour">시운</button>
+        <button type="button" class="cycle-tab" data-cycle="day">일운</button>
+        <button type="button" class="cycle-tab" data-cycle="month">월운</button>
+        <button type="button" class="cycle-tab" data-cycle="year">연운</button>
+        <button type="button" class="cycle-tab is-active" data-cycle="daewoon">대운</button>
       </div>
 
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 text-xs font-bold">
-        <button class="domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0" data-domain="all">총운</button>
-        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
-        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">재물운</button>
-        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="mental">심신운</button>
-        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
+      <div class="dash-chips no-scrollbar mb-3" role="tablist" aria-label="운의 영역">
+        <button type="button" class="domain-chip is-active" data-domain="all">총운</button>
+        <button type="button" class="domain-chip" data-domain="career">사업운</button>
+        <button type="button" class="domain-chip" data-domain="wealth">재물운</button>
+        <button type="button" class="domain-chip" data-domain="mental">심신운</button>
+        <button type="button" class="domain-chip" data-domain="love">연애운</button>
       </div>
 
-      <div id="chartContainerBox" class="liquid-card-inner rounded-[var(--radius-24)] p-3 mb-3 relative">
+      <div id="chartContainerBox" class="relative">
         <div class="dash-chart-wrap">
           <canvas id="daewoonChart"></canvas>
+          <div id="graphPointFloat" class="graph-point-float" hidden></div>
         </div>
         <p id="txtCycleGuide" class="text-[10px] text-stone-400 mt-1.5 font-semibold px-1">그래프 위를 따라가며 시점을 확인해 보세요</p>
       </div>
 
-      <div id="graphContextBlock" class="graph-note mb-2.5">
-        <div class="kicker" id="graphContextTitle">현재 선택: 대운 · 총운</div>
-        <p id="graphContextText">시간과 영역을 고르면, 그 조합의 흐름을 아래에서 짧게 풀어 드려요.</p>
-      </div>
-
-      <div id="graphPointBlock" class="graph-note">
-        <div class="kicker" id="graphPointTitle">선택한 시점</div>
+      <div id="graphPointBlock" class="graph-explain graph-note">
+        <div class="kicker" id="graphPointKicker">선택한 시점</div>
+        <h4 class="point-title" id="graphPointTitle">선택한 시점</h4>
         <p id="graphPointText">그래프의 한 지점을 누르거나 따라가면, 그 시점의 결을 보여 줍니다.</p>
+        <p class="context-copy" id="graphContextText">시간과 영역을 고르면, 그 조합의 흐름을 아래에서 짧게 풀어 드려요.</p>
       </div>
     </section>
 
-    <details class="dash-accordion liquid-glass">
-      <summary>
-        <span>용 · 희 · 기 · 구 · 한</span>
-        <span class="dash-acc-hint">더 보기</span>
-      </summary>
-      <div id="dashRolesMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">역할 정보를 불러오는 중…</div>
-    </details>
-
-    <details class="dash-accordion liquid-glass">
-      <summary>
-        <span>구조 보조 정보</span>
-        <span class="dash-acc-hint">더 보기</span>
-      </summary>
-      <div id="dashStructureMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">구조 정보를 불러오는 중…</div>
-    </details>
-
-    <details class="dash-accordion liquid-glass">
-      <summary>
-        <span>특수 구조 후보</span>
-        <span class="dash-acc-hint">더 보기</span>
-      </summary>
-      <div id="dashSpecialMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">특수 구조 정보를 불러오는 중…</div>
-    </details>
-
-    <details id="runtimeStatusPanel" class="dash-accordion liquid-glass hidden">
-      <summary>
-        <span class="flex items-center gap-2 min-w-0">
-          <span id="runtimeStatusBadge" class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-[900] text-[9px]">ENGINE CHECK</span>
-          <span class="truncate">기술 진단 로그</span>
-        </span>
-        <span class="dash-acc-hint">더 보기</span>
-      </summary>
-      <div class="dash-acc-body">
-        <p id="runtimeStatusSummary" class="text-[10px] font-bold text-stone-500 mb-2">분석 엔진 상태 확인 전</p>
-        <div id="dashTechLogMount"></div>
-        <div id="runtimeStatusDetails" class="hidden"></div>
+    <section id="dashAdvancedSection" class="dash-advanced">
+      <div class="dash-advanced-head">
+        <h3 class="dash-section-title">더 깊이 보기</h3>
       </div>
-    </details>
+      <div class="dash-advanced-grid">
+        <details class="dash-accordion">
+          <summary>
+            <span>용 · 희 · 기 · 구 · 한</span>
+            <i class="fa-solid fa-chevron-down dash-acc-chevron" aria-hidden="true"></i>
+          </summary>
+          <div id="dashRolesMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">역할 정보를 불러오는 중…</div>
+        </details>
+
+        <details class="dash-accordion">
+          <summary>
+            <span>구조 보조 정보</span>
+            <i class="fa-solid fa-chevron-down dash-acc-chevron" aria-hidden="true"></i>
+          </summary>
+          <div id="dashStructureMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">구조 정보를 불러오는 중…</div>
+        </details>
+
+        <details class="dash-accordion">
+          <summary>
+            <span>특수 구조 후보</span>
+            <i class="fa-solid fa-chevron-down dash-acc-chevron" aria-hidden="true"></i>
+          </summary>
+          <div id="dashSpecialMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">특수 구조 정보를 불러오는 중…</div>
+        </details>
+
+        <details id="runtimeStatusPanel" class="dash-accordion hidden">
+          <summary>
+            <span class="flex items-center gap-2 min-w-0">
+              <span id="runtimeStatusBadge" class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-[900] text-[9px]">ENGINE CHECK</span>
+              <span class="truncate">기술 진단</span>
+            </span>
+            <i class="fa-solid fa-chevron-down dash-acc-chevron" aria-hidden="true"></i>
+          </summary>
+          <div class="dash-acc-body">
+            <p id="runtimeStatusSummary" class="text-[10px] font-bold text-stone-500 mb-2">분석 엔진 상태 확인 전</p>
+            <div id="dashTechLogMount"></div>
+            <div id="runtimeStatusDetails" class="hidden"></div>
+          </div>
+        </details>
+      </div>
+    </section>
 
     <!-- 저널/레거시 카드는 숨기되 기존 데이터 바인딩 ID는 유지 -->
     <section id="dashJournalArchive" class="hidden" hidden aria-hidden="true">
@@ -930,12 +1198,12 @@
       <div class="tube-btn" data-domain="love"></div>
     </section>
 
-    <nav class="dash-bottom-nav liquid-glass rounded-[var(--bottom-nav-radius)] px-6 py-2 flex items-center justify-between text-stone-500 text-xs font-black">
-      <button type="button" id="navHomeTab" class="flex flex-col items-center gap-0.5 text-amber-700"><i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">홈</span></button>
-      <button type="button" id="navWeatherTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-cloud-sun text-sm"></i><span class="text-[10px]">기상도</span></button>
-      <button type="button" id="btnCenterChat" class="flex items-center justify-center -mt-6 w-12 h-12 rounded-full liquid-pill-amber text-white shadow-lg shadow-amber-500/40 hover:scale-105 active:scale-95 transition" aria-label="상담 대화"><i class="fa-solid fa-comment-dots text-base"></i></button>
-      <button type="button" id="navDetailTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-magnifying-glass-chart text-sm"></i><span class="text-[10px]">상세 분석</span></button>
-      <button type="button" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-user text-sm"></i><span class="text-[10px]">내 정보</span></button>
+    <nav class="dash-bottom-nav" aria-label="주요 이동">
+      <button type="button" id="navHomeTab" class="dash-nav-item is-active" aria-current="page"><i class="fa-solid fa-house"></i><span>홈</span></button>
+      <button type="button" id="navWeatherTab" class="dash-nav-item"><i class="fa-solid fa-cloud-sun"></i><span>기상도</span></button>
+      <button type="button" id="btnCenterChat" class="dash-nav-item" aria-label="상담 대화"><i class="fa-solid fa-comment-dots"></i><span>상담</span></button>
+      <button type="button" id="navDetailTab" class="dash-nav-item"><i class="fa-solid fa-magnifying-glass-chart"></i><span>상세분석</span></button>
+      <button type="button" id="navProfileTab" class="dash-nav-item"><i class="fa-solid fa-user"></i><span>내 정보</span></button>
     </nav>
   </div>
 
@@ -1676,52 +1944,37 @@
       ].join('\n');
 
       const natalHtml = `
-        <div class="engine-section-title">
-          <h5>원국 8자</h5>
-          <span>시주 · 일주 · 월주 · 년주</span>
-        </div>
         <div class="manse-grid">
           ${renderPillarColumn('시주', natal?.hour || { ganzhi: data?.pillars?.hourHanja })}
           ${renderPillarColumn('일주', natal?.day || { ganzhi: data?.pillars?.dayHanja }, true)}
           ${renderPillarColumn('월주', natal?.month || { ganzhi: data?.pillars?.monthHanja })}
           ${renderPillarColumn('년주', natal?.year || { ganzhi: data?.pillars?.yearHanja })}
-        </div>
-        <div class="element-legend">
-          <span class="element-legend-item"><span class="element-legend-dot el-swatch-fire"></span>화 · 불</span>
-          <span class="element-legend-item"><span class="element-legend-dot el-swatch-earth"></span>토 · 흙</span>
-          <span class="element-legend-item"><span class="element-legend-dot el-swatch-wood"></span>목 · 나무</span>
-          <span class="element-legend-item"><span class="element-legend-dot el-swatch-metal"></span>금 · 쇠</span>
-          <span class="element-legend-item"><span class="element-legend-dot el-swatch-water"></span>수 · 물</span>
         </div>`;
 
+      const yongsinValue = [
+        uiElementKo[yongsin?.element] || safeText(yongsin?.element, '-'),
+        mechanismKo !== '-' ? mechanismKo : ''
+      ].filter(Boolean).join(' · ');
+
       const coreHtml = `
-        <div class="engine-section-title">
-          <h5>핵심 명리 Fact</h5>
-          <span>한눈에 보는 기준점</span>
-        </div>
         <div class="core-facts-grid">
           ${sajuTip(`
             <div class="core-fact-card">
-              <div class="core-fact-label">일간 · DAY MASTER</div>
-              <div class="flex items-center gap-2">
-                <div class="saju-char-card saju-char-card-compact ${uiElementClass(dayElement)}">${escapeHtml(dayMaster?.stem || '-')}</div>
-                <div class="min-w-0">
-                  <div class="core-fact-value">${escapeHtml(dayElementKo)} · ${escapeHtml(yinYangKo)}간</div>
-                  <div class="core-fact-sub">${escapeHtml(dayMaster?.stem || '-')} 일간</div>
-                </div>
-              </div>
+              <div class="saju-char-card saju-char-card-compact ${uiElementClass(dayElement)}">${escapeHtml(dayMaster?.stem || '-')}</div>
+              <div class="core-fact-value">${escapeHtml(dayElementKo)} · ${escapeHtml(yinYangKo)}간</div>
+              <div class="core-fact-label">일간</div>
             </div>`, '일간은 나를 읽는 기준점이에요. 이 글자의 오행과 음양이 해석의 출발점입니다.')}
           ${sajuTip(`
             <div class="core-fact-card">
-              <div class="core-fact-label">강약</div>
               <div class="core-fact-value">${escapeHtml(strengthKo)}</div>
-              <div class="core-fact-sub">band ${escapeHtml(strength?.band || '-')} · score ${escapeHtml(strength?.score ?? '-')}</div>
+              <div class="core-fact-sub">score ${escapeHtml(strength?.score ?? '-')}</div>
+              <div class="core-fact-label">강약</div>
             </div>`, '강약은 지금 내 기운이 얼마나 잘 서 있는지를 보여줘요. 좋고 나쁨이 아니라 힘의 밀도입니다.')}
           ${sajuTip(`
             <div class="core-fact-card">
+              <div class="core-fact-value">${escapeHtml(yongsinValue || '-')}</div>
+              <div class="core-fact-sub">필요도 ${escapeHtml(needKo)}</div>
               <div class="core-fact-label">용신</div>
-              <div>${renderElementChip(yongsin?.element, mechanismKo)}</div>
-              <div class="core-fact-sub">필요도 ${escapeHtml(needKo)} · 현재 가용성 ${escapeHtml(availabilityKo)}</div>
             </div>`, roleExplainers['용신'])}
         </div>`;
 
@@ -2269,6 +2522,19 @@
       return '부담이 크게 느껴질 수 있는 구간입니다. 쉬는 리듬과 경계를 먼저 챙기세요.';
     }
 
+    function greetingLeadCopy() {
+      const hour = new Date().getHours();
+      if (hour < 11) return '좋은 아침이에요';
+      if (hour < 18) return '반가워요';
+      return '좋은 저녁이에요';
+    }
+
+    function formatGreetingName(name) {
+      const raw = String(name || '').trim();
+      if (!raw) return '';
+      return raw.endsWith('님') ? raw : `${raw}님`;
+    }
+
     function updateGraphContext() {
       const domainKey = domainKeys[currentDomainIndex] || 'all';
       const cycleName = cycleTitles[currentCycle] || '대운';
@@ -2276,7 +2542,7 @@
       const title = document.getElementById('graphContextTitle');
       const text = document.getElementById('graphContextText');
       const guide = document.getElementById('txtCycleGuide');
-      if (title) title.innerText = `현재 선택: ${cycleName} · ${domainName}`;
+      if (title) title.innerText = `${cycleName} · ${domainName}`;
       if (text) {
         text.innerText = `${cycleExplainers[currentCycle] || ''} ${domainExplainers[domainKey] || ''}`.trim();
       }
@@ -2296,14 +2562,15 @@
       const score = values[safeIndex];
       const label = labels[safeIndex] || `${safeIndex + 1}구간`;
       const domainName = domainTitles[domainKey] || '총운';
-      const cycleName = cycleTitles[currentCycle] || '대운';
       const signed = Number.isFinite(Number(score))
         ? `${Number(score) >= 0 ? '+' : ''}${Math.round(Number(score))}`
         : '-';
 
       const title = document.getElementById('graphPointTitle');
       const text = document.getElementById('graphPointText');
-      if (title) title.innerText = `${cycleName} · ${label} · ${domainName} ${signed}`;
+      const kicker = document.getElementById('graphPointKicker');
+      if (kicker) kicker.innerText = domainName;
+      if (title) title.innerText = `${label} · ${signed}`;
       if (text) text.innerText = scoreBandCopy(score);
     }
 
@@ -2322,9 +2589,11 @@
 
       const comma = document.getElementById('dashGreetingComma');
       const greet = document.getElementById('dashGreetingName');
+      const lead = document.getElementById('dashGreetingLead');
+      if (lead) lead.innerText = greetingLeadCopy();
       if (greetingName) {
         comma.classList.remove('hidden');
-        greet.innerText = greetingName;
+        greet.innerText = formatGreetingName(greetingName);
       } else {
         comma.classList.add('hidden');
         greet.innerText = '';
@@ -2394,18 +2663,25 @@
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
 
       if (chartInstance) chartInstance.destroy();
-      if (!cycleData?.labels?.length) return;
+      if (!cycleData?.labels?.length) {
+        const floatEl = document.getElementById('graphPointFloat');
+        if (floatEl) floatEl.hidden = true;
+        return;
+      }
 
       const getStyle = (domain, activeColor, inactiveColor) => {
-        if (highlightDomain === domain) {
-          return { color: activeColor, width: 3.8 };
-        }
-        return { color: inactiveColor, width: 1.2 };
+        const active = highlightDomain === domain;
+        return { color: active ? activeColor : inactiveColor, width: active ? 2.4 : 1, fill: active };
       };
 
-      const totalStyle = (highlightDomain === 'all')
-        ? { color: cssToken('--chart-total', 'rgba(217, 119, 6, 1)'), width: 3.8 }
-        : { color: cssToken('--chart-total-muted', 'rgba(217, 119, 6, 0.10)'), width: 1.2 };
+      const totalActive = highlightDomain === 'all';
+      const totalStyle = {
+        color: totalActive
+          ? cssToken('--chart-total', 'rgba(217, 119, 6, 1)')
+          : cssToken('--chart-total-muted', 'rgba(217, 119, 6, 0.10)'),
+        width: totalActive ? 2.4 : 1,
+        fill: totalActive
+      };
 
       const careerStyle = getStyle('career', cssToken('--chart-career', 'rgba(245, 158, 11, 1)'), cssToken('--chart-career-muted', 'rgba(245, 158, 11, 0.10)'));
       const wealthStyle = getStyle('wealth', cssToken('--chart-wealth', 'rgba(16, 185, 129, 1)'), cssToken('--chart-wealth-muted', 'rgba(16, 185, 129, 0.10)'));
@@ -2421,64 +2697,146 @@
         selectedGraphIndex = getRepresentativeCycleIndex(cycleKey);
       }
 
+      const selectedPointRadius = 7;
       const pointRadiusFor = (datasetIndex) => labels.map((_, idx) => (
-        datasetIndex === activeSeriesIndex && idx === selectedGraphIndex ? 4 : 0
+        datasetIndex === activeSeriesIndex && idx === selectedGraphIndex ? selectedPointRadius : 0
       ));
+      const fillFor = (style, mutedToken) => style.fill ? cssToken(mutedToken, 'rgba(217, 119, 6, 0.10)') : 'transparent';
+      const surface = cssToken('--color-bg-surface', '#ffffff');
+
+      const makeDataset = (label, data, style, mutedToken, datasetIndex) => ({
+        label,
+        data,
+        borderColor: style.color,
+        backgroundColor: fillFor(style, mutedToken),
+        borderWidth: style.width,
+        fill: style.fill ? 'origin' : false,
+        pointRadius: pointRadiusFor(datasetIndex),
+        pointHoverRadius: 9,
+        pointBackgroundColor: style.color,
+        pointBorderColor: surface,
+        pointBorderWidth: 2,
+        tension: 0.4
+      });
+
+      const applyPointRadii = (chart, index) => {
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          dataset.pointRadius = labels.map((_, idx) => (
+            datasetIndex === activeSeriesIndex && idx === index ? selectedPointRadius : 0
+          ));
+        });
+      };
+
+      const syncGraphFloat = (chart, index) => {
+        const floatEl = document.getElementById('graphPointFloat');
+        if (!floatEl) return;
+        const meta = chart.getDatasetMeta(activeSeriesIndex);
+        const point = meta?.data?.[index];
+        const pointLabel = labels[index];
+        if (!point || pointLabel == null) {
+          floatEl.hidden = true;
+          return;
+        }
+        const { x, y } = point.getProps(['x', 'y'], true);
+        const series = currentAnalysisData?.cyclesData?.[currentCycle];
+        const domainKey = domainKeys[currentDomainIndex] || 'all';
+        const values = series?.[domainSeriesKey(domainKey)] || series?.total || [];
+        const score = values[index];
+        const signed = Number.isFinite(Number(score))
+          ? `${Number(score) >= 0 ? '+' : ''}${Math.round(Number(score))}`
+          : '';
+        floatEl.hidden = false;
+        floatEl.textContent = signed ? `${pointLabel} ${signed}` : String(pointLabel);
+        floatEl.style.left = `${x}px`;
+        floatEl.style.top = `${y}px`;
+      };
 
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
           labels,
           datasets: [
-            { label: '총운', data: cycleData.total, borderColor: totalStyle.color, borderWidth: totalStyle.width, pointRadius: pointRadiusFor(0), pointHoverRadius: 5, tension: 0.45 },
-            { label: '사업운', data: cycleData.career, borderColor: careerStyle.color, borderWidth: careerStyle.width, pointRadius: pointRadiusFor(1), pointHoverRadius: 5, tension: 0.45 },
-            { label: '재물운', data: cycleData.wealth, borderColor: wealthStyle.color, borderWidth: wealthStyle.width, pointRadius: pointRadiusFor(2), pointHoverRadius: 5, tension: 0.45 },
-            { label: '심신운', data: cycleData.mental, borderColor: mentalStyle.color, borderWidth: mentalStyle.width, pointRadius: pointRadiusFor(3), pointHoverRadius: 5, tension: 0.45 },
-            { label: '연애운', data: cycleData.love, borderColor: loveStyle.color, borderWidth: loveStyle.width, pointRadius: pointRadiusFor(4), pointHoverRadius: 5, tension: 0.45 }
+            makeDataset('총운', cycleData.total, totalStyle, '--chart-total-muted', 0),
+            makeDataset('사업운', cycleData.career, careerStyle, '--chart-career-muted', 1),
+            makeDataset('재물운', cycleData.wealth, wealthStyle, '--chart-wealth-muted', 2),
+            makeDataset('심신운', cycleData.mental, mentalStyle, '--chart-mental-muted', 3),
+            makeDataset('연애운', cycleData.love, loveStyle, '--chart-love-muted', 4)
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
-          layout: { padding: { left: 4, right: 4, top: 8, bottom: 4 } },
+          layout: { padding: { left: 4, right: 4, top: 12, bottom: 4 } },
           interaction: { mode: 'index', intersect: false },
+          events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove', 'touchend'],
           onHover(event, _elements, chart) {
             const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, false);
-            if (points.length) updateGraphPoint(points[0].index);
+            if (!points.length) {
+              if (event.type === 'mouseout' || event.type === 'touchend') {
+                applyPointRadii(chart, selectedGraphIndex);
+                updateGraphPoint(selectedGraphIndex);
+                chart.update('none');
+                syncGraphFloat(chart, selectedGraphIndex);
+              }
+              return;
+            }
+            const hoverIndex = points[0].index;
+            updateGraphPoint(hoverIndex);
+            applyPointRadii(chart, hoverIndex);
+            chart.update('none');
+            syncGraphFloat(chart, hoverIndex);
           },
           onClick(event, _elements, chart) {
             const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
             if (!points.length) return;
             selectedGraphIndex = points[0].index;
             updateGraphPoint(selectedGraphIndex, { persist: true });
-            chart.data.datasets.forEach((dataset, datasetIndex) => {
-              dataset.pointRadius = labels.map((_, idx) => (
-                datasetIndex === activeSeriesIndex && idx === selectedGraphIndex ? 4 : 0
-              ));
-            });
+            applyPointRadii(chart, selectedGraphIndex);
             chart.update('none');
+            syncGraphFloat(chart, selectedGraphIndex);
           },
           plugins: {
             legend: { display: false },
-            tooltip: { enabled: false }
+            tooltip: { enabled: false },
+            filler: { propagate: false }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 9, weight: '700' }, color: cssToken('--chart-tick', '#8C827A'), maxRotation: 0 } },
-            y: { min: -100, max: 100, grid: { color: cssToken('--chart-grid', 'rgba(255, 255, 255, 0.6)') }, ticks: { stepSize: 100, font: { size: 8, weight: '600' }, color: cssToken('--chart-tick-muted', '#A8A29E') } }
+            x: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: {
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 6,
+                color: (ctx) => ctx.index === selectedGraphIndex
+                  ? cssToken('--color-text-primary', '#1c1917')
+                  : cssToken('--chart-tick', '#a8a29e'),
+                font: (ctx) => ({
+                  size: ctx.index === selectedGraphIndex ? 11 : 9,
+                  weight: ctx.index === selectedGraphIndex ? '800' : '600'
+                })
+              }
+            },
+            y: {
+              min: -100,
+              max: 100,
+              border: { display: false },
+              grid: { color: cssToken('--chart-grid', 'rgba(15, 23, 42, 0.04)'), drawTicks: false },
+              ticks: { display: false }
+            }
           }
         }
       });
+
+      syncGraphFloat(chartInstance, selectedGraphIndex);
     }
 
     // 주기 탭 전환 시 그래프 변경 + 백그라운드 프리페치 동시 가동
     document.querySelectorAll('.cycle-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         playTickSound();
-        document.querySelectorAll('.cycle-tab').forEach(t => {
-          t.className = 'cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800 text-stone-500';
-        });
-        tab.className = 'cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm';
+        document.querySelectorAll('.cycle-tab').forEach(t => t.classList.toggle('is-active', t === tab));
         currentCycle = tab.dataset.cycle;
         selectedGraphIndex = getRepresentativeCycleIndex(currentCycle);
         renderWaveChart(currentCycle, domainKeys[currentDomainIndex]);
@@ -2495,11 +2853,9 @@
       const domainKey = domainKeys[currentDomainIndex];
 
       document.querySelectorAll('.domain-chip').forEach(btn => {
-        if (btn.dataset.domain === domainKey) {
-          btn.className = 'domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0';
-        } else {
-          btn.className = 'domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition';
-        }
+        const on = btn.dataset.domain === domainKey;
+        btn.classList.toggle('is-active', on);
+        btn.classList.toggle('active', on);
       });
 
       renderWaveChart(currentCycle, domainKey);
@@ -2518,15 +2874,31 @@
       });
     });
 
+    function setDashNavActive(id) {
+      document.querySelectorAll('.dash-nav-item').forEach((el) => {
+        const on = el.id === id;
+        el.classList.toggle('is-active', on);
+        if (on) el.setAttribute('aria-current', 'page');
+        else el.removeAttribute('aria-current');
+      });
+    }
+
     document.getElementById('navHomeTab')?.addEventListener('click', () => {
+      setDashNavActive('navHomeTab');
       document.getElementById('viewDashboard')?.scrollTo({ top: 0, behavior: 'smooth' });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     document.getElementById('navWeatherTab')?.addEventListener('click', () => {
+      setDashNavActive('navWeatherTab');
       document.getElementById('dashGraphSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     document.getElementById('navDetailTab')?.addEventListener('click', () => {
-      document.getElementById('dashNatalSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setDashNavActive('navDetailTab');
+      document.getElementById('dashAdvancedSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('navProfileTab')?.addEventListener('click', () => {
+      setDashNavActive('navProfileTab');
+      document.querySelector('.dash-greeting')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     function openUnifiedModal(title, content, isLoading = false) {
