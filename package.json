@@ -4,8 +4,10 @@
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "scripts": {
-    "test": "npm run test:counseling && npm run test:counseling-orchestrator && npm run test:interpretation-brief && npm run test:grounded-directness && npm run test:scope && npm run test:counseling-recovery && npm run test:chunking-review && npm run test:chat-provider-policy && npm run test:graph-display-curve",
+    "test": "npm run test:counseling && npm run test:counseling-orchestrator && npm run test:interpretation-brief && npm run test:grounded-directness && npm run test:scope && npm run test:counseling-recovery && npm run test:chunking-review && npm run test:chat-provider-policy && npm run test:graph-display-curve && npm run test:user-profile-privacy && npm run test:reading-quality",
     "test:graph-display-curve": "node scripts/testGraphDisplayCurve.js",
+    "test:user-profile-privacy": "node scripts/testUserProfilePrivacy.js",
+    "test:reading-quality": "node scripts/testCounselingReadingQuality.js",
     "test:interpretation-brief": "node scripts/testCounselingInterpretationBrief.js",
     "test:grounded-directness": "node scripts/testCounselingGroundedDirectness.js",
     "test:counseling-orchestrator": "node scripts/testCounselingOrchestratorAcceptance.js",
