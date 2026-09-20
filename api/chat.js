@@ -7,9 +7,9 @@
 // - api/chat.js receives already-calculated Engine Facts and selects only the
 //   facts needed for the LLM context.
 // - The LLM is explicitly forbidden from recalculating or overriding facts.
-// - Gemini remains the default provider for backward compatibility.
-// - OpenAI is available only when explicitly selected; there is NO automatic
-//   cross-provider fallback that could unexpectedly create extra cost.
+// - Gemini is the default and first-priority provider for prototype users.
+// - If Gemini is blocked or fails, chat falls back to OpenAI automatically.
+// - Explicit provider=openai (eval / future admin) is still honored as-is.
 // -----------------------------------------------------------------------------
 
 import { CHAT_SYSTEM } from '../lib/sajuRulebook.js';
@@ -78,6 +78,10 @@ import {
   finalizeCorrectionReply,
   enforceTranscriptConsistentReply
 } from '../lib/correctionTranscriptAudit.js';
+
+import {
+  invokeProviderWithPriority
+} from '../lib/chatProviderPolicy.js';
 
 const API_VERSION =
   'chat_api_v3_counseling_prototype';
@@ -3911,29 +3915,6 @@ function parseCounselingReply(
   };
 }
 
-async function callSelectedProvider(
-  options
-) {
-  if (
-    options
-      .normalized
-      .provider ===
-    'openai'
-  ) {
-    return (
-      callOpenAI(
-        options
-      )
-    );
-  }
-
-  return (
-    callGemini(
-      options
-    )
-  );
-}
-
 export default async function handler(
   req,
   res,
@@ -4699,25 +4680,42 @@ export default async function handler(
       Date.now();
 
     providerResult =
-      await (
-        runtimeOptions.callProvider ||
-        callSelectedProvider
-      )({
-        normalized,
-        systemInstruction,
+      await invokeProviderWithPriority({
+        requestedProvider:
+          normalized.provider,
 
-        userPrompt:
-          task.userPrompt,
+        injectedCallProvider:
+          runtimeOptions.callProvider,
 
-        isJsonMode:
-          task.isJsonMode,
+        callGemini,
+        callOpenAI,
 
-        maxOutputTokens:
-          task.maxOutputTokens,
+        options: {
+          normalized,
+          systemInstruction,
 
-        thinkingLevel:
-          task.thinkingLevel
+          userPrompt:
+            task.userPrompt,
+
+          isJsonMode:
+            task.isJsonMode,
+
+          maxOutputTokens:
+            task.maxOutputTokens,
+
+          thinkingLevel:
+            task.thinkingLevel
+        }
       });
+
+    if (
+      providerResult
+        ?.fallbackUsed
+    ) {
+      stage =
+        STAGE
+          .OPENAI_REQUEST;
+    }
 
     providerElapsedMs =
       Date.now() -
@@ -4777,10 +4775,7 @@ export default async function handler(
             errorStage,
 
           message:
-            provider ===
-              'openai'
-              ? 'OpenAI 답변 생성 중 오류가 발생했습니다.'
-              : 'Gemini 답변 생성 중 오류가 발생했습니다.',
+            '답변 생성 중 오류가 발생했습니다.',
 
           detail:
             safeErrorDetail(
@@ -4944,6 +4939,11 @@ export default async function handler(
                 null,
 
               providerElapsedMs,
+
+              fallbackUsed:
+                providerResult
+                  .fallbackUsed ===
+                true,
 
               engineFactsStatus:
                 engineFactPacket
@@ -5184,6 +5184,11 @@ export default async function handler(
 
               providerElapsedMs,
 
+              fallbackUsed:
+                providerResult
+                  .fallbackUsed ===
+                true,
+
               engineFactsStatus:
                 engineFactPacket
                   .availability,
@@ -5326,6 +5331,11 @@ export default async function handler(
               null,
 
             providerElapsedMs,
+
+            fallbackUsed:
+              providerResult
+                .fallbackUsed ===
+              true,
 
             engineFactsStatus:
               engineFactPacket
