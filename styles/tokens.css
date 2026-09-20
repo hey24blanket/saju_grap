@@ -29,6 +29,12 @@
   --gray-950: #0c0a09;
   --warm-100: #ece7e1;
   --warm-400: #8c827a;
+  --blue-gray-50: #f5f7fb;
+  --blue-gray-100: #eef2f7;
+  --slate-950-a-04: rgba(15, 23, 42, 0.04);
+  --slate-950-a-06: rgba(15, 23, 42, 0.06);
+  --slate-950-a-08: rgba(15, 23, 42, 0.08);
+  --slate-950-a-12: rgba(15, 23, 42, 0.12);
 
   --white-a-12: rgba(255, 255, 255, 0.12);
   --white-a-18: rgba(255, 255, 255, 0.18);
@@ -235,7 +241,7 @@
   --size-saju-char: 48px;
   --size-saju-char-sm: 44px;
   --size-saju-char-compact: 46px;
-  --size-chart-height: 14.5rem;
+  --size-chart-height: 17.5rem;
   --size-trace-max-height: 240px;
   --size-chat-height: 80vh;
 
@@ -264,10 +270,10 @@
    * LEVEL 2 — Semantic tokens
    * ======================================================================== */
 
-  --color-bg-app: var(--warm-100);
+  --color-bg-app: var(--blue-gray-50);
   --color-bg-surface: var(--white);
-  --color-bg-surface-muted: var(--white-a-45);
-  --color-bg-elevated: var(--white-a-65);
+  --color-bg-surface-muted: var(--blue-gray-100);
+  --color-bg-elevated: var(--white);
   --color-bg-inverse: var(--gray-900);
   --color-bg-inverse-soft: var(--gray-800-a-94);
 
@@ -283,14 +289,14 @@
   --color-text-danger: var(--red-700);
   --color-text-code: var(--green-300-bright);
 
-  --color-border-subtle: var(--white-a-75);
-  --color-border-default: var(--white-a-85);
+  --color-border-subtle: var(--slate-950-a-06);
+  --color-border-default: var(--slate-950-a-08);
   --color-border-strong: var(--gray-300);
   --color-border-inverse: var(--white-a-12);
 
   --color-accent-primary: var(--amber-500);
   --color-accent-secondary: var(--amber-700);
-  --color-accent-soft: var(--amber-500-a-13);
+  --color-accent-soft: var(--amber-50);
 
   --color-success: var(--green-700);
   --color-warning: var(--amber-700);
@@ -299,8 +305,8 @@
   --font-family-ui: var(--font-sans);
 
   --text-display-size: var(--text-display);
-  --text-heading-xl: 1.35rem;
-  --text-heading-lg: var(--text-heading-sm);
+  --text-heading-xl: 1.85rem;
+  --text-heading-lg: var(--text-heading-md);
   --text-body-lg-size: var(--text-body-lg);
   --text-body-md-size: var(--text-body-sm);
   --text-body-sm-size: var(--text-caption);
@@ -308,64 +314,62 @@
   --text-label-size: var(--text-label);
 
   --shadow-none: none;
-  --shadow-xs: 0 4px 12px var(--gray-800-a-035);
-  --shadow-sm: 0 5px 15px var(--gray-800-a-035);
-  --shadow-md: 0 8px 20px -4px var(--black-a-03);
-  --shadow-lg: 0 24px 48px -12px var(--warm-shadow-a-08);
-  --shadow-floating: 0 10px 24px var(--gray-900-a-22);
+  --shadow-xs: 0 4px 12px var(--slate-950-a-04);
+  --shadow-sm: 0 6px 16px var(--slate-950-a-04);
+  --shadow-md: 0 10px 24px var(--slate-950-a-06);
+  --shadow-lg: 0 16px 40px var(--slate-950-a-06);
+  --shadow-floating: 0 12px 28px var(--slate-950-a-12);
 
-  --space-page-x: var(--space-0-5);
+  --space-page-x: var(--space-4);
   --space-page-x-md: var(--space-6);
-  --space-section: var(--space-3);
-  --space-card: var(--space-3-5);
+  --space-section: var(--space-6);
+  --space-card: var(--space-4);
+  --space-card-inner: var(--space-4);
 
   /* ========================================================================
    * LEVEL 3 — Component tokens (keep sparse)
    * ======================================================================== */
 
-  --radius-card: var(--radius-2xl);
+  --radius-card: var(--radius-3xl);
+  --radius-card-sm: var(--radius-xl);
   --radius-control: var(--radius-lg);
   --radius-tooltip: var(--radius-md);
-  --shadow-card: var(--shadow-lg);
+  --shadow-card: var(--shadow-md);
   --shadow-floating-ui: var(--shadow-floating);
 
-  --page-max-width: 42rem;
-  --page-padding-y: var(--space-6);
-  --section-gap: var(--space-3);
-  --card-gap: var(--space-2);
+  --page-max-width: 52rem;
+  --page-padding-y: var(--space-8);
+  --section-gap: var(--space-section);
+  --card-gap: var(--space-3);
   --content-radius: var(--radius-3xl);
-  --bottom-nav-height: var(--space-32);
-  --bottom-nav-offset: 10px;
+  --bottom-nav-height: 6.5rem;
+  --bottom-nav-offset: var(--space-3);
   --bottom-nav-inset: var(--space-4);
-  --bottom-nav-radius: var(--radius-26);
+  --bottom-nav-radius: var(--radius-4xl);
+  --bottom-nav-pad: var(--space-2);
 
-  --glass-bg: var(--color-bg-elevated);
-  --glass-blur: blur(28px) saturate(190%);
-  --glass-border: var(--border-width-hairline) solid var(--color-border-default);
-  --glass-shadow:
-    var(--shadow-lg),
-    inset 0 1.5px 2px 0 var(--white-a-95),
-    inset 0 -1.5px 3px 0 var(--black-a-02);
+  --glass-bg: var(--color-bg-surface);
+  --glass-blur: none;
+  --glass-border: var(--border-width-thin) solid var(--color-border-subtle);
+  --glass-shadow: var(--shadow-card);
 
   --card-inner-bg: var(--color-bg-surface-muted);
-  --card-inner-blur: blur(16px);
-  --card-inner-border: var(--border-width-thin) solid var(--color-border-subtle);
-  --card-inner-shadow:
-    var(--shadow-md),
-    inset 0 1px 1.5px 0 var(--white-a-90);
+  --card-inner-blur: none;
+  --card-inner-border: var(--border-width-thin) solid transparent;
+  --card-inner-shadow: none;
 
-  --pill-amber-bg: linear-gradient(135deg, var(--amber-400-a-85), var(--amber-600-a-95));
-  --pill-dark-bg: linear-gradient(135deg, var(--gray-800-a-90), var(--gray-900-a-98));
-  --pill-emerald-bg: linear-gradient(135deg, var(--green-400-a-85), var(--green-600-a-95));
-  --pill-purple-bg: linear-gradient(135deg, var(--purple-400-a-85), var(--purple-600-a-95));
-  --pill-rose-bg: linear-gradient(135deg, var(--rose-400-a-85), var(--rose-600-a-95));
-  --pill-clear-bg: var(--white-a-70);
+  --pill-amber-bg: var(--color-accent-primary);
+  --pill-dark-bg: var(--gray-900);
+  --pill-emerald-bg: var(--green-500);
+  --pill-purple-bg: var(--purple-500);
+  --pill-rose-bg: var(--red-500);
+  --pill-clear-bg: var(--color-bg-surface-muted);
 
   --tooltip-bg: var(--gray-900-a-94);
   --tooltip-text: var(--gray-50);
   --tooltip-radius: var(--radius-tooltip);
   --tooltip-shadow: var(--shadow-floating-ui);
-  --tooltip-max-width: 220px;
+  --tooltip-max-width: 196px;
 
   --overlay-scrim: rgba(12, 10, 9, 0.35);
 
@@ -374,26 +378,26 @@
   --element-fire: var(--red-700);
   --element-earth: var(--amber-700);
   --element-metal: var(--gray-600);
-  --element-water: var(--white);
+  --element-water: var(--gray-800);
   --element-unknown: var(--gray-500);
 
   --element-wood-soft: var(--green-100-a-90);
   --element-fire-soft: var(--red-100-a-88);
-  --element-earth-soft: rgba(254, 243, 199, 0.92);
-  --element-metal-soft: var(--white-a-97);
-  --element-water-soft: var(--gray-700-a-96);
+  --element-earth-soft: var(--amber-100);
+  --element-metal-soft: var(--gray-100);
+  --element-water-soft: var(--blue-gray-100);
 
-  --element-wood-fill: linear-gradient(145deg, var(--green-100-a-90), var(--green-300-a-36));
-  --element-fire-fill: linear-gradient(145deg, var(--red-100-a-88), var(--red-300-a-45));
-  --element-earth-fill: linear-gradient(145deg, var(--element-earth-soft), var(--amber-400-a-38));
-  --element-metal-fill: linear-gradient(145deg, var(--white-a-97), rgba(245, 245, 244, 0.88));
-  --element-water-fill: linear-gradient(145deg, var(--gray-700-a-96), var(--gray-900-a-98));
+  --element-wood-fill: var(--green-100);
+  --element-fire-fill: var(--red-100);
+  --element-earth-fill: var(--amber-100);
+  --element-metal-fill: var(--gray-100);
+  --element-water-fill: var(--blue-gray-100);
 
   --element-wood-border: var(--green-500-a-26);
   --element-fire-border: var(--red-400-a-30);
   --element-earth-border: var(--amber-500-a-30);
   --element-metal-border: rgba(168, 162, 158, 0.28);
-  --element-water-border: var(--white-a-18);
+  --element-water-border: var(--slate-950-a-12);
 
   --element-wood-dot: var(--green-300);
   --element-fire-dot: var(--red-300);
@@ -413,9 +417,9 @@
   --chart-mental-muted: var(--purple-500-a-10);
   --chart-love: var(--rose-500-solid);
   --chart-love-muted: var(--rose-500-a-10);
-  --chart-tick: var(--warm-400);
+  --chart-tick: var(--gray-400);
   --chart-tick-muted: var(--gray-400);
-  --chart-grid: var(--white-a-60);
+  --chart-grid: var(--slate-950-a-04);
 }
 
 /* Future dark theme: override semantic tokens only.
