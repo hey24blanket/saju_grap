@@ -9,6 +9,7 @@ import {
 import {
   selectRelevantSajuEvidence,
   pickDomainNatalEvidence,
+  pickOverallNatalEvidence,
   scoreCanonicalTimingSalience,
   inferCanonicalTimingDirection
 } from '../lib/counselingEvidenceSelector.js';
@@ -137,6 +138,10 @@ function testDomainNatalEvidenceCareerWealth() {
 
   // domain 'all' surfaces no extra domain item.
   assert.equal(pickDomainNatalEvidence(engineFacts, 'all'), null);
+  const overall = pickOverallNatalEvidence(engineFacts);
+  assert.ok(overall);
+  assert.ok(overall.dayBranch);
+  assert.ok(overall.relevantGroups.length >= 3);
 }
 
 function testEvidenceSelectorStillNoInterpretation() {
@@ -204,7 +209,15 @@ function testInterpretationBriefShape() {
   assert.ok(Array.isArray(brief.questionCoverage));
   assert.ok(Array.isArray(brief.selectedEvidence));
   assert.ok(brief.selectedEvidence.every((e) => e.evidenceId && e.source === 'engine'));
-  assert.deepEqual(brief.supportedMeanings, []); // server brief never fabricates meaning
+  assert.ok(Array.isArray(brief.supportedMeanings));
+  assert.ok(
+    brief.supportedMeanings.every(
+      (item) =>
+        item.statement &&
+        Array.isArray(item.supportEvidenceIds) &&
+        item.supportEvidenceIds.length > 0
+    )
+  );
   assert.ok(Array.isArray(brief.forbiddenInferences) && brief.forbiddenInferences.length > 0);
   assert.ok(brief.answerPlan.includes('direct_answer'));
 
