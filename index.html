@@ -39,7 +39,7 @@
     }
 
     .fade-in { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .liquid-glass {
       background: rgba(255, 255, 255, 0.65);
@@ -530,12 +530,193 @@
     }
 
     @media (max-width: 640px) {
-      .core-facts-grid { grid-template-columns: 1fr; }
+      .core-facts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
       .role-strip { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; }
       .engine-mini-grid { grid-template-columns: 1fr; }
       .saju-char-card { height: 44px; font-size: 21px; }
       .manse-grid { gap: 6px; }
       .manse-pillar { padding: 8px 5px 7px; }
+      .core-fact-card { padding: 8px 7px; }
+      .core-fact-value { font-size: 11px; }
+    }
+
+    body.dashboard-open {
+      justify-content: flex-start;
+      padding-bottom: 128px;
+    }
+
+    .dash-page {
+      width: 100%;
+      max-width: 42rem;
+      padding-bottom: 24px;
+    }
+
+    .dash-greeting h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: #1c1917;
+      line-height: 1.3;
+    }
+
+    .dash-greeting p {
+      margin: 6px 0 0;
+      font-size: 12px;
+      font-weight: 650;
+      color: #78716c;
+      line-height: 1.5;
+    }
+
+    .dash-section-kicker {
+      font-size: 10px;
+      font-weight: 800;
+      color: #a8a29e;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .dash-accordion {
+      width: 100%;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .dash-accordion + .dash-accordion { margin-top: 10px; }
+
+    .dash-accordion summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #292524;
+      user-select: none;
+    }
+
+    .dash-accordion summary::-webkit-details-marker { display: none; }
+
+    .dash-accordion summary .dash-acc-hint {
+      font-size: 10px;
+      font-weight: 800;
+      color: #a8a29e;
+    }
+
+    .dash-accordion[open] summary .dash-acc-hint { color: #b45309; }
+    .dash-accordion .dash-acc-body { padding: 0 14px 14px; }
+
+    .saju-tip {
+      position: relative;
+      display: block;
+      cursor: help;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .core-facts-grid > .saju-tip,
+    .engine-mini-grid > .saju-tip,
+    .role-strip > .saju-tip {
+      min-width: 0;
+      height: 100%;
+    }
+
+    .core-facts-grid > .saju-tip .core-fact-card,
+    .engine-mini-grid > .saju-tip .engine-mini-card,
+    .role-strip > .saju-tip .role-card {
+      height: 100%;
+    }
+
+    .saju-bubble {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 10px);
+      transform: translateX(-50%) translateY(4px);
+      width: max-content;
+      max-width: 220px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(28, 25, 23, 0.94);
+      color: #fafaf9;
+      font-size: 11px;
+      font-weight: 650;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+      text-align: left;
+      box-shadow: 0 10px 24px rgba(28, 25, 23, 0.22);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      z-index: 80;
+      transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+    }
+
+    .saju-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -6px;
+      border: 6px solid transparent;
+      border-top-color: rgba(28, 25, 23, 0.94);
+    }
+
+    .saju-tip.is-open > .saju-bubble {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .saju-tip:hover > .saju-bubble,
+      .saju-tip:focus-visible > .saju-bubble {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    .graph-note {
+      border-radius: 20px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .graph-note .kicker {
+      font-size: 10px;
+      font-weight: 900;
+      color: #b45309;
+      margin-bottom: 4px;
+    }
+
+    .graph-note p {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 650;
+      color: #44403c;
+      line-height: 1.55;
+    }
+
+    .dash-bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      width: min(calc(100% - 16px), 42rem);
+      z-index: 40;
+    }
+
+    .dash-chart-wrap {
+      width: 100%;
+      height: 14.5rem;
+      position: relative;
+      overflow: hidden;
     }
   </style>
 </head>
@@ -637,24 +818,24 @@
 
 
 
-  <!-- 2. 대시보드 화면 -->
-  <div id="viewDashboard" class="w-full max-w-5xl hidden flex-col items-center gap-4 fade-in pb-12 relative z-10">
-    
+  <!-- 2. 사주 대시보드: 단일 스크롤 -->
+  <div id="viewDashboard" class="dash-page hidden flex-col items-stretch gap-3 fade-in relative z-10">
+
     <header class="w-full liquid-glass rounded-[28px] p-3.5 px-5 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <div class="flex items-center gap-1.5">
           <span id="dashElemBadge" class="text-xs font-black text-stone-600 liquid-pill-clear px-2.5 py-1 rounded-xl">불</span>
           <div class="w-9 h-9 rounded-2xl liquid-pill-dark text-white font-black flex items-center justify-center text-base shadow-sm" id="dashGanBadge">丙</div>
         </div>
-        <div>
-          <h2 class="font-black text-stone-900 text-sm md:text-base flex items-center gap-1.5">
-            <span id="dashUserName">사용자</span>님의 인생 파동
+        <div class="min-w-0">
+          <h2 class="font-black text-stone-900 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
+            <span id="dashUserName">사용자</span>
             <span id="dashPillarTag" class="text-[11px] font-bold liquid-pill-clear text-amber-900 px-2.5 py-0.5 rounded-lg border border-amber-300/50">丙申일주</span>
           </h2>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 text-xs">
+      <div class="flex items-center gap-2 text-xs shrink-0">
         <button id="btnSaveToCloud" class="px-3.5 py-2 liquid-pill-dark text-white font-bold rounded-2xl transition flex items-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-cloud-arrow-up text-amber-400 text-xs"></i>
           <span>저장</span>
@@ -665,172 +846,130 @@
       </div>
     </header>
 
-    <!-- Engine Facts 시각 진단 패널: 원국 8자 + 핵심 Fact + 기술 로그 -->
-    <section id="runtimeStatusPanel" class="w-full hidden liquid-glass rounded-[24px] px-4 py-3 text-[10px] text-stone-600">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2 min-w-0">
-          <span id="runtimeStatusBadge" class="shrink-0 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black">ENGINE CHECK</span>
-          <span id="runtimeStatusSummary" class="font-bold truncate">분석 엔진 상태 확인 전</span>
-        </div>
-        <button id="btnToggleRuntimeDetails" type="button" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/70 border border-white text-stone-700 font-black hover:bg-white transition">
-          진단 보기
-        </button>
-      </div>
-      <div id="runtimeStatusDetails" class="hidden mt-3 pt-3 border-t border-white/80"></div>
+    <section class="dash-greeting w-full px-1.5 pt-1 pb-0.5">
+      <p class="dash-section-kicker">Saju Dashboard</p>
+      <h2>반가워요<span id="dashGreetingComma" class="hidden">, </span><span id="dashGreetingName"></span></h2>
+      <p>오늘은 원국과 흐름을 한눈에 살펴볼 수 있어요.</p>
+      <span id="txtUserPillar" class="hidden">분석 완료</span>
     </section>
 
-    <main class="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-      
-      <!-- SCREEN 1: 파동 패널 -->
-      <section class="liquid-glass rounded-[36px] p-5 md:p-6 flex flex-col justify-between min-h-[660px]">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <p class="text-[11px] font-bold text-stone-400 mb-0.5">Saju Grap Liquid Wave</p>
-              <h3 class="text-xl font-black text-stone-900 flex items-center gap-1.5">
-                반가워요, <span id="txtUserPillar" class="text-amber-700 underline decoration-amber-400 decoration-2 underline-offset-4">분석 완료</span> ☀️
-              </h3>
-            </div>
-          </div>
+    <section id="dashNatalSection" class="w-full liquid-glass rounded-[28px] p-4">
+      <div id="dashNatalMount" class="text-[12px] text-stone-400 font-bold">원국을 불러오는 중…</div>
+    </section>
 
-          <!-- 주기 탭 -->
-          <div class="flex items-center gap-1 liquid-card-inner p-1.5 rounded-2xl mb-3 text-xs font-bold text-stone-500">
-            <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="hour">시</button>
-            <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="day">일</button>
-            <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="month">월</button>
-            <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="year">연</button>
-            <button class="cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm" data-cycle="daewoon">대운(10년)</button>
-          </div>
+    <section id="dashCoreFactsSection" class="w-full liquid-glass rounded-[28px] p-4">
+      <div id="dashCoreFactsMount" class="text-[12px] text-stone-400 font-bold">핵심 명리를 불러오는 중…</div>
+    </section>
 
-          <!-- 5대 영역 필터 칩 (터치 시 그래프 선만 변경) -->
-          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 text-xs font-bold">
-            <button class="domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0" data-domain="all">총운</button>
-            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
-            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">재물운</button>
-            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="mental">심신운</button>
-            <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
-          </div>
+    <section id="dashGraphSection" class="w-full liquid-glass rounded-[28px] p-4 md:p-5">
+      <div class="mb-3">
+        <p class="dash-section-kicker">흐름 그래프</p>
+        <h3 class="text-base font-black text-stone-900">시간과 영역을 골라 살펴보세요</h3>
+      </div>
 
-          <!-- Chart.js 캔버스 (터치 시 0초 팝업) -->
-          <div id="chartContainerBox" class="liquid-card-inner rounded-[28px] p-3 mb-4 relative cursor-pointer group hover:ring-2 ring-amber-400/60 transition" title="터치하여 현재 파동의 행동 전략 확인">
-            <div class="w-full h-56 relative overflow-hidden pointer-events-none">
-              <canvas id="daewoonChart"></canvas>
-            </div>
-            <div class="flex items-center justify-between text-[10px] text-stone-400 mt-1.5 font-semibold px-2">
-              <span id="txtCycleGuide">👈 0세~100세 10대 대운 파동</span>
-              <span class="text-amber-700 font-bold flex items-center gap-1">
-                <i class="fa-solid fa-hand-pointer text-[10px] animate-bounce"></i>
-                터치하여 행동 전략 보기
-              </span>
-            </div>
-          </div>
+      <div class="flex items-center gap-1 liquid-card-inner p-1.5 rounded-2xl mb-2.5 text-[11px] font-bold text-stone-500">
+        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="hour">시운</button>
+        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="day">일운</button>
+        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="month">월운</button>
+        <button class="cycle-tab flex-1 py-1.5 rounded-xl transition hover:text-stone-800" data-cycle="year">연운</button>
+        <button class="cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm" data-cycle="daewoon">대운</button>
+      </div>
 
-          <!-- 4대 운성 & 세력 카드 -->
-          <div class="grid grid-cols-2 gap-2.5 mb-4">
-            <div class="liquid-card-inner rounded-[24px] p-3.5">
-              <span class="text-xs font-black text-amber-900 flex items-center gap-1 mb-1.5">
-                <i class="fa-solid fa-sparkles text-amber-500"></i>4대 운성 전략
-              </span>
-              <div class="grid grid-cols-2 gap-1.5">
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-rose-800 hover:bg-rose-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="yongsin" id="badgeYongsin">용신: -</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-amber-800 hover:bg-amber-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="heesin" id="badgeHeesin">희신: -</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-stone-700 hover:bg-stone-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="gisin" id="badgeGisin">기신: -</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-blue-800 hover:bg-blue-100/50 px-2 py-1.5 rounded-xl truncate text-left transition" data-key="gusin" id="badgeGusin">구신: -</button>
-              </div>
-            </div>
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-3 text-xs font-bold">
+        <button class="domain-chip active liquid-pill-dark text-white px-3.5 py-1.5 rounded-full shrink-0" data-domain="all">총운</button>
+        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="career">사업운</button>
+        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="wealth">재물운</button>
+        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="mental">심신운</button>
+        <button class="domain-chip liquid-pill-clear text-stone-700 px-3.5 py-1.5 rounded-full shrink-0 transition" data-domain="love">연애운</button>
+      </div>
 
-            <div class="liquid-card-inner rounded-[24px] p-3.5 flex flex-col justify-between">
-              <div>
-                <span class="text-xs font-black text-amber-900 flex items-center gap-1 mb-1">
-                  <i class="fa-solid fa-scale-balanced text-amber-500"></i>세력 균형
-                </span>
-                <p id="txtStrengthStatus" class="text-[10px] text-stone-600 font-bold truncate mb-2">-</p>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-blue-700 px-2 py-1 rounded-lg flex-1 truncate transition" data-key="strength" id="badgeDeung">-</button>
-                <button type="button" class="ai-role-btn text-[10px] font-black liquid-pill-clear text-purple-700 px-2 py-1 rounded-lg flex-1 truncate transition" data-key="flow" id="badgeFlow">-</button>
-              </div>
-            </div>
-          </div>
+      <div id="chartContainerBox" class="liquid-card-inner rounded-[24px] p-3 mb-3 relative">
+        <div class="dash-chart-wrap">
+          <canvas id="daewoonChart"></canvas>
         </div>
+        <p id="txtCycleGuide" class="text-[10px] text-stone-400 mt-1.5 font-semibold px-1">그래프 위를 따라가며 시점을 확인해 보세요</p>
+      </div>
 
-        <nav class="liquid-card-inner rounded-[26px] px-6 py-2 flex items-center justify-between text-stone-500 text-xs font-black">
-          <button class="flex flex-col items-center gap-0.5 text-amber-700"><i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">홈</span></button>
-          <button id="navWeatherTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-cloud-sun text-sm"></i><span class="text-[10px]">기상도</span></button>
-          <button id="btnCenterChat" class="flex flex-col items-center justify-center -mt-6 w-12 h-12 rounded-full liquid-pill-amber text-white shadow-lg shadow-amber-500/40 hover:scale-105 active:scale-95 transition"><i class="fa-solid fa-comment-dots text-base"></i></button>
-          <button id="navDetailTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-magnifying-glass-chart text-sm"></i><span class="text-[10px]">상세 분석</span></button>
-          <button class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-user text-sm"></i><span class="text-[10px]">내 정보</span></button>
-        </nav>
-      </section>
+      <div id="graphContextBlock" class="graph-note mb-2.5">
+        <div class="kicker" id="graphContextTitle">현재 선택: 대운 · 총운</div>
+        <p id="graphContextText">시간과 영역을 고르면, 그 조합의 흐름을 아래에서 짧게 풀어 드려요.</p>
+      </div>
 
-      <!-- SCREEN 2: 4대 에너지 저널 -->
-      <section class="liquid-glass rounded-[36px] p-5 md:p-6 flex flex-col justify-between min-h-[660px]">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h4 class="font-black text-stone-900 text-sm">인생 에너지 저널</h4>
-            <span class="text-[10px] font-black text-amber-800 liquid-pill-clear px-3 py-1 rounded-full">대표 대운</span>
-          </div>
+      <div id="graphPointBlock" class="graph-note">
+        <div class="kicker" id="graphPointTitle">선택한 시점</div>
+        <p id="graphPointText">그래프의 한 지점을 누르거나 따라가면, 그 시점의 결을 보여 줍니다.</p>
+      </div>
+    </section>
 
-          <div class="text-center mb-5">
-            <div id="txtMainWaveScore" class="text-5xl font-black text-stone-900 mb-0.5 tracking-tight">0</div>
-            <p class="text-[11px] font-bold text-stone-400">대운 구간별 4대 에너지 충전율</p>
-          </div>
+    <details class="dash-accordion liquid-glass">
+      <summary>
+        <span>용 · 희 · 기 · 구 · 한</span>
+        <span class="dash-acc-hint">더 보기</span>
+      </summary>
+      <div id="dashRolesMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">역할 정보를 불러오는 중…</div>
+    </details>
 
-          <div class="liquid-card-inner rounded-[32px] p-5 mb-4">
-            <div class="grid grid-cols-4 gap-3 h-44 items-end justify-items-center pt-2">
-              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="career">
-                <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
-                  <div id="tubeCareer" class="tube-fill w-full liquid-pill-amber rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
-                    <span id="valCareer" class="text-[9px] font-black text-white bg-black/20 px-1.5 rounded-full">50%</span>
-                  </div>
-                </div>
-                <p class="text-[10px] font-black text-stone-800">사업운</p>
-              </div>
+    <details class="dash-accordion liquid-glass">
+      <summary>
+        <span>구조 보조 정보</span>
+        <span class="dash-acc-hint">더 보기</span>
+      </summary>
+      <div id="dashStructureMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">구조 정보를 불러오는 중…</div>
+    </details>
 
-              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="wealth">
-                <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
-                  <div id="tubeWealth" class="tube-fill w-full liquid-pill-emerald rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
-                    <span id="valWealth" class="text-[9px] font-black text-white bg-black/20 px-1.5 rounded-full">50%</span>
-                  </div>
-                </div>
-                <p class="text-[10px] font-black text-stone-800">재물운</p>
-              </div>
+    <details class="dash-accordion liquid-glass">
+      <summary>
+        <span>특수 구조 후보</span>
+        <span class="dash-acc-hint">더 보기</span>
+      </summary>
+      <div id="dashSpecialMount" class="dash-acc-body text-[12px] text-stone-400 font-bold">특수 구조 정보를 불러오는 중…</div>
+    </details>
 
-              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="mental">
-                <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
-                  <div id="tubeMental" class="tube-fill w-full liquid-pill-purple rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
-                    <span id="valMental" class="text-[9px] font-black text-white bg-black/20 px-1.5 rounded-full">50%</span>
-                  </div>
-                </div>
-                <p class="text-[10px] font-black text-stone-800">심신운</p>
-              </div>
+    <details id="runtimeStatusPanel" class="dash-accordion liquid-glass hidden">
+      <summary>
+        <span class="flex items-center gap-2 min-w-0">
+          <span id="runtimeStatusBadge" class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-[900] text-[9px]">ENGINE CHECK</span>
+          <span class="truncate">기술 진단 로그</span>
+        </span>
+        <span class="dash-acc-hint">더 보기</span>
+      </summary>
+      <div class="dash-acc-body">
+        <p id="runtimeStatusSummary" class="text-[10px] font-bold text-stone-500 mb-2">분석 엔진 상태 확인 전</p>
+        <div id="dashTechLogMount"></div>
+        <div id="runtimeStatusDetails" class="hidden"></div>
+      </div>
+    </details>
 
-              <div class="tube-btn flex flex-col items-center gap-2 h-full justify-end w-full cursor-pointer group" data-domain="love">
-                <div class="w-11 h-36 liquid-ampoule rounded-full p-1 flex flex-col justify-end relative overflow-hidden group-hover:scale-105 transition">
-                  <div id="tubeLove" class="tube-fill w-full liquid-pill-rose rounded-full flex items-start justify-center pt-1.5" style="height: 50%;">
-                    <span id="valLove" class="text-[9px] font-black text-white bg-black/20 px-1.5 rounded-full">50%</span>
-                  </div>
-                </div>
-                <p class="text-[10px] font-black text-stone-800">연애운</p>
-              </div>
-            </div>
-          </div>
+    <!-- 저널/레거시 카드는 숨기되 기존 데이터 바인딩 ID는 유지 -->
+    <section id="dashJournalArchive" class="hidden" hidden aria-hidden="true">
+      <h4>인생 에너지 저널</h4>
+      <div id="txtMainWaveScore">0</div>
+      <div id="tubeCareer" style="height: 50%;"><span id="valCareer">50%</span></div>
+      <div id="tubeWealth" style="height: 50%;"><span id="valWealth">50%</span></div>
+      <div id="tubeMental" style="height: 50%;"><span id="valMental">50%</span></div>
+      <div id="tubeLove" style="height: 50%;"><span id="valLove">50%</span></div>
+      <p id="txtInsightDesc">파동의 높낮이는 성패가 아니라 현재 유리한 행동 모드를 보여줍니다.</p>
+      <p id="txtStrengthStatus">-</p>
+      <button type="button" class="ai-role-btn" data-key="yongsin" id="badgeYongsin">용신: -</button>
+      <button type="button" class="ai-role-btn" data-key="heesin" id="badgeHeesin">희신: -</button>
+      <button type="button" class="ai-role-btn" data-key="gisin" id="badgeGisin">기신: -</button>
+      <button type="button" class="ai-role-btn" data-key="gusin" id="badgeGusin">구신: -</button>
+      <button type="button" class="ai-role-btn" data-key="strength" id="badgeDeung">-</button>
+      <button type="button" class="ai-role-btn" data-key="flow" id="badgeFlow">-</button>
+      <button id="btnOpenChatFromJournal" type="button">오늘 기상도 대화하기</button>
+      <div class="tube-btn" data-domain="career"></div>
+      <div class="tube-btn" data-domain="wealth"></div>
+      <div class="tube-btn" data-domain="mental"></div>
+      <div class="tube-btn" data-domain="love"></div>
+    </section>
 
-          <div class="liquid-card-inner rounded-[24px] p-4 mb-4">
-            <div class="flex items-start gap-3">
-              <span class="text-base p-1.5 liquid-pill-clear rounded-xl">💡</span>
-              <p id="txtInsightDesc" class="text-xs text-stone-700 leading-relaxed font-semibold">파동의 높낮이는 성패가 아니라 현재 유리한 행동 모드를 보여줍니다.</p>
-            </div>
-          </div>
-        </div>
-
-        <button id="btnOpenChatFromJournal" class="w-full py-4 liquid-pill-amber hover:opacity-95 active:scale-[0.98] text-white font-black text-sm rounded-[24px] transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-comment-dots text-sm"></i>
-          <span>오늘 기상도 대화하기</span>
-        </button>
-      </section>
-
-    </main>
+    <nav class="dash-bottom-nav liquid-glass rounded-[26px] px-6 py-2 flex items-center justify-between text-stone-500 text-xs font-black">
+      <button type="button" id="navHomeTab" class="flex flex-col items-center gap-0.5 text-amber-700"><i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">홈</span></button>
+      <button type="button" id="navWeatherTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-cloud-sun text-sm"></i><span class="text-[10px]">기상도</span></button>
+      <button type="button" id="btnCenterChat" class="flex items-center justify-center -mt-6 w-12 h-12 rounded-full liquid-pill-amber text-white shadow-lg shadow-amber-500/40 hover:scale-105 active:scale-95 transition" aria-label="상담 대화"><i class="fa-solid fa-comment-dots text-base"></i></button>
+      <button type="button" id="navDetailTab" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-magnifying-glass-chart text-sm"></i><span class="text-[10px]">상세 분석</span></button>
+      <button type="button" class="flex flex-col items-center gap-0.5 hover:text-stone-900 transition"><i class="fa-solid fa-user text-sm"></i><span class="text-[10px]">내 정보</span></button>
+    </nav>
   </div>
 
 
@@ -1034,9 +1173,24 @@
     let cachedAiPack = null;
     let currentCycle = 'daewoon';
     let currentDomainIndex = 0;
+    let selectedGraphIndex = null;
     const domainKeys = ['all', 'career', 'wealth', 'mental', 'love'];
     const domainTitles = { all: '총운', career: '사업운', wealth: '재물운', mental: '심신운', love: '연애운' };
-    const cycleTitles = { daewoon: '100년 대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
+    const cycleTitles = { daewoon: '대운', year: '연운', month: '월운', day: '일운', hour: '시운' };
+    const cycleExplainers = {
+      hour: '시운은 지금 이 순간의 짧은 분위기 변화입니다. 하루를 나누어 볼 때 참고하세요.',
+      day: '일운은 오늘 하루의 결입니다. 큰 결정보다는 오늘의 리듬을 보는 축이에요.',
+      month: '월운은 이번 달의 큰 결입니다. 몇 주 단위로 이어지는 분위기를 보여 줍니다.',
+      year: '연운은 올해의 전체 방향입니다. 계절이 바뀌어도 남는 큰 흐름을 봐요.',
+      daewoon: '대운은 약 10년 단위의 인생 국면입니다. 한두 달의 기복보다 긴 호흡을 보여 줍니다.'
+    };
+    const domainExplainers = {
+      all: '총운은 일·돈·마음·관계를 한 줄로 묶은 전체 분위기입니다.',
+      career: '사업운은 일, 역할, 성과가 얼마나 잘 맞물리는지를 보는 축입니다.',
+      wealth: '재물운은 수입·자원·쓰임이 얼마나 잘 연결되는지를 보는 축입니다.',
+      mental: '심신운은 마음과 몸의 리듬이 얼마나 안정적인지를 보는 축입니다.',
+      love: '연애운은 만남과 관계의 온기, 거리감의 결을 보는 축입니다.'
+    };
     
     function makeClientId(prefix = 'id') {
       const random = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -1385,6 +1539,123 @@
       }[element] || 'background:#d6d3d1;';
     }
 
+    const stemExplainers = Object.freeze({
+      '甲': '큰 나무처럼 방향을 잡고 밀어가는 기운이에요.',
+      '乙': '풀처럼 유연하게 적응하며 자라는 기운이에요.',
+      '丙': '태양처럼 밝게 드러내고 이끄는 기운이에요.',
+      '丁': '촛불처럼 세밀하고 따뜻하게 비추는 기운이에요.',
+      '戊': '산처럼 묵직하게 자리를 지키는 기운이에요.',
+      '己': '밭의 흙처럼 받아내고 길러내는 기운이에요.',
+      '庚': '쇠처럼 단호하게 자르고 정리하는 기운이에요.',
+      '辛': '보석처럼 예민하고 섬세하게 다듬는 기운이에요.',
+      '壬': '큰 물처럼 넓게 흐르고 연결하는 기운이에요.',
+      '癸': '이슬처럼 스며들어 조용히 채우는 기운이에요.'
+    });
+
+    const branchExplainers = Object.freeze({
+      '子': '씨앗이 잠들어 다음을 준비하는 자리예요.',
+      '丑': '땅속에서 힘을 모으고 버티는 자리예요.',
+      '寅': '새 출발이 움트며 움직임이 커지는 자리예요.',
+      '卯': '부드럽게 피어나 관계와 성장이 열리는 자리예요.',
+      '辰': '쌓아 둔 것을 정리하며 전환하는 자리예요.',
+      '巳': '생각이 뚜렷해지고 표현이 활발해지는 자리예요.',
+      '午': '에너지가 한낮처럼 가장 드러나는 자리예요.',
+      '未': '결실을 챙기며 온기를 나누는 자리예요.',
+      '申': '빠르게 움직이고 실무를 풀어가는 자리예요.',
+      '酉': '결과를 다듬고 완성도를 높이는 자리예요.',
+      '戌': '경계를 지키며 마무리를 단단히 하는 자리예요.',
+      '亥': '쉬면서 다음 흐름을 품는 자리예요.'
+    });
+
+    const roleExplainers = Object.freeze({
+      '용신': '막힌 흐름을 풀어 주는 보완 포인트예요. 이 기운을 가까이 두면 균형이 잡히기 쉽습니다.',
+      '희신': '용신을 도와주는 순풍이에요. 함께 있으면 숨이 트이는 편입니다.',
+      '기신': '욕심내면 흐름이 꼬일 수 있는 과한 자극이에요. 조절이 필요한 기운입니다.',
+      '구신': '어려울 때 숨 고르게 돕는 완충이에요. 급한 결정을 덜어 줍니다.',
+      '한신': '부딪히면 힘이 빠지기 쉬운 반대 기운이에요. 거리를 두는 편이 편합니다.'
+    });
+
+    function sajuTip(innerHtml, text, extraClass = '') {
+      const tip = String(text || '').trim();
+      if (!tip) return innerHtml;
+      return `<div class="saju-tip ${extraClass}" tabindex="0">${innerHtml}<span class="saju-bubble" role="tooltip">${escapeHtml(tip)}</span></div>`;
+    }
+
+    function charExplainer(char, kind) {
+      const elementKo = uiElementKo[uiElementByChar[char]] || '';
+      const meaning = kind === 'stem' ? stemExplainers[char] : branchExplainers[char];
+      const kindLabel = kind === 'stem' ? '천간' : '지지';
+      if (!meaning) return `${kindLabel} ${char || ''}입니다.`;
+      return `${kindLabel} ${char}${elementKo ? ` · ${elementKo}` : ''}. ${meaning}`;
+    }
+
+    let openSajuTipEl = null;
+    let sajuTipHoldTimer = null;
+
+    function hideSajuTip(el = openSajuTipEl) {
+      if (sajuTipHoldTimer) {
+        clearTimeout(sajuTipHoldTimer);
+        sajuTipHoldTimer = null;
+      }
+      if (el) el.classList.remove('is-open');
+      if (openSajuTipEl === el) openSajuTipEl = null;
+    }
+
+    function showSajuTip(el) {
+      if (!el) return;
+      if (openSajuTipEl && openSajuTipEl !== el) hideSajuTip(openSajuTipEl);
+      el.classList.add('is-open');
+      openSajuTipEl = el;
+    }
+
+    function bindSajuTips(root) {
+      const scope = root || document;
+      scope.querySelectorAll('.saju-tip').forEach((el) => {
+        if (el.dataset.tipBound === '1') return;
+        el.dataset.tipBound = '1';
+
+        el.addEventListener('pointerdown', (event) => {
+          el._holdOpened = false;
+          if (event.pointerType === 'mouse') return;
+          hideSajuTip();
+          sajuTipHoldTimer = setTimeout(() => {
+            el._holdOpened = true;
+            showSajuTip(el);
+          }, 260);
+        });
+        el.addEventListener('pointerup', () => {
+          if (sajuTipHoldTimer) {
+            clearTimeout(sajuTipHoldTimer);
+            sajuTipHoldTimer = null;
+          }
+          if (el._holdOpened) {
+            hideSajuTip(el);
+            el._suppressClick = true;
+          }
+        });
+        el.addEventListener('pointercancel', () => hideSajuTip(el));
+        el.addEventListener('pointerleave', (event) => {
+          if (event.pointerType !== 'mouse') hideSajuTip(el);
+        });
+        el.addEventListener('contextmenu', (event) => event.preventDefault());
+        el.addEventListener('click', (event) => {
+          if (el._suppressClick) {
+            el._suppressClick = false;
+            event.preventDefault();
+            return;
+          }
+          event.stopPropagation();
+          if (openSajuTipEl === el) hideSajuTip(el);
+          else showSajuTip(el);
+        });
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      if (openSajuTipEl && !event.target.closest?.('.saju-tip')) hideSajuTip();
+    });
+    document.addEventListener('scroll', () => hideSajuTip(), { passive: true });
+
     function renderElementChip(element, extra = '') {
       const label = uiElementKo[element] || safeText(element, '-');
       return `<span class="fact-element-chip ${uiElementClass(element)}"><span class="chip-dot"></span>${escapeHtml(label)}${extra ? ` · ${escapeHtml(extra)}` : ''}</span>`;
@@ -1401,8 +1672,14 @@
           <div class="manse-pillar-label">
             ${escapeHtml(label)}${isDayMaster ? '<span class="dm-mark">MASTER</span>' : ''}
           </div>
-          <div class="saju-char-card ${uiElementClass(stemElement)}" title="천간 · ${escapeHtml(uiElementKo[stemElement] || '-')}">${escapeHtml(stem)}</div>
-          <div class="saju-char-card ${uiElementClass(branchElement)}" title="지지 · ${escapeHtml(uiElementKo[branchElement] || '-')}">${escapeHtml(branch)}</div>
+          ${sajuTip(
+            `<div class="saju-char-card ${uiElementClass(stemElement)}">${escapeHtml(stem)}</div>`,
+            charExplainer(stem, 'stem')
+          )}
+          ${sajuTip(
+            `<div class="saju-char-card ${uiElementClass(branchElement)}">${escapeHtml(branch)}</div>`,
+            charExplainer(branch, 'branch')
+          )}
         </div>`;
     }
 
@@ -1413,13 +1690,14 @@
     function renderRoleCard(name, role, primary = false) {
       const element = role?.element || null;
       const label = uiElementKo[element] || '-';
-      return `
+      const card = `
         <div class="role-card ${primary ? 'primary-role' : ''}">
           <div class="role-name">${escapeHtml(name)}</div>
           <div class="role-element">
             <span class="role-element-dot" style="${uiElementDotStyle(element)}"></span>${escapeHtml(label)}
           </div>
         </div>`;
+      return sajuTip(card, roleExplainers[name] || '', 'block');
     }
 
     function renderRuntimeStatus(diagnostic, data) {
@@ -1441,7 +1719,6 @@
       const panel = document.getElementById('runtimeStatusPanel');
       const badge = document.getElementById('runtimeStatusBadge');
       const summary = document.getElementById('runtimeStatusSummary');
-      const details = document.getElementById('runtimeStatusDetails');
 
       panel.classList.remove('hidden');
       badge.innerText = 'ENGINE OK';
@@ -1495,105 +1772,105 @@
         `yongsinNeed: ${yongsin?.need || '-'} / availability=${yongsin?.currentAvailability || '-'}`
       ].join('\n');
 
-      details.innerHTML = `
-        <div class="space-y-3">
-          <div class="engine-facts-shell">
-            <div class="engine-section-title">
-              <h5>원국 8자</h5>
-              <span>시주 · 일주 · 월주 · 년주</span>
-            </div>
+      const natalHtml = `
+        <div class="engine-section-title">
+          <h5>원국 8자</h5>
+          <span>시주 · 일주 · 월주 · 년주</span>
+        </div>
+        <div class="manse-grid">
+          ${renderPillarColumn('시주', natal?.hour || { ganzhi: data?.pillars?.hourHanja })}
+          ${renderPillarColumn('일주', natal?.day || { ganzhi: data?.pillars?.dayHanja }, true)}
+          ${renderPillarColumn('월주', natal?.month || { ganzhi: data?.pillars?.monthHanja })}
+          ${renderPillarColumn('년주', natal?.year || { ganzhi: data?.pillars?.yearHanja })}
+        </div>
+        <div class="element-legend">
+          <span class="element-legend-item"><span class="element-legend-dot" style="background:#fca5a5"></span>화 · 불</span>
+          <span class="element-legend-item"><span class="element-legend-dot" style="background:#fbbf24"></span>토 · 흙</span>
+          <span class="element-legend-item"><span class="element-legend-dot" style="background:#6ee7b7"></span>목 · 나무</span>
+          <span class="element-legend-item"><span class="element-legend-dot" style="background:#fff;border-color:#a8a29e"></span>금 · 쇠</span>
+          <span class="element-legend-item"><span class="element-legend-dot" style="background:#292524"></span>수 · 물</span>
+        </div>`;
 
-            <div class="manse-grid">
-              ${renderPillarColumn('시주', natal?.hour || { ganzhi: data?.pillars?.hourHanja })}
-              ${renderPillarColumn('일주', natal?.day || { ganzhi: data?.pillars?.dayHanja }, true)}
-              ${renderPillarColumn('월주', natal?.month || { ganzhi: data?.pillars?.monthHanja })}
-              ${renderPillarColumn('년주', natal?.year || { ganzhi: data?.pillars?.yearHanja })}
-            </div>
-
-            <div class="element-legend">
-              <span class="element-legend-item"><span class="element-legend-dot" style="background:#fca5a5"></span>화 · 불</span>
-              <span class="element-legend-item"><span class="element-legend-dot" style="background:#fbbf24"></span>토 · 흙</span>
-              <span class="element-legend-item"><span class="element-legend-dot" style="background:#6ee7b7"></span>목 · 나무</span>
-              <span class="element-legend-item"><span class="element-legend-dot" style="background:#fff;border-color:#a8a29e"></span>금 · 쇠</span>
-              <span class="element-legend-item"><span class="element-legend-dot" style="background:#292524"></span>수 · 물</span>
-            </div>
-          </div>
-
-          <div class="engine-facts-shell">
-            <div class="engine-section-title">
-              <h5>핵심 명리 Fact</h5>
-              <span>Engine Facts v1</span>
-            </div>
-
-            <div class="core-facts-grid">
-              <div class="core-fact-card">
-                <div class="core-fact-label">일간 · DAY MASTER</div>
-                <div class="flex items-center gap-2">
-                  <div class="saju-char-card ${uiElementClass(dayElement)}" style="width:46px;height:46px;flex:0 0 auto;">${escapeHtml(dayMaster?.stem || '-')}</div>
-                  <div class="min-w-0">
-                    <div class="core-fact-value">${escapeHtml(dayElementKo)} · ${escapeHtml(yinYangKo)}간</div>
-                    <div class="core-fact-sub">${escapeHtml(dayMaster?.stem || '-')} 일간</div>
-                  </div>
+      const coreHtml = `
+        <div class="engine-section-title">
+          <h5>핵심 명리 Fact</h5>
+          <span>한눈에 보는 기준점</span>
+        </div>
+        <div class="core-facts-grid">
+          ${sajuTip(`
+            <div class="core-fact-card">
+              <div class="core-fact-label">일간 · DAY MASTER</div>
+              <div class="flex items-center gap-2">
+                <div class="saju-char-card ${uiElementClass(dayElement)}" style="width:46px;height:46px;flex:0 0 auto;">${escapeHtml(dayMaster?.stem || '-')}</div>
+                <div class="min-w-0">
+                  <div class="core-fact-value">${escapeHtml(dayElementKo)} · ${escapeHtml(yinYangKo)}간</div>
+                  <div class="core-fact-sub">${escapeHtml(dayMaster?.stem || '-')} 일간</div>
                 </div>
               </div>
-
-              <div class="core-fact-card">
-                <div class="core-fact-label">강약</div>
-                <div class="core-fact-value">${escapeHtml(strengthKo)}</div>
-                <div class="core-fact-sub">band ${escapeHtml(strength?.band || '-')} · score ${escapeHtml(strength?.score ?? '-')}</div>
-              </div>
-
-              <div class="core-fact-card">
-                <div class="core-fact-label">용신</div>
-                <div>${renderElementChip(yongsin?.element, mechanismKo)}</div>
-                <div class="core-fact-sub">필요도 ${escapeHtml(needKo)} · 현재 가용성 ${escapeHtml(availabilityKo)}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="engine-facts-shell">
-            <div class="engine-section-title">
-              <h5>용 · 희 · 기 · 구 · 한</h5>
-              <span>역할 구분</span>
-            </div>
-            <div class="role-strip no-scrollbar">
-              ${renderRoleCard('용신', yongsin, true)}
-              ${renderRoleCard('희신', heesin)}
-              ${renderRoleCard('기신', gisin)}
-              ${renderRoleCard('구신', gusin)}
-              ${renderRoleCard('한신', hansin)}
-            </div>
-          </div>
-
-          <div class="engine-facts-shell">
-            <div class="engine-section-title">
-              <h5>구조 보조 정보</h5>
-              <span>해석 전 Engine 상태</span>
-            </div>
-            <div class="engine-mini-grid">
-              <div class="engine-mini-card">
-                <div class="label">DOMINANT IMBALANCE</div>
-                <div class="value">${escapeHtml(imbalanceKo)}</div>
-                <div class="core-fact-sub">severity ${escapeHtml(severityKo)}</div>
-              </div>
-              <div class="engine-mini-card">
-                <div class="label">조후</div>
-                <div class="value">${escapeHtml(coldHeatKo)} · ${escapeHtml(dryWetKo)}</div>
-                <div class="core-fact-sub">cold/heat · dry/wet</div>
-              </div>
-              <div class="engine-mini-card">
-                <div class="label">특수구조 후보</div>
-                <div class="value">${escapeHtml(specialText)}</div>
-                <div class="core-fact-sub">candidate ≠ established</div>
-              </div>
-            </div>
-
-            <details class="tech-log-box">
-              <summary><i class="fa-solid fa-terminal mr-1.5 text-emerald-300"></i>기술 진단 로그 보기</summary>
-              <pre>${escapeHtml(rawLog)}</pre>
-            </details>
-          </div>
+            </div>`, '일간은 나를 읽는 기준점이에요. 이 글자의 오행과 음양이 해석의 출발점입니다.')}
+          ${sajuTip(`
+            <div class="core-fact-card">
+              <div class="core-fact-label">강약</div>
+              <div class="core-fact-value">${escapeHtml(strengthKo)}</div>
+              <div class="core-fact-sub">band ${escapeHtml(strength?.band || '-')} · score ${escapeHtml(strength?.score ?? '-')}</div>
+            </div>`, '강약은 지금 내 기운이 얼마나 잘 서 있는지를 보여줘요. 좋고 나쁨이 아니라 힘의 밀도입니다.')}
+          ${sajuTip(`
+            <div class="core-fact-card">
+              <div class="core-fact-label">용신</div>
+              <div>${renderElementChip(yongsin?.element, mechanismKo)}</div>
+              <div class="core-fact-sub">필요도 ${escapeHtml(needKo)} · 현재 가용성 ${escapeHtml(availabilityKo)}</div>
+            </div>`, roleExplainers['용신'])}
         </div>`;
+
+      const rolesHtml = `
+        <div class="role-strip no-scrollbar">
+          ${renderRoleCard('용신', yongsin, true)}
+          ${renderRoleCard('희신', heesin)}
+          ${renderRoleCard('기신', gisin)}
+          ${renderRoleCard('구신', gusin)}
+          ${renderRoleCard('한신', hansin)}
+        </div>`;
+
+      const structureHtml = `
+        <div class="engine-mini-grid">
+          ${sajuTip(`
+            <div class="engine-mini-card">
+              <div class="label">DOMINANT IMBALANCE</div>
+              <div class="value">${escapeHtml(imbalanceKo)}</div>
+              <div class="core-fact-sub">severity ${escapeHtml(severityKo)}</div>
+            </div>`, '지금 사주에서 가장 기울어진 축이에요. 과한 쪽을 알면 균형 잡기가 쉬워집니다.')}
+          ${sajuTip(`
+            <div class="engine-mini-card">
+              <div class="label">조후</div>
+              <div class="value">${escapeHtml(coldHeatKo)} · ${escapeHtml(dryWetKo)}</div>
+              <div class="core-fact-sub">cold/heat · dry/wet</div>
+            </div>`, '사주의 온도와 습도 느낌입니다. 너무 뜨겁거나 차갑지 않게 조율하는 힌트예요.')}
+        </div>`;
+
+      const specialHtml = sajuTip(`
+        <div class="engine-mini-card">
+          <div class="label">특수구조 후보</div>
+          <div class="value">${escapeHtml(specialText)}</div>
+          <div class="core-fact-sub">아직 확정이 아닌 후보입니다</div>
+        </div>`, '특수 구조는 흔하지 않은 패턴의 가능성이에요. 후보이므로 단정하지 않고 참고만 합니다.');
+
+      const techHtml = `<details class="tech-log-box" open><summary><i class="fa-solid fa-terminal mr-1.5 text-emerald-300"></i>원본 진단 로그</summary><pre>${escapeHtml(rawLog)}</pre></details>`;
+
+      const natalMount = document.getElementById('dashNatalMount');
+      const coreMount = document.getElementById('dashCoreFactsMount');
+      const rolesMount = document.getElementById('dashRolesMount');
+      const structureMount = document.getElementById('dashStructureMount');
+      const specialMount = document.getElementById('dashSpecialMount');
+      const techMount = document.getElementById('dashTechLogMount');
+
+      if (natalMount) natalMount.innerHTML = natalHtml;
+      if (coreMount) coreMount.innerHTML = coreHtml;
+      if (rolesMount) rolesMount.innerHTML = rolesHtml;
+      if (structureMount) structureMount.innerHTML = structureHtml;
+      if (specialMount) specialMount.innerHTML = specialHtml;
+      if (techMount) techMount.innerHTML = techHtml;
+
+      bindSajuTips(document.getElementById('viewDashboard'));
     }
 
     function buildSajuContext(timelineContexts = []) {
@@ -1786,13 +2063,6 @@
     });
     document.getElementById('modalDeveloperError').addEventListener('click', (e) => {
       if (e.target.id === 'modalDeveloperError') closeDeveloperError();
-    });
-    document.getElementById('btnToggleRuntimeDetails').addEventListener('click', () => {
-      const details = document.getElementById('runtimeStatusDetails');
-      const button = document.getElementById('btnToggleRuntimeDetails');
-      const willShow = details.classList.contains('hidden');
-      details.classList.toggle('hidden');
-      button.innerText = willShow ? '진단 닫기' : '진단 보기';
     });
 
     window.addEventListener('error', (event) => {
@@ -2065,6 +2335,7 @@
         document.getElementById('viewOnboarding').classList.add('hidden');
         document.getElementById('viewDashboard').classList.remove('hidden');
         document.getElementById('viewDashboard').classList.add('flex');
+        document.body.classList.add('dashboard-open');
 
         // 대시보드 진입 즉시 현재 대운 구간 기준 5대 운 전략 프리페치
         prefetchCycleStrategies(currentCycle);
@@ -2081,13 +2352,80 @@
       }
     }
 
+    function domainSeriesKey(domainKey) {
+      return domainKey === 'all' ? 'total' : domainKey;
+    }
+
+    function scoreBandCopy(score) {
+      const n = Number(score);
+      if (!Number.isFinite(n)) return '이 구간의 수치를 아직 읽지 못했어요.';
+      if (n >= 40) return '힘이 잘 모이고 앞으로 나가기 쉬운 결입니다. 무리한 확장보다 지금 맞는 일을 밀어 보세요.';
+      if (n >= 12) return '비교적 수월한 결입니다. 준비해 둔 것을 다듬기에 좋은 구간이에요.';
+      if (n >= -12) return '뚜렷한 밀고 당김이 적은 중립 구간입니다. 속도를 조절하며 살펴보세요.';
+      if (n >= -40) return '조금 조심스러운 결입니다. 새 판을 크게 벌리기보다 기준을 점검하는 편이 안전해요.';
+      return '부담이 크게 느껴질 수 있는 구간입니다. 쉬는 리듬과 경계를 먼저 챙기세요.';
+    }
+
+    function updateGraphContext() {
+      const domainKey = domainKeys[currentDomainIndex] || 'all';
+      const cycleName = cycleTitles[currentCycle] || '대운';
+      const domainName = domainTitles[domainKey] || '총운';
+      const title = document.getElementById('graphContextTitle');
+      const text = document.getElementById('graphContextText');
+      const guide = document.getElementById('txtCycleGuide');
+      if (title) title.innerText = `현재 선택: ${cycleName} · ${domainName}`;
+      if (text) {
+        text.innerText = `${cycleExplainers[currentCycle] || ''} ${domainExplainers[domainKey] || ''}`.trim();
+      }
+      if (guide) guide.innerText = `${cycleName} 그래프 · ${domainName}`;
+    }
+
+    function updateGraphPoint(index, { persist = false } = {}) {
+      const domainKey = domainKeys[currentDomainIndex] || 'all';
+      const series = currentAnalysisData?.cyclesData?.[currentCycle];
+      const labels = series?.labels || [];
+      if (!series || !labels.length) return;
+
+      const safeIndex = Math.max(0, Math.min(labels.length - 1, Number(index)));
+      if (persist || selectedGraphIndex == null) selectedGraphIndex = safeIndex;
+
+      const values = series[domainSeriesKey(domainKey)] || series.total || [];
+      const score = values[safeIndex];
+      const label = labels[safeIndex] || `${safeIndex + 1}구간`;
+      const domainName = domainTitles[domainKey] || '총운';
+      const cycleName = cycleTitles[currentCycle] || '대운';
+      const signed = Number.isFinite(Number(score))
+        ? `${Number(score) >= 0 ? '+' : ''}${Math.round(Number(score))}`
+        : '-';
+
+      const title = document.getElementById('graphPointTitle');
+      const text = document.getElementById('graphPointText');
+      if (title) title.innerText = `${cycleName} · ${label} · ${domainName} ${signed}`;
+      if (text) text.innerText = scoreBandCopy(score);
+    }
+
     function renderDashboard(name, data) {
       const { pillars, analysis, dayGanHanja, dayElemKor, aiPack } = data;
-      document.getElementById('dashUserName').innerText = name;
+      const rawName = String(name || state.name || '').trim();
+      const greetingName = rawName && rawName !== '사용자' ? rawName : '';
+
+      document.getElementById('dashUserName').innerText = greetingName || '내 사주';
       document.getElementById('dashPillarTag').innerText = `${pillars.dayHanja}일주`;
       document.getElementById('dashGanBadge').innerText = dayGanHanja;
       document.getElementById('dashElemBadge').innerText = dayElemKor;
-      document.getElementById('txtUserPillar').innerText = `${name} (${pillars.dayHanja})`;
+      document.getElementById('txtUserPillar').innerText = greetingName
+        ? `${greetingName} (${pillars.dayHanja})`
+        : pillars.dayHanja;
+
+      const comma = document.getElementById('dashGreetingComma');
+      const greet = document.getElementById('dashGreetingName');
+      if (greetingName) {
+        comma.classList.remove('hidden');
+        greet.innerText = greetingName;
+      } else {
+        comma.classList.add('hidden');
+        greet.innerText = '';
+      }
 
       document.getElementById('txtStrengthStatus').innerText = `${analysis.status} (${analysis.strengthScore}점)`;
       document.getElementById('badgeDeung').innerText = `득세 ${analysis.scores.deungSe}점`;
@@ -2103,8 +2441,11 @@
 
       currentCycle = 'daewoon';
       currentDomainIndex = 0;
+      selectedGraphIndex = getRepresentativeCycleIndex('daewoon');
       renderWaveChart(currentCycle, 'all');
       updateJournalFromCurrentCycle();
+      updateGraphContext();
+      updateGraphPoint(selectedGraphIndex, { persist: true });
     }
 
     // 백그라운드 5대 운 프리페치
@@ -2152,41 +2493,75 @@
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
 
       if (chartInstance) chartInstance.destroy();
+      if (!cycleData?.labels?.length) return;
 
       const getStyle = (domain, activeColor, inactiveColor) => {
         if (highlightDomain === domain) {
           return { color: activeColor, width: 3.8 };
-        } else {
-          return { color: inactiveColor, width: 1.2 };
         }
+        return { color: inactiveColor, width: 1.2 };
       };
 
-      const totalStyle = (highlightDomain === 'all') ? 
-        { color: 'rgba(217, 119, 6, 1)', width: 3.8 } : { color: 'rgba(217, 119, 6, 0.10)', width: 1.2 };
+      const totalStyle = (highlightDomain === 'all')
+        ? { color: 'rgba(217, 119, 6, 1)', width: 3.8 }
+        : { color: 'rgba(217, 119, 6, 0.10)', width: 1.2 };
 
       const careerStyle = getStyle('career', 'rgba(245, 158, 11, 1)', 'rgba(245, 158, 11, 0.10)');
       const wealthStyle = getStyle('wealth', 'rgba(16, 185, 129, 1)', 'rgba(16, 185, 129, 0.10)');
       const mentalStyle = getStyle('mental', 'rgba(168, 85, 247, 1)', 'rgba(168, 85, 247, 0.10)');
       const loveStyle = getStyle('love', 'rgba(244, 63, 94, 1)', 'rgba(244, 63, 94, 0.10)');
 
+      const activeSeriesIndex = {
+        all: 0, career: 1, wealth: 2, mental: 3, love: 4
+      }[highlightDomain] ?? 0;
+
+      const labels = cycleData.labels;
+      if (selectedGraphIndex == null || selectedGraphIndex >= labels.length) {
+        selectedGraphIndex = getRepresentativeCycleIndex(cycleKey);
+      }
+
+      const pointRadiusFor = (datasetIndex) => labels.map((_, idx) => (
+        datasetIndex === activeSeriesIndex && idx === selectedGraphIndex ? 4 : 0
+      ));
+
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: cycleData.labels,
+          labels,
           datasets: [
-            { label: '총운', data: cycleData.total, borderColor: totalStyle.color, borderWidth: totalStyle.width, pointRadius: 0, tension: 0.45 },
-            { label: '사업운', data: cycleData.career, borderColor: careerStyle.color, borderWidth: careerStyle.width, pointRadius: 0, tension: 0.45 },
-            { label: '재물운', data: cycleData.wealth, borderColor: wealthStyle.color, borderWidth: wealthStyle.width, pointRadius: 0, tension: 0.45 },
-            { label: '심신운', data: cycleData.mental, borderColor: mentalStyle.color, borderWidth: mentalStyle.width, pointRadius: 0, tension: 0.45 },
-            { label: '연애운', data: cycleData.love, borderColor: loveStyle.color, borderWidth: loveStyle.width, pointRadius: 0, tension: 0.45 }
+            { label: '총운', data: cycleData.total, borderColor: totalStyle.color, borderWidth: totalStyle.width, pointRadius: pointRadiusFor(0), pointHoverRadius: 5, tension: 0.45 },
+            { label: '사업운', data: cycleData.career, borderColor: careerStyle.color, borderWidth: careerStyle.width, pointRadius: pointRadiusFor(1), pointHoverRadius: 5, tension: 0.45 },
+            { label: '재물운', data: cycleData.wealth, borderColor: wealthStyle.color, borderWidth: wealthStyle.width, pointRadius: pointRadiusFor(2), pointHoverRadius: 5, tension: 0.45 },
+            { label: '심신운', data: cycleData.mental, borderColor: mentalStyle.color, borderWidth: mentalStyle.width, pointRadius: pointRadiusFor(3), pointHoverRadius: 5, tension: 0.45 },
+            { label: '연애운', data: cycleData.love, borderColor: loveStyle.color, borderWidth: loveStyle.width, pointRadius: pointRadiusFor(4), pointHoverRadius: 5, tension: 0.45 }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           animation: false,
-          layout: { padding: { left: 4, right: 4, top: 4, bottom: 4 } },
-          plugins: { legend: { display: false } },
+          layout: { padding: { left: 4, right: 4, top: 8, bottom: 4 } },
+          interaction: { mode: 'index', intersect: false },
+          onHover(event, _elements, chart) {
+            const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, false);
+            if (points.length) updateGraphPoint(points[0].index);
+          },
+          onClick(event, _elements, chart) {
+            const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
+            if (!points.length) return;
+            selectedGraphIndex = points[0].index;
+            updateGraphPoint(selectedGraphIndex, { persist: true });
+            chart.data.datasets.forEach((dataset, datasetIndex) => {
+              dataset.pointRadius = labels.map((_, idx) => (
+                datasetIndex === activeSeriesIndex && idx === selectedGraphIndex ? 4 : 0
+              ));
+            });
+            chart.update('none');
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          },
           scales: {
             x: { grid: { display: false }, ticks: { font: { size: 9, weight: '700' }, color: '#8C827A', maxRotation: 0 } },
             y: { min: -100, max: 100, grid: { color: 'rgba(255, 255, 255, 0.6)' }, ticks: { stepSize: 100, font: { size: 8, weight: '600' }, color: '#A8A29E' } }
@@ -2204,11 +2579,11 @@
         });
         tab.className = 'cycle-tab flex-1 py-1.5 rounded-xl liquid-pill-amber text-white font-black shadow-sm';
         currentCycle = tab.dataset.cycle;
-        document.getElementById('txtCycleGuide').innerText = `👈 ${cycleTitles[currentCycle]} 파동 분석`;
+        selectedGraphIndex = getRepresentativeCycleIndex(currentCycle);
         renderWaveChart(currentCycle, domainKeys[currentDomainIndex]);
         updateJournalFromCurrentCycle();
-
-        // 새 주기의 5대 운 미리 로드
+        updateGraphContext();
+        updateGraphPoint(selectedGraphIndex, { persist: true });
         prefetchCycleStrategies(currentCycle);
       });
     });
@@ -2227,6 +2602,8 @@
       });
 
       renderWaveChart(currentCycle, domainKey);
+      updateGraphContext();
+      updateGraphPoint(selectedGraphIndex ?? getRepresentativeCycleIndex(currentCycle), { persist: true });
     }
 
     document.querySelectorAll('.domain-chip').forEach((btn, idx) => {
@@ -2240,9 +2617,15 @@
       });
     });
 
-    // 그래프 캔버스 터치 시 즉시 300자 팝업 실행
-    document.getElementById('chartContainerBox').addEventListener('click', () => {
-      openScenarioModal(domainKeys[currentDomainIndex]);
+    document.getElementById('navHomeTab')?.addEventListener('click', () => {
+      document.getElementById('viewDashboard')?.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('navWeatherTab')?.addEventListener('click', () => {
+      document.getElementById('dashGraphSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('navDetailTab')?.addEventListener('click', () => {
+      document.getElementById('dashNatalSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     function openUnifiedModal(title, content, isLoading = false) {
@@ -2714,6 +3097,7 @@
     document.getElementById('btnEditInput').addEventListener('click', () => {
       document.getElementById('viewDashboard').classList.add('hidden');
       document.getElementById('viewDashboard').classList.remove('flex');
+      document.body.classList.remove('dashboard-open');
       document.getElementById('viewOnboarding').classList.remove('hidden');
     });
 
