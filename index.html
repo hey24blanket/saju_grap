@@ -15,9 +15,9 @@
   <script src="./firebase-config.js"></script>
 
   <style>
-    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    @import url('https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css');
     * { 
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+      font-family: 'SUIT Variable', 'SUIT', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
       -webkit-tap-highlight-color: transparent; 
     }
     
@@ -182,7 +182,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'SUIT Variable', 'SUIT', sans-serif;
       font-size: 23px;
       font-weight: 900;
       line-height: 1;
@@ -421,50 +421,6 @@
       font-size: 8.5px;
       line-height: 1.55;
       user-select: text;
-    }
-
-    /* AI provider switch ---------------------------------------------------- */
-    .ai-provider-switch {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      padding: 3px;
-      border-radius: 12px;
-      background: rgba(245, 245, 244, .92);
-      border: 1px solid rgba(231, 229, 228, .95);
-      box-shadow: inset 0 1px 1.5px rgba(255,255,255,.9);
-    }
-
-    .ai-provider-btn {
-      border: 0;
-      border-radius: 9px;
-      padding: 4px 9px;
-      color: #78716c;
-      background: transparent;
-      font-size: 9px;
-      font-weight: 900;
-      line-height: 1;
-      transition: all .16s ease;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .ai-provider-btn:hover {
-      color: #292524;
-      background: rgba(255,255,255,.75);
-    }
-
-    .ai-provider-btn.active {
-      color: #fff;
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      box-shadow: 0 4px 10px rgba(245,158,11,.22), inset 0 1px 1px rgba(255,255,255,.34);
-    }
-
-    .ai-provider-model-label {
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     /* Chat copy / multiline input ------------------------------------------- */
@@ -1022,22 +978,8 @@
           </div>
 
           <div class="min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h4 class="text-sm font-black text-stone-900">사주 Grap AI 상담사</h4>
-
-              <div class="ai-provider-switch" aria-label="AI 모델 선택">
-                <button type="button" class="ai-provider-btn" data-provider="gemini" aria-pressed="true">
-                  Gemini
-                </button>
-                <button type="button" class="ai-provider-btn" data-provider="openai" aria-pressed="false">
-                  GPT
-                </button>
-              </div>
-            </div>
-
-            <p id="chatProviderModelLabel" class="ai-provider-model-label mt-1 text-[9px] font-bold text-stone-400">
-              Gemini 선택
-            </p>
+            <h4 class="text-sm font-black text-stone-900">사주 Grap AI 상담사</h4>
+            <p class="mt-1 text-[9px] font-bold text-stone-400">지금 흐름을 함께 정리해요</p>
           </div>
         </div>
 
@@ -1081,7 +1023,7 @@
             <span class="text-[10px] font-black text-rose-700 tracking-wide">SAJUGRAP DEVELOPMENT ERROR</span>
           </div>
           <h4 id="devErrorTitle" class="text-base font-black text-stone-900">오류가 발생했습니다</h4>
-          <p class="text-[11px] text-stone-500 font-semibold mt-1">아래 내용을 복사해서 ChatGPT에 그대로 보내주세요.</p>
+          <p class="text-[11px] text-stone-500 font-semibold mt-1">아래 내용을 복사해서 전달해 주세요.</p>
         </div>
         <button id="btnCloseDeveloperError" type="button" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center transition shrink-0">
           <i class="fa-solid fa-xmark text-xs"></i>
@@ -1117,22 +1059,8 @@
   <!-- 6. 프론트엔드 연동 스크립트 -->
   <script>
     const CACHE_KEY = 'saju_grap_user_profile_cache';
-    const AI_PROVIDER_CACHE_KEY = 'saju_grap_ai_provider';
     const COUNSELING_SESSION_KEY = 'saju_grap_counseling_session_v1';
     const ADMIN_DIAGNOSTICS_ENABLED = new URLSearchParams(window.location.search).get('debug') === '1';
-    const AI_PROVIDER_LABELS = Object.freeze({
-      gemini: 'Gemini',
-      openai: 'GPT'
-    });
-
-    let selectedProvider = (() => {
-      try {
-        const saved = localStorage.getItem(AI_PROVIDER_CACHE_KEY);
-        return saved === 'openai' ? 'openai' : 'gemini';
-      } catch (error) {
-        return 'gemini';
-      }
-    })();
 
     let audioCtx = null;
     function getAudioContext() {
@@ -1228,10 +1156,10 @@
     let timelineAnalysisCache = new Map();
 
     // -----------------------------------------------------------------------
-    // AI provider / 표시 형식
+    // AI display helpers
     // -----------------------------------------------------------------------
     function aiCacheKey(cycleKey, domainKey) {
-      return `${selectedProvider}_${cycleKey}_${domainKey}`;
+      return `${cycleKey}_${domainKey}`;
     }
 
     function normalizeAiDisplayText(value) {
@@ -1247,53 +1175,6 @@
         .replace(/[ \t]+\n/g, '\n')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
-    }
-
-    function updateAiProviderUi(modelName = '') {
-      document.querySelectorAll('.ai-provider-btn').forEach((button) => {
-        const active = button.dataset.provider === selectedProvider;
-        button.classList.toggle('active', active);
-        button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-
-      const label = document.getElementById('chatProviderModelLabel');
-      if (!label) return;
-
-      const providerLabel = AI_PROVIDER_LABELS[selectedProvider] || selectedProvider;
-      label.innerText = modelName
-        ? `${providerLabel} · ${modelName}`
-        : `${providerLabel} 선택`;
-    }
-
-    function applyAiDiagnostic(json) {
-      const diagnosticProvider = json?.diagnostic?.provider;
-      const diagnosticModel = json?.diagnostic?.model;
-
-      if (
-        diagnosticProvider === 'gemini' ||
-        diagnosticProvider === 'openai'
-      ) {
-        updateAiProviderUi(diagnosticModel || '');
-      }
-    }
-
-    async function setAiProvider(provider) {
-      if (provider !== 'gemini' && provider !== 'openai') return;
-
-      const changed = provider !== selectedProvider;
-      selectedProvider = provider;
-
-      try {
-        localStorage.setItem(AI_PROVIDER_CACHE_KEY, selectedProvider);
-      } catch (error) {}
-
-      updateAiProviderUi();
-
-      // provider별 cache key를 사용하므로 기존 결과를 섞지 않는다.
-      // 대시보드가 열린 상태라면 새 provider의 현재 주기 전략을 미리 불러온다.
-      if (changed && currentAnalysisData) {
-        prefetchCycleStrategies(currentCycle);
-      }
     }
 
     // -----------------------------------------------------------------------
@@ -1314,7 +1195,7 @@
     }
 
     function formatDeveloperError(info = {}) {
-      return [
+      const lines = [
         'SajuGrap Development Error',
         '--------------------------',
         `code: ${safeText(info.code, 'SG-UNKNOWN')}`,
@@ -1322,15 +1203,25 @@
         `message: ${safeText(info.message, '알 수 없는 오류')}`,
         `detail: ${safeText(info.detail)}`,
         `hint: ${safeText(info.hint)}`,
-        `httpStatus: ${safeText(info.httpStatus)}`,
-        `provider: ${safeText(info.provider)}`,
-        `providerStatus: ${safeText(info.providerStatus)}`,
-        `providerCode: ${safeText(info.providerCode)}`,
+        `httpStatus: ${safeText(info.httpStatus)}`
+      ];
+
+      if (ADMIN_DIAGNOSTICS_ENABLED) {
+        lines.push(
+          `provider: ${safeText(info.provider)}`,
+          `providerStatus: ${safeText(info.providerStatus)}`,
+          `providerCode: ${safeText(info.providerCode)}`
+        );
+      }
+
+      lines.push(
         `requestId: ${safeText(info.requestId)}`,
         `apiVersion: ${safeText(info.apiVersion)}`,
         `timestamp: ${safeText(info.timestamp, new Date().toISOString())}`,
         `page: ${location.pathname}`
-      ].join('\n');
+      );
+
+      return lines.join('\n');
     }
 
     function showDeveloperError(title, info = {}) {
@@ -2461,7 +2352,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'prefetch',
-            provider: selectedProvider,
             cycle: cycleApiTitles[cycleKey],
             cycleIndex,
             cycleScores: scoresPayload,
@@ -2470,7 +2360,6 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_PREFETCH');
-        applyAiDiagnostic(json);
 
         if (json.success && json.data) {
           Object.keys(json.data).forEach(dKey => {
@@ -2694,7 +2583,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'summary',
-            provider: selectedProvider,
             domain: domainName,
             cycle: cycleApiTitles[currentCycle],
             cycleIndex,
@@ -2704,7 +2592,6 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_SUMMARY');
-        applyAiDiagnostic(json);
         loadingEl.classList.add('hidden');
         contentEl.classList.remove('hidden');
 
@@ -2770,7 +2657,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'detail',
-            provider: selectedProvider,
             domain: domainName,
             cycle: cycleApiTitles[currentCycle],
             cycleIndex,
@@ -2780,7 +2666,6 @@
         });
 
         const json = await readApiResponse(res, 'CHAT_DETAIL');
-        applyAiDiagnostic(json);
         detailLoading.classList.add('hidden');
 
         if (json.success && json.reply) {
@@ -2979,7 +2864,7 @@
         <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-black text-[10px]">AI</div>
         <div class="chat-response-box bg-stone-100 text-stone-700 p-3 rounded-[20px] rounded-tl-none max-w-[85%] leading-relaxed font-semibold text-xs flex items-center gap-1.5 select-text">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin text-amber-600 text-xs"></i>
-          <span>${AI_PROVIDER_LABELS[selectedProvider]}가 사연을 정리하고 필요한 참고자료를 확인하는 중...</span>
+          <span>사연을 정리하고 필요한 참고자료를 확인하는 중...</span>
         </div>
       `;
       list.appendChild(aiBubble);
@@ -3008,7 +2893,6 @@
           signal: activeChatController.signal,
           body: JSON.stringify({
             mode: 'chat',
-            provider: selectedProvider,
             ragMode: 'optional',
             cycle: cycleApiTitles[currentCycle],
             cycleIndex: getRepresentativeCycleIndex(currentCycle),
@@ -3025,7 +2909,6 @@
 
         const json = await readApiResponse(res, 'CHAT_CONVERSATION');
         if (generationAtSend !== chatGeneration || sessionIdAtSend !== counselingSession.sessionId) return;
-        applyAiDiagnostic(json);
         const contentBox = aiBubble.querySelector('.chat-response-box');
 
         if (json.success && json.reply) {
@@ -3083,15 +2966,7 @@
       await sendCounselingMessage(text);
     });
 
-    document.querySelectorAll('.ai-provider-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        playTickSound();
-        setAiProvider(button.dataset.provider);
-      });
-    });
-
     renderCounselingHistory();
-    updateAiProviderUi();
 
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
     document.getElementById('btnEditInput').addEventListener('click', () => {
