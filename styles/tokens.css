@@ -1,0 +1,439 @@
+/* styles/tokens.css
+ * SajuGrap Design Token Foundation v1
+ * -----------------------------------------------------------------------------
+ * Hierarchy: Primitive → Semantic → Component
+ * This file is the visual control plane for the prototype UI (index.html).
+ * Do not put meaning on primitives. Components should prefer semantic tokens.
+ * Dark theme is reserved: override semantic tokens on [data-theme="dark"] later.
+ * ----------------------------------------------------------------------------- */
+
+:root,
+[data-theme="light"] {
+  /* ========================================================================
+   * LEVEL 1 — Primitive tokens
+   * ======================================================================== */
+
+  /* Neutral (Tailwind stone-aligned) */
+  --white: #ffffff;
+  --black: #000000;
+  --gray-50: #fafaf9;
+  --gray-100: #f5f5f4;
+  --gray-200: #e7e5e4;
+  --gray-300: #d6d3d1;
+  --gray-400: #a8a29e;
+  --gray-500: #78716c;
+  --gray-600: #57534e;
+  --gray-700: #44403c;
+  --gray-800: #292524;
+  --gray-900: #1c1917;
+  --gray-950: #0c0a09;
+  --warm-100: #ece7e1;
+  --warm-400: #8c827a;
+
+  --white-a-12: rgba(255, 255, 255, 0.12);
+  --white-a-18: rgba(255, 255, 255, 0.18);
+  --white-a-25: rgba(255, 255, 255, 0.25);
+  --white-a-35: rgba(255, 255, 255, 0.35);
+  --white-a-38: rgba(255, 255, 255, 0.38);
+  --white-a-40: rgba(255, 255, 255, 0.4);
+  --white-a-44: rgba(255, 255, 255, 0.44);
+  --white-a-45: rgba(255, 255, 255, 0.45);
+  --white-a-48: rgba(255, 255, 255, 0.48);
+  --white-a-50: rgba(255, 255, 255, 0.5);
+  --white-a-53: rgba(255, 255, 255, 0.53);
+  --white-a-60: rgba(255, 255, 255, 0.6);
+  --white-a-62: rgba(255, 255, 255, 0.62);
+  --white-a-65: rgba(255, 255, 255, 0.65);
+  --white-a-70: rgba(255, 255, 255, 0.7);
+  --white-a-75: rgba(255, 255, 255, 0.75);
+  --white-a-76: rgba(255, 255, 255, 0.76);
+  --white-a-78: rgba(255, 255, 255, 0.78);
+  --white-a-80: rgba(255, 255, 255, 0.8);
+  --white-a-82: rgba(255, 255, 255, 0.82);
+  --white-a-85: rgba(255, 255, 255, 0.85);
+  --white-a-86: rgba(255, 255, 255, 0.86);
+  --white-a-88: rgba(255, 255, 255, 0.88);
+  --white-a-90: rgba(255, 255, 255, 0.9);
+  --white-a-95: rgba(255, 255, 255, 0.95);
+  --white-a-97: rgba(255, 255, 255, 0.97);
+
+  --black-a-02: rgba(0, 0, 0, 0.02);
+  --black-a-03: rgba(0, 0, 0, 0.03);
+  --black-a-04: rgba(0, 0, 0, 0.04);
+  --black-a-05: rgba(0, 0, 0, 0.05);
+  --black-a-06: rgba(0, 0, 0, 0.06);
+  --black-a-15: rgba(0, 0, 0, 0.15);
+  --black-a-25: rgba(0, 0, 0, 0.25);
+  --black-a-30: rgba(0, 0, 0, 0.3);
+
+  --gray-800-a-035: rgba(41, 37, 36, 0.035);
+  --gray-800-a-90: rgba(41, 37, 36, 0.9);
+  --gray-800-a-94: rgba(41, 37, 36, 0.94);
+  --gray-900-a-94: rgba(28, 25, 23, 0.94);
+  --gray-900-a-98: rgba(28, 25, 23, 0.98);
+  --gray-900-a-12: rgba(28, 25, 23, 0.12);
+  --gray-900-a-22: rgba(28, 25, 23, 0.22);
+  --gray-700-a-96: rgba(68, 64, 60, 0.96);
+  --warm-shadow-a-08: rgba(100, 90, 80, 0.08);
+
+  /* Amber / orange */
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-300: #fcd34d;
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --amber-400-a-38: rgba(251, 191, 36, 0.38);
+  --amber-400-a-85: rgba(251, 191, 36, 0.85);
+  --amber-500-a-08: rgba(245, 158, 11, 0.08);
+  --amber-500-a-13: rgba(245, 158, 11, 0.13);
+  --amber-500-a-30: rgba(245, 158, 11, 0.3);
+  --amber-500-a-35: rgba(245, 158, 11, 0.35);
+  --amber-500-a-40: rgba(245, 158, 11, 0.4);
+  --amber-500-a-42: rgba(245, 158, 11, 0.42);
+  --amber-50-a-60: rgba(255, 251, 235, 0.6);
+  --amber-600-a-95: rgba(217, 119, 6, 0.95);
+  --amber-600-solid: rgba(217, 119, 6, 1);
+  --amber-600-a-10: rgba(217, 119, 6, 0.1);
+  --amber-500-solid: rgba(245, 158, 11, 1);
+  --amber-500-a-10: rgba(245, 158, 11, 0.1);
+
+  /* Red / rose */
+  --red-100: #fee2e2;
+  --red-300: #fca5a5;
+  --red-400: #f87171;
+  --red-500: #f43f5e;
+  --red-600: #e11d48;
+  --red-700: #b91c1c;
+  --red-100-a-88: rgba(254, 226, 226, 0.88);
+  --red-300-a-45: rgba(252, 165, 165, 0.45);
+  --red-400-a-30: rgba(248, 113, 113, 0.3);
+  --rose-400-a-85: rgba(251, 113, 133, 0.85);
+  --rose-600-a-95: rgba(225, 29, 72, 0.95);
+  --rose-500-a-40: rgba(244, 63, 94, 0.4);
+  --rose-500-solid: rgba(244, 63, 94, 1);
+  --rose-500-a-10: rgba(244, 63, 94, 0.1);
+
+  /* Green / mint / emerald */
+  --green-100: #d1fae5;
+  --green-300: #6ee7b7;
+  --green-400: #34d399;
+  --green-500: #10b981;
+  --green-600: #059669;
+  --green-700: #047857;
+  --green-200-bright: #bbf7d0;
+  --green-300-bright: #86efac;
+  --green-100-a-90: rgba(209, 250, 229, 0.9);
+  --green-300-a-36: rgba(110, 231, 183, 0.36);
+  --green-400-a-85: rgba(52, 211, 153, 0.85);
+  --green-500-a-26: rgba(16, 185, 129, 0.26);
+  --green-500-a-40: rgba(16, 185, 129, 0.4);
+  --green-500-solid: rgba(16, 185, 129, 1);
+  --green-500-a-10: rgba(16, 185, 129, 0.1);
+  --green-600-a-95: rgba(5, 150, 105, 0.95);
+
+  /* Purple */
+  --purple-400: #c084fc;
+  --purple-500: #a855f7;
+  --purple-600: #7e22ce;
+  --purple-400-a-85: rgba(192, 132, 252, 0.85);
+  --purple-500-a-40: rgba(168, 85, 247, 0.4);
+  --purple-500-solid: rgba(168, 85, 247, 1);
+  --purple-500-a-10: rgba(168, 85, 247, 0.1);
+  --purple-600-a-95: rgba(126, 34, 206, 0.95);
+
+  /* Blue (reserved for future semantic use) */
+  --blue-400: #60a5fa;
+  --blue-600: #2563eb;
+
+  /* Typography primitives */
+  --font-sans: 'SUIT Variable', 'SUIT', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 650;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  --text-2xs: 8px;
+  --text-2xs-plus: 8.5px;
+  --text-xs: 9px;
+  --text-caption: 10px;
+  --text-label: 11px;
+  --text-body-sm: 12px;
+  --text-body-md: 13px;
+  --text-body-lg: 14px;
+  --text-heading-sm: 16px;
+  --text-heading-md: 1.35rem;
+  --text-display: 1.875rem;
+  --text-saju-char: 23px;
+  --text-saju-char-sm: 21px;
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.3;
+  --leading-body: 1.45;
+  --leading-relaxed: 1.55;
+  --tracking-tight: -0.03em;
+  --tracking-snug: -0.02em;
+  --tracking-label: -0.01em;
+  --tracking-wide: 0.02em;
+  --tracking-kicker: 0.04em;
+
+  /* Spacing: 4px base with Tailwind-like half steps. Odd 3/5/7/9/11 kept because the current UI uses them. */
+  --space-0: 0px;
+  --space-px: 1px;
+  --space-0-5: 2px;
+  --space-0-75: 3px;
+  --space-1: 4px;
+  --space-1-25: 5px;
+  --space-1-5: 6px;
+  --space-1-75: 7px;
+  --space-2: 8px;
+  --space-2-25: 9px;
+  --space-2-5: 10px;
+  --space-2-75: 11px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-32: 128px;
+
+  /* Radius — current used values, not a new scale */
+  --radius-xs: 10px;
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 22px;
+  --radius-24: 24px;
+  --radius-3xl: 28px;
+  --radius-4xl: 32px;
+  --radius-sheet: 40px;
+  --radius-pill: 999px;
+  --radius-15: 15px;
+  --radius-17: 17px;
+  --radius-18: 18px;
+  --radius-26: 26px;
+
+  /* Border width */
+  --border-width-thin: 1px;
+  --border-width-hairline: 1.2px;
+
+  /* Size */
+  --size-dot: 7px;
+  --size-icon-sm: 8px;
+  --size-icon-md: 12px;
+  --size-icon-lg: 16px;
+  --control-height-sm: 32px;
+  --control-height-md: 36px;
+  --control-height-lg: 44px;
+  --size-saju-char: 48px;
+  --size-saju-char-sm: 44px;
+  --size-saju-char-compact: 46px;
+  --size-chart-height: 14.5rem;
+  --size-trace-max-height: 240px;
+  --size-chat-height: 80vh;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 800ms;
+  --ease-standard: ease;
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Z-index — current stacking, not a new visual layering */
+  --z-base: 0;
+  --z-content: 10;
+  --z-bottom-nav: 40;
+  --z-overlay: 50;
+  --z-tooltip: 80;
+  --z-toast: 90;
+  --z-modal: 100;
+
+  /* Breakpoints (documentation / JS only — CSS variables cannot drive @media) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+
+  /* ========================================================================
+   * LEVEL 2 — Semantic tokens
+   * ======================================================================== */
+
+  --color-bg-app: var(--warm-100);
+  --color-bg-surface: var(--white);
+  --color-bg-surface-muted: var(--white-a-45);
+  --color-bg-elevated: var(--white-a-65);
+  --color-bg-inverse: var(--gray-900);
+  --color-bg-inverse-soft: var(--gray-800-a-94);
+
+  --color-text-primary: var(--gray-900);
+  --color-text-secondary: var(--gray-800);
+  --color-text-muted: var(--gray-500);
+  --color-text-faint: var(--gray-400);
+  --color-text-body: var(--gray-700);
+  --color-text-inverse: var(--white);
+  --color-text-inverse-muted: var(--gray-300);
+  --color-text-accent: var(--amber-700);
+  --color-text-success: var(--green-700);
+  --color-text-danger: var(--red-700);
+  --color-text-code: var(--green-300-bright);
+
+  --color-border-subtle: var(--white-a-75);
+  --color-border-default: var(--white-a-85);
+  --color-border-strong: var(--gray-300);
+  --color-border-inverse: var(--white-a-12);
+
+  --color-accent-primary: var(--amber-500);
+  --color-accent-secondary: var(--amber-700);
+  --color-accent-soft: var(--amber-500-a-13);
+
+  --color-success: var(--green-700);
+  --color-warning: var(--amber-700);
+  --color-danger: var(--red-700);
+
+  --font-family-ui: var(--font-sans);
+
+  --text-display-size: var(--text-display);
+  --text-heading-xl: 1.35rem;
+  --text-heading-lg: var(--text-heading-sm);
+  --text-body-lg-size: var(--text-body-lg);
+  --text-body-md-size: var(--text-body-sm);
+  --text-body-sm-size: var(--text-caption);
+  --text-caption-size: var(--text-xs);
+  --text-label-size: var(--text-label);
+
+  --shadow-none: none;
+  --shadow-xs: 0 4px 12px var(--gray-800-a-035);
+  --shadow-sm: 0 5px 15px var(--gray-800-a-035);
+  --shadow-md: 0 8px 20px -4px var(--black-a-03);
+  --shadow-lg: 0 24px 48px -12px var(--warm-shadow-a-08);
+  --shadow-floating: 0 10px 24px var(--gray-900-a-22);
+
+  --space-page-x: var(--space-0-5);
+  --space-page-x-md: var(--space-6);
+  --space-section: var(--space-3);
+  --space-card: var(--space-3-5);
+
+  /* ========================================================================
+   * LEVEL 3 — Component tokens (keep sparse)
+   * ======================================================================== */
+
+  --radius-card: var(--radius-2xl);
+  --radius-control: var(--radius-lg);
+  --radius-tooltip: var(--radius-md);
+  --shadow-card: var(--shadow-lg);
+  --shadow-floating-ui: var(--shadow-floating);
+
+  --page-max-width: 42rem;
+  --page-padding-y: var(--space-6);
+  --section-gap: var(--space-3);
+  --card-gap: var(--space-2);
+  --content-radius: var(--radius-3xl);
+  --bottom-nav-height: var(--space-32);
+  --bottom-nav-offset: 10px;
+  --bottom-nav-inset: var(--space-4);
+  --bottom-nav-radius: var(--radius-26);
+
+  --glass-bg: var(--color-bg-elevated);
+  --glass-blur: blur(28px) saturate(190%);
+  --glass-border: var(--border-width-hairline) solid var(--color-border-default);
+  --glass-shadow:
+    var(--shadow-lg),
+    inset 0 1.5px 2px 0 var(--white-a-95),
+    inset 0 -1.5px 3px 0 var(--black-a-02);
+
+  --card-inner-bg: var(--color-bg-surface-muted);
+  --card-inner-blur: blur(16px);
+  --card-inner-border: var(--border-width-thin) solid var(--color-border-subtle);
+  --card-inner-shadow:
+    var(--shadow-md),
+    inset 0 1px 1.5px 0 var(--white-a-90);
+
+  --pill-amber-bg: linear-gradient(135deg, var(--amber-400-a-85), var(--amber-600-a-95));
+  --pill-dark-bg: linear-gradient(135deg, var(--gray-800-a-90), var(--gray-900-a-98));
+  --pill-emerald-bg: linear-gradient(135deg, var(--green-400-a-85), var(--green-600-a-95));
+  --pill-purple-bg: linear-gradient(135deg, var(--purple-400-a-85), var(--purple-600-a-95));
+  --pill-rose-bg: linear-gradient(135deg, var(--rose-400-a-85), var(--rose-600-a-95));
+  --pill-clear-bg: var(--white-a-70);
+
+  --tooltip-bg: var(--gray-900-a-94);
+  --tooltip-text: var(--gray-50);
+  --tooltip-radius: var(--radius-tooltip);
+  --tooltip-shadow: var(--shadow-floating-ui);
+  --tooltip-max-width: 220px;
+
+  --overlay-scrim: rgba(12, 10, 9, 0.35);
+
+  /* Five-element colors — information meaning, not UI accent */
+  --element-wood: var(--green-700);
+  --element-fire: var(--red-700);
+  --element-earth: var(--amber-700);
+  --element-metal: var(--gray-600);
+  --element-water: var(--white);
+  --element-unknown: var(--gray-500);
+
+  --element-wood-soft: var(--green-100-a-90);
+  --element-fire-soft: var(--red-100-a-88);
+  --element-earth-soft: rgba(254, 243, 199, 0.92);
+  --element-metal-soft: var(--white-a-97);
+  --element-water-soft: var(--gray-700-a-96);
+
+  --element-wood-fill: linear-gradient(145deg, var(--green-100-a-90), var(--green-300-a-36));
+  --element-fire-fill: linear-gradient(145deg, var(--red-100-a-88), var(--red-300-a-45));
+  --element-earth-fill: linear-gradient(145deg, var(--element-earth-soft), var(--amber-400-a-38));
+  --element-metal-fill: linear-gradient(145deg, var(--white-a-97), rgba(245, 245, 244, 0.88));
+  --element-water-fill: linear-gradient(145deg, var(--gray-700-a-96), var(--gray-900-a-98));
+
+  --element-wood-border: var(--green-500-a-26);
+  --element-fire-border: var(--red-400-a-30);
+  --element-earth-border: var(--amber-500-a-30);
+  --element-metal-border: rgba(168, 162, 158, 0.28);
+  --element-water-border: var(--white-a-18);
+
+  --element-wood-dot: var(--green-300);
+  --element-fire-dot: var(--red-300);
+  --element-earth-dot: var(--amber-400);
+  --element-metal-dot: var(--white);
+  --element-metal-dot-border: var(--gray-400);
+  --element-water-dot: var(--gray-800);
+  --element-unknown-dot: var(--gray-300);
+
+  --chart-total: var(--amber-600-solid);
+  --chart-total-muted: var(--amber-600-a-10);
+  --chart-career: var(--amber-500-solid);
+  --chart-career-muted: var(--amber-500-a-10);
+  --chart-wealth: var(--green-500-solid);
+  --chart-wealth-muted: var(--green-500-a-10);
+  --chart-mental: var(--purple-500-solid);
+  --chart-mental-muted: var(--purple-500-a-10);
+  --chart-love: var(--rose-500-solid);
+  --chart-love-muted: var(--rose-500-a-10);
+  --chart-tick: var(--warm-400);
+  --chart-tick-muted: var(--gray-400);
+  --chart-grid: var(--white-a-60);
+}
+
+/* Future dark theme: override semantic tokens only.
+[data-theme="dark"] {
+  --color-bg-app: var(--gray-950);
+  --color-text-primary: var(--gray-50);
+}
+*/
+
+html,
+body {
+  font-family: var(--font-family-ui);
+}
+
+.z-base { z-index: var(--z-base); }
+.z-content { z-index: var(--z-content); }
+.z-bottom-nav { z-index: var(--z-bottom-nav); }
+.z-overlay { z-index: var(--z-overlay); }
+.z-tooltip { z-index: var(--z-tooltip); }
+.z-toast { z-index: var(--z-toast); }
+.z-modal { z-index: var(--z-modal); }
