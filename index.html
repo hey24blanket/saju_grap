@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F8FC" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="사주 Grap" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/sajugrap.svg" type="image/svg+xml" />
   <title>사주 Grap - 인생 파동 분석 엔진</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -896,6 +903,26 @@
     .dash-nav-item i { font-size: var(--text-body-lg); }
     .dash-nav-item.is-active { color: var(--color-accent-secondary); }
 
+    .dash-nav-counsel { color: var(--bottom-nav-counsel-label); transition: color var(--duration-fast) var(--ease-standard); }
+    .dash-nav-counsel .dash-nav-counsel-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: var(--bottom-nav-counsel-icon-size); height: var(--bottom-nav-counsel-icon-size);
+      border-radius: var(--bottom-nav-counsel-icon-radius);
+      background: var(--bottom-nav-counsel-icon-bg); color: var(--bottom-nav-counsel-icon-fg);
+      transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+    .dash-nav-counsel .dash-nav-counsel-icon i { font-size: calc(var(--text-body-lg) + 0.05rem); }
+    .dash-nav-counsel span:last-child { color: inherit; font-weight: var(--font-weight-extrabold); }
+    .dash-nav-counsel:hover .dash-nav-counsel-icon,
+    .dash-nav-counsel:focus-visible .dash-nav-counsel-icon { transform: translateY(-1px); }
+    .dash-nav-counsel.is-chat-open .dash-nav-counsel-icon,
+    .dash-nav-counsel.is-active .dash-nav-counsel-icon {
+      background: var(--bottom-nav-counsel-icon-bg-active);
+      color: var(--bottom-nav-counsel-icon-fg-active);
+    }
+    .dash-nav-counsel.is-chat-open,
+    .dash-nav-counsel.is-active { color: var(--bottom-nav-counsel-label-active); }
+
     .dash-chart-wrap {
       width: 100%;
       height: var(--size-chart-compact);
@@ -1015,8 +1042,8 @@
           <button
             type="button"
             id="btnGenderMale"
-            aria-pressed="true"
-            class="gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]"
+            aria-pressed="false"
+            class="gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]"
             data-gender="1"
           >
             남자
@@ -1064,6 +1091,9 @@
           </button>
           <button id="btnEditInput" class="dash-icon-btn" type="button" aria-label="입력 다시 하기">
             <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button id="btnClearProfile" class="dash-icon-btn" type="button" aria-label="내 정보 지우기" title="내 정보 지우기">
+            <i class="fa-solid fa-eraser"></i>
           </button>
         </div>
       </div>
@@ -1201,7 +1231,7 @@
     <nav class="dash-bottom-nav" aria-label="주요 이동">
       <button type="button" id="navHomeTab" class="dash-nav-item is-active" aria-current="page"><i class="fa-solid fa-house"></i><span>홈</span></button>
       <button type="button" id="navWeatherTab" class="dash-nav-item"><i class="fa-solid fa-cloud-sun"></i><span>기상도</span></button>
-      <button type="button" id="btnCenterChat" class="dash-nav-item" aria-label="상담 대화"><i class="fa-solid fa-comment-dots"></i><span>상담</span></button>
+      <button type="button" id="btnCenterChat" class="dash-nav-item dash-nav-counsel" aria-label="상담 대화"><span class="dash-nav-counsel-icon" aria-hidden="true"><i class="fa-solid fa-comment-dots"></i></span><span>상담</span></button>
       <button type="button" id="navDetailTab" class="dash-nav-item"><i class="fa-solid fa-magnifying-glass-chart"></i><span>상세분석</span></button>
       <button type="button" id="navProfileTab" class="dash-nav-item"><i class="fa-solid fa-user"></i><span>내 정보</span></button>
     </nav>
@@ -1336,8 +1366,24 @@
 
 
   <!-- 6. 프론트엔드 연동 스크립트 -->
-  <script>
-    const CACHE_KEY = 'saju_grap_user_profile_cache';
+  <script type="module">
+    import {
+      buildDisplayCurveFromAnchors,
+      snapDisplayIndexToAnchor
+    } from './lib/graphDisplayCurve.js';
+    import {
+      getGraphRenderingPolicy,
+      GRAPH_SCORE_Y_MIN,
+      GRAPH_SCORE_Y_MAX
+    } from './lib/graphRenderingPolicy.js';
+    import {
+      EMPTY_PROFILE_STATE,
+      USER_PROFILE_CACHE_KEY,
+      isValidGender,
+      normalizeCachedProfile
+    } from './lib/userProfileCache.js';
+
+    const CACHE_KEY = USER_PROFILE_CACHE_KEY;
     const COUNSELING_SESSION_KEY = 'saju_grap_counseling_session_v1';
     const ADMIN_DIAGNOSTICS_ENABLED = new URLSearchParams(window.location.search).get('debug') === '1';
 
@@ -1433,6 +1479,7 @@
     let chatGeneration = 0;
     let chatInFlight = false;
     let timelineAnalysisCache = new Map();
+    let lastGraphRenderingDiagnostics = null;
 
     // -----------------------------------------------------------------------
     // AI display helpers
@@ -2240,17 +2287,19 @@
     });
 
 
-    let state = { name: '', year: 1985, month: 10, day: 24, hour: 11, minute: 45, gender: 1 };
+    let state = { ...EMPTY_PROFILE_STATE };
 
     function pad2(value) {
       return String(value).padStart(2, '0');
     }
 
     function birthDateValueFromState() {
+      if (state.year == null || state.month == null || state.day == null) return '';
       return `${state.year}${pad2(state.month)}${pad2(state.day)}`;
     }
 
     function birthTimeValueFromState() {
+      if (state.hour == null || state.minute == null) return '';
       return `${pad2(state.hour)}${pad2(state.minute)}`;
     }
 
@@ -2276,17 +2325,13 @@
       const male = document.getElementById('btnGenderMale');
       const female = document.getElementById('btnGenderFemale');
       const maleSelected = Number(state.gender) === 1;
-
+      const femaleSelected = Number(state.gender) === 2;
+      const selectedClass = 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
+      const unselectedClass = 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
       male.setAttribute('aria-pressed', maleSelected ? 'true' : 'false');
-      female.setAttribute('aria-pressed', maleSelected ? 'false' : 'true');
-
-      male.className = maleSelected
-        ? 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]'
-        : 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
-
-      female.className = !maleSelected
-        ? 'gender-choice liquid-pill-dark text-white border border-stone-800 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]'
-        : 'gender-choice liquid-card-inner text-stone-600 border border-white/70 rounded-2xl py-3.5 font-black text-sm transition active:scale-[0.98]';
+      female.setAttribute('aria-pressed', femaleSelected ? 'true' : 'false');
+      male.className = maleSelected ? selectedClass : unselectedClass;
+      female.className = femaleSelected ? selectedClass : unselectedClass;
     }
 
     function updateFieldUI() {
@@ -2299,10 +2344,10 @@
     function loadCachedState() {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          state = { ...state, ...parsed };
-        } catch (e) {}
+        try { state = normalizeCachedProfile(JSON.parse(cached)); }
+        catch (e) { state = { ...EMPTY_PROFILE_STATE }; }
+      } else {
+        state = { ...EMPTY_PROFILE_STATE };
       }
       updateFieldUI();
     }
@@ -2368,6 +2413,10 @@
 
       if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
         return fail('태어난 시각의 분은 00~59로 입력해 주세요.');
+      }
+
+      if (!isValidGender(state.gender)) {
+        return fail('성별을 선택해 주세요.');
       }
 
       state.year = year;
@@ -2569,7 +2618,7 @@
       const title = document.getElementById('graphPointTitle');
       const text = document.getElementById('graphPointText');
       const kicker = document.getElementById('graphPointKicker');
-      if (kicker) kicker.innerText = domainName;
+      if (kicker) kicker.innerText = `${domainName} · Engine 시점`;
       if (title) title.innerText = `${label} · ${signed}`;
       if (text) text.innerText = scoreBandCopy(score);
     }
@@ -2661,12 +2710,51 @@
     function renderWaveChart(cycleKey, highlightDomain = 'all') {
       const ctx = document.getElementById('daewoonChart').getContext('2d');
       const cycleData = currentAnalysisData.cyclesData[cycleKey];
+      const renderPolicy = getGraphRenderingPolicy(cycleKey);
 
       if (chartInstance) chartInstance.destroy();
       if (!cycleData?.labels?.length) {
         const floatEl = document.getElementById('graphPointFloat');
         if (floatEl) floatEl.hidden = true;
+        lastGraphRenderingDiagnostics = null;
         return;
+      }
+
+      const engineLabels = cycleData.labels;
+      if (selectedGraphIndex == null || selectedGraphIndex >= engineLabels.length) {
+        selectedGraphIndex = getRepresentativeCycleIndex(cycleKey);
+      }
+
+      const domainSeries = {
+        total: cycleData.total,
+        career: cycleData.career,
+        wealth: cycleData.wealth,
+        mental: cycleData.mental,
+        love: cycleData.love
+      };
+
+      const displayCurves = {};
+      Object.entries(domainSeries).forEach(([key, engineYs]) => {
+        displayCurves[key] = buildDisplayCurveFromAnchors(engineYs, cycleKey);
+      });
+
+      const { displayY: templateDisplayY, anchorIndices } = displayCurves.total;
+      const displayLabels = templateDisplayY.map((_, idx) => {
+        const anchorIdx = anchorIndices.indexOf(idx);
+        return anchorIdx >= 0 ? engineLabels[anchorIdx] : '';
+      });
+
+      lastGraphRenderingDiagnostics = {
+        scale: cycleKey,
+        interpolation: renderPolicy.interpolation,
+        anchorCount: engineLabels.length,
+        displayPointCount: templateDisplayY.length,
+        overshootPrevented: !renderPolicy.allowOvershoot,
+        presentationOnly: true
+      };
+
+      if (ADMIN_DIAGNOSTICS_ENABLED) {
+        console.info('[graphRendering]', lastGraphRenderingDiagnostics);
       }
 
       const getStyle = (domain, activeColor, inactiveColor) => {
@@ -2692,21 +2780,30 @@
         all: 0, career: 1, wealth: 2, mental: 3, love: 4
       }[highlightDomain] ?? 0;
 
-      const labels = cycleData.labels;
-      if (selectedGraphIndex == null || selectedGraphIndex >= labels.length) {
-        selectedGraphIndex = getRepresentativeCycleIndex(cycleKey);
-      }
-
       const selectedPointRadius = 7;
-      const pointRadiusFor = (datasetIndex) => labels.map((_, idx) => (
-        datasetIndex === activeSeriesIndex && idx === selectedGraphIndex ? selectedPointRadius : 0
-      ));
-      const fillFor = (style, mutedToken) => style.fill ? cssToken(mutedToken, 'rgba(217, 119, 6, 0.10)') : 'transparent';
-      const surface = cssToken('--color-bg-surface', '#ffffff');
+      const selectedDisplayIndex = anchorIndices[selectedGraphIndex] ?? 0;
 
-      const makeDataset = (label, data, style, mutedToken, datasetIndex) => ({
+      const fillFor = (style, mutedToken) => {
+        if (!style.fill) return 'transparent';
+        const base = cssToken(mutedToken, 'rgba(217, 119, 6, 0.10)');
+        const opacity = renderPolicy.areaFillMaxOpacity ?? 0.1;
+        if (base.startsWith('rgba(')) {
+          return base.replace(/[\d.]+\)$/, `${opacity})`);
+        }
+        return base;
+      };
+      const surface = cssToken('--color-bg-surface', '#ffffff');
+      const chartGrid = cssToken('--chart-grid', 'rgba(15, 23, 42, 0.04)');
+      const chartZeroLine = cssToken('--chart-zero-line', 'rgba(15, 23, 42, 0.07)');
+
+      const pointRadiusFor = (datasetIndex) =>
+        templateDisplayY.map((_, idx) => (
+          datasetIndex === activeSeriesIndex && idx === selectedDisplayIndex ? selectedPointRadius : 0
+        ));
+
+      const makeDataset = (label, displayY, style, mutedToken, datasetIndex) => ({
         label,
-        data,
+        data: displayY,
         borderColor: style.color,
         backgroundColor: fillFor(style, mutedToken),
         borderWidth: style.width,
@@ -2716,23 +2813,26 @@
         pointBackgroundColor: style.color,
         pointBorderColor: surface,
         pointBorderWidth: 2,
-        tension: 0.4
+        tension: renderPolicy.chartTension,
+        cubicInterpolationMode: 'monotone'
       });
 
-      const applyPointRadii = (chart, index) => {
+      const applyPointRadii = (chart, anchorIndex) => {
+        const displayIndex = anchorIndices[anchorIndex] ?? 0;
         chart.data.datasets.forEach((dataset, datasetIndex) => {
-          dataset.pointRadius = labels.map((_, idx) => (
-            datasetIndex === activeSeriesIndex && idx === index ? selectedPointRadius : 0
+          dataset.pointRadius = templateDisplayY.map((_, idx) => (
+            datasetIndex === activeSeriesIndex && idx === displayIndex ? selectedPointRadius : 0
           ));
         });
       };
 
-      const syncGraphFloat = (chart, index) => {
+      const syncGraphFloat = (chart, anchorIndex) => {
         const floatEl = document.getElementById('graphPointFloat');
         if (!floatEl) return;
+        const displayIndex = anchorIndices[anchorIndex] ?? 0;
         const meta = chart.getDatasetMeta(activeSeriesIndex);
-        const point = meta?.data?.[index];
-        const pointLabel = labels[index];
+        const point = meta?.data?.[displayIndex];
+        const pointLabel = engineLabels[anchorIndex];
         if (!point || pointLabel == null) {
           floatEl.hidden = true;
           return;
@@ -2741,26 +2841,29 @@
         const series = currentAnalysisData?.cyclesData?.[currentCycle];
         const domainKey = domainKeys[currentDomainIndex] || 'all';
         const values = series?.[domainSeriesKey(domainKey)] || series?.total || [];
-        const score = values[index];
+        const score = values[anchorIndex];
         const signed = Number.isFinite(Number(score))
           ? `${Number(score) >= 0 ? '+' : ''}${Math.round(Number(score))}`
           : '';
         floatEl.hidden = false;
-        floatEl.textContent = signed ? `${pointLabel} ${signed}` : String(pointLabel);
+        floatEl.textContent = signed ? `${pointLabel} · ${signed}` : String(pointLabel);
         floatEl.style.left = `${x}px`;
         floatEl.style.top = `${y}px`;
       };
 
+      const resolveAnchorIndex = (displayIndex) =>
+        snapDisplayIndexToAnchor(displayIndex, anchorIndices);
+
       chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels,
+          labels: displayLabels,
           datasets: [
-            makeDataset('총운', cycleData.total, totalStyle, '--chart-total-muted', 0),
-            makeDataset('사업운', cycleData.career, careerStyle, '--chart-career-muted', 1),
-            makeDataset('재물운', cycleData.wealth, wealthStyle, '--chart-wealth-muted', 2),
-            makeDataset('심신운', cycleData.mental, mentalStyle, '--chart-mental-muted', 3),
-            makeDataset('연애운', cycleData.love, loveStyle, '--chart-love-muted', 4)
+            makeDataset('총운', displayCurves.total.displayY, totalStyle, '--chart-total-muted', 0),
+            makeDataset('사업운', displayCurves.career.displayY, careerStyle, '--chart-career-muted', 1),
+            makeDataset('재물운', displayCurves.wealth.displayY, wealthStyle, '--chart-wealth-muted', 2),
+            makeDataset('심신운', displayCurves.mental.displayY, mentalStyle, '--chart-mental-muted', 3),
+            makeDataset('연애운', displayCurves.love.displayY, loveStyle, '--chart-love-muted', 4)
           ]
         },
         options: {
@@ -2781,16 +2884,16 @@
               }
               return;
             }
-            const hoverIndex = points[0].index;
-            updateGraphPoint(hoverIndex);
-            applyPointRadii(chart, hoverIndex);
+            const anchorIndex = resolveAnchorIndex(points[0].index);
+            updateGraphPoint(anchorIndex);
+            applyPointRadii(chart, anchorIndex);
             chart.update('none');
-            syncGraphFloat(chart, hoverIndex);
+            syncGraphFloat(chart, anchorIndex);
           },
           onClick(event, _elements, chart) {
             const points = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, true);
             if (!points.length) return;
-            selectedGraphIndex = points[0].index;
+            selectedGraphIndex = resolveAnchorIndex(points[0].index);
             updateGraphPoint(selectedGraphIndex, { persist: true });
             applyPointRadii(chart, selectedGraphIndex);
             chart.update('none');
@@ -2807,22 +2910,33 @@
               border: { display: false },
               ticks: {
                 maxRotation: 0,
-                autoSkip: true,
-                maxTicksLimit: 6,
-                color: (ctx) => ctx.index === selectedGraphIndex
-                  ? cssToken('--color-text-primary', '#1c1917')
-                  : cssToken('--chart-tick', '#a8a29e'),
-                font: (ctx) => ({
-                  size: ctx.index === selectedGraphIndex ? 11 : 9,
-                  weight: ctx.index === selectedGraphIndex ? '800' : '600'
-                })
+                autoSkip: false,
+                maxTicksLimit: engineLabels.length + 2,
+                callback: (_value, index) => displayLabels[index] || '',
+                color: (ctx) => {
+                  const anchorIdx = anchorIndices.indexOf(ctx.index);
+                  return anchorIdx === selectedGraphIndex
+                    ? cssToken('--color-text-primary', '#1c1917')
+                    : cssToken('--chart-tick', '#a8a29e');
+                },
+                font: (ctx) => {
+                  const anchorIdx = anchorIndices.indexOf(ctx.index);
+                  const active = anchorIdx === selectedGraphIndex;
+                  return {
+                    size: active ? 11 : 9,
+                    weight: active ? '800' : '600'
+                  };
+                }
               }
             },
             y: {
-              min: -100,
-              max: 100,
+              min: GRAPH_SCORE_Y_MIN,
+              max: GRAPH_SCORE_Y_MAX,
               border: { display: false },
-              grid: { color: cssToken('--chart-grid', 'rgba(15, 23, 42, 0.04)'), drawTicks: false },
+              grid: {
+                drawTicks: false,
+                color: (ctx) => (ctx.tick.value === 0 ? chartZeroLine : chartGrid)
+              },
               ticks: { display: false }
             }
           }
@@ -3135,11 +3249,22 @@
       if (render) renderCounselingHistory();
     }
 
+    function setCounselingNavOpen(open) {
+      document.getElementById('btnCenterChat')?.classList.toggle('is-chat-open', Boolean(open));
+    }
+
+    function closeChatDrawer() {
+      document.getElementById('modalChatDrawer').classList.add('hidden');
+      document.getElementById('modalChatDrawer').classList.remove('flex');
+      setCounselingNavOpen(false);
+    }
+
     function openChatDrawer() {
       playTickSound();
       renderCounselingHistory();
       document.getElementById('modalChatDrawer').classList.remove('hidden');
       document.getElementById('modalChatDrawer').classList.add('flex');
+      setCounselingNavOpen(true);
       document.getElementById('chatInputText').focus();
     }
     document.getElementById('btnCenterChat').addEventListener('click', openChatDrawer);
@@ -3149,16 +3274,10 @@
       resetCounselingSession({ render: true });
       document.getElementById('chatInputText').focus();
     });
-    document.getElementById('btnCloseChatDrawer').addEventListener('click', () => {
-      document.getElementById('modalChatDrawer').classList.add('hidden');
-      document.getElementById('modalChatDrawer').classList.remove('flex');
-    });
+    document.getElementById('btnCloseChatDrawer').addEventListener('click', closeChatDrawer);
 
     document.getElementById('modalChatDrawer').addEventListener('click', (e) => {
-      if (e.target.id === 'modalChatDrawer') {
-        document.getElementById('modalChatDrawer').classList.add('hidden');
-        document.getElementById('modalChatDrawer').classList.remove('flex');
-      }
+      if (e.target.id === 'modalChatDrawer') closeChatDrawer();
     });
 
     const chatInputTextEl = document.getElementById('chatInputText');
@@ -3353,14 +3472,47 @@
     renderCounselingHistory();
 
     document.getElementById('btnStart').addEventListener('click', executeAnalysis);
-    document.getElementById('btnEditInput').addEventListener('click', () => {
+
+    function showOnboardingView() {
       document.getElementById('viewDashboard').classList.add('hidden');
       document.getElementById('viewDashboard').classList.remove('flex');
       document.body.classList.remove('dashboard-open');
       document.getElementById('viewOnboarding').classList.remove('hidden');
+      setOnboardingInputError('');
+      closeChatDrawer();
+      closeUnifiedModal();
+      setDashNavActive('navHomeTab');
+    }
+
+    function clearUserProfile() {
+      const confirmed = window.confirm('이 브라우저에 저장된 이름·생년월일시와 상담 기록을 모두 지울까요?\n다른 기기나 브라우저의 정보는 삭제되지 않습니다.');
+      if (!confirmed) return;
+      try { localStorage.removeItem(CACHE_KEY); } catch (error) {}
+      state = { ...EMPTY_PROFILE_STATE };
+      currentPayload = null;
+      currentAnalysisData = null;
+      cachedAiPack = null;
+      timelineAnalysisCache = new Map();
+      resetCounselingSession({ render: true, profileKey: null });
+      updateFieldUI();
+      showOnboardingView();
+    }
+
+    document.getElementById('btnEditInput').addEventListener('click', showOnboardingView);
+    document.getElementById('btnClearProfile').addEventListener('click', () => {
+      playTickSound();
+      clearUserProfile();
     });
 
     loadCachedState();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((error) => {
+          if (ADMIN_DIAGNOSTICS_ENABLED) console.warn('[PWA] service worker registration failed', error);
+        });
+      });
+    }
   </script>
 </body>
 </html>

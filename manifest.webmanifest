@@ -1,0 +1,21 @@
+{
+  "name": "사주 Grap",
+  "short_name": "사주Grap",
+  "description": "원국과 운의 흐름을 탐색하고 상담하는 사주 대시보드",
+  "lang": "ko-KR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#F7F8FC",
+  "theme_color": "#F7F8FC",
+  "icons": [
+    {
+      "src": "/icons/sajugrap.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

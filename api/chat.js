@@ -36,6 +36,7 @@ import {
 
 import {
   buildCounselingOrchestration,
+  finalizeCounselingOrchestrationAfterRag,
   buildCounselingOrchestratorDiagnostic
 } from '../lib/counselingOrchestrator.js';
 
@@ -2345,6 +2346,9 @@ async function buildRagRuntimeContext(
       contextText:
         '',
 
+      knowledgeHits:
+        [],
+
       fallbackUsed:
         false
     };
@@ -2492,6 +2496,9 @@ async function buildRagRuntimeContext(
       contextText:
         '',
 
+      knowledgeHits:
+        [],
+
       fallbackUsed:
         false
     };
@@ -2540,6 +2547,14 @@ async function buildRagRuntimeContext(
       ),
 
     contextText,
+
+    knowledgeHits:
+      retrieval.results.slice(0, 4).map((item) => ({
+        id: item.chunkId || item.knowledgeId || null,
+        chunkId: item.chunkId || null,
+        knowledgeId: item.knowledgeId || null,
+        title: item.title || null
+      })),
 
     fallbackUsed:
       false
@@ -4389,6 +4404,19 @@ export default async function handler(
               }
             )
       });
+
+    if (
+      normalized.mode === 'chat' &&
+      counselingPrototypeEnabled &&
+      counselingOrchestration
+    ) {
+      counselingOrchestration = finalizeCounselingOrchestrationAfterRag({
+        orchestration: counselingOrchestration,
+        userMessage: normalized.userMessage,
+        knowledgeHits: ragRuntime.knowledgeHits || [],
+        knowledgeRagUsed: ragRuntime.status === 'used'
+      });
+    }
 
     if (
       normalized.mode ===
