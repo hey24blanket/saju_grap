@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import {requireRagAdmin} from '../lib/ragAdminAuth.js';
-import {getFirestoreClient} from '../lib/ragRetriever.js';
+import {getTarotFirestore as getFirestoreClient} from '../lib/tarotFirestore.js';
 import {inventory,retrieve} from '../lib/tarotRag.js';
 import {validateTarot} from '../lib/tarotValidation.js';
 const ALLOWED=new Set(['https://tarot-with-you.vercel.app','https://saju-grap.vercel.app']);
