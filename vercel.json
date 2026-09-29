@@ -6,6 +6,9 @@
     },
     "api/blanket-rag.js": {
       "maxDuration": 60
+    },
+    "api/tarot.js": {
+      "maxDuration": 120
     }
   },
   "rewrites": [
