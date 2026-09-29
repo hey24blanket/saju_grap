@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "9.0.0",
+    "@vercel/blob": "2.7.0",
+    "@vercel/functions": "3.9.9",
     "lunar-javascript": "1.7.7"
   }
 }
