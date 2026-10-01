@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {cards} from '../lib/tarotCards.js';
-import {cardSymbols} from '../lib/tarotSymbols.js';
+import {cardSymbols,symbolsFor} from '../lib/tarotSymbols.js';
 import {readingMaterial,parseCardCallout} from '../lib/tarotReadingMaterial.js';
 import {parseResponse} from '../lib/tarotResponse.js';
 import {validateTarot} from '../lib/tarotValidation.js';
 
 const legacy=validateTarot({action:'reading',question:'월급 때문에 퇴사가 망설여져요.',messages:[],context:{},rounds:[{spread:'one',cards:[{id:'ar15',reversed:true}]}]});
 const visual={...legacy,visualMode:'callout-v1'};
+const multi={...legacy,visualMode:'callout-v2'};
 const c=visual.cards[0];
 const callout=()=>({symbolId:cardSymbols[c.id].id,text:'목의 사슬은 월급 때문에 퇴사가 망설여진다는 이야기와 닿아 있어요. 수입을 지키면서도 선택할 여지를 넓히는 것이 이 카드가 짚는 과제예요.'});
 const response=()=>({
@@ -37,6 +38,21 @@ test('visual response preserves the symbol text without accepting model coordina
  const parsed=parseResponse(JSON.stringify(d),visual);
  assert.deepEqual(parsed.cardReadings[0].callout,callout());
  assert.match(parsed.cardReadings[0].body,/생활/);
+});
+
+test('multi-symbol reading has 2–4 canonical anchors and preserves concise text without coordinates',()=>{
+ const material=readingMaterial(c,multi),symbols=symbolsFor(c.id);
+ assert.deepEqual(material.focusSymbols,symbols.map(({id,label,evidence})=>({id,label,evidence})));
+ const d=response();delete d.cardReadings[0].callout;
+ d.cardReadings[0].callouts=symbols.slice(0,2).map(s=>({symbolId:s.id,text:'월급을 지키면서 퇴사 여부를 고르는 일과 닿아요.',x:.01}));
+ const parsed=parseResponse(JSON.stringify(d),multi);
+ assert.deepEqual(parsed.cardReadings[0].callouts,d.cardReadings[0].callouts.map(({symbolId,text})=>({symbolId,text})));
+ for(const invalid of [[d.cardReadings[0].callouts[0]],[d.cardReadings[0].callouts[0],d.cardReadings[0].callouts[0]],[{symbolId:'invented',text:'아주 길고 그럴듯한 새 상징이에요.'},d.cardReadings[0].callouts[1]]]){
+  d.cardReadings[0].callouts=invalid;
+  assert.throws(()=>parseResponse(JSON.stringify(d),multi),/INVALID_CALLOUT/);
+ }
+ delete d.cardReadings[0].callouts;
+ assert.throws(()=>parseResponse(JSON.stringify(d),multi),/MISSING_CARD_CALLOUTS/);
 });
 
 test('callouts are required only for the new visual contract; legacy content stays usable',()=>{
