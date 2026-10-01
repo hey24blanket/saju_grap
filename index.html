@@ -998,6 +998,15 @@
           class="w-full px-4 py-3.5 liquid-card-inner rounded-2xl font-bold text-center text-stone-800 focus:bg-white/80 focus:ring-2 focus:ring-amber-500/50 outline-none transition text-sm shadow-sm" />
       </div>
 
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <label class="text-xs font-bold">달력
+          <select id="initCalendar" class="w-full rounded-xl p-2 mt-1"><option value="solar">양력</option><option value="lunar">음력 · 평달</option><option value="lunarLeap">음력 · 윤달</option></select>
+        </label>
+        <label class="text-xs font-bold">일주 날짜 변경
+          <select id="initDayBoundary" class="w-full rounded-xl p-2 mt-1"><option value="midnight">밤 12시 (00:00)</option><option value="zi">밤 11시 (23:00)</option></select>
+        </label>
+      </div>
+      <p class="text-[11px] text-stone-500 mb-3">한국 출생 기록의 시각을 입력해 주세요. 경도에 따른 태양시 보정은 적용하지 않습니다. 시간을 모르면 임의로 입력하지 마세요.</p>
       <!-- 생년월일시 직접 입력 -->
       <div class="space-y-3 mb-6">
         <label class="block text-[11px] font-black text-stone-500 ml-1">생년월일시 및 성별</label>
@@ -1921,6 +1930,17 @@
     function renderRuntimeStatus(diagnostic, data) {
       const runtime = data?.runtimeDiagnostics || {};
       const facts = data?.engineFacts || {};
+      let receiptEl = document.getElementById('calculationReceipt');
+      if (!receiptEl) {
+        receiptEl = document.createElement('details');
+        receiptEl.id = 'calculationReceipt';
+        receiptEl.className = 'liquid-card-inner rounded-2xl p-4 mb-4 text-xs text-stone-600';
+        document.getElementById('dashNatalMount').before(receiptEl);
+      }
+      const receipt = facts.calculation;
+      if (receipt) {
+        receiptEl.innerHTML = `<summary class="font-bold cursor-pointer">원국 계산 기준 · 양력 ${escapeHtml(receipt.solarDate)}</summary><p class="mt-2">입력: ${escapeHtml(receipt.inputDate)} ${receipt.calendarType === 'lunar' ? (receipt.isLeapMonth ? '음력 윤달' : '음력 평달') : '양력'} → 양력 ${escapeHtml(receipt.solarDate)} ${escapeHtml(receipt.birthTime)}<br>한국 출생 기록 시각 · 일주 변경 ${receipt.dayBoundary === 'zi' ? '23:00' : '00:00'} · 시간의 천간은 선택한 일주 기준 · 태양시 보정 없음<br>신강·신약, 용신과 파동 점수는 앱의 해석 방식에 따른 추정입니다. 알고 있는 원국과 다르면 달력·윤달·자시·태양시 기준을 먼저 비교해 주세요.</p>`;
+      }
       const natal = facts?.natal || {};
       const dayMaster = natal?.dayMaster || {};
       const strength = facts?.strength || {};
@@ -2338,6 +2358,8 @@
       document.getElementById('initName').value = state.name || '';
       document.getElementById('initBirthDate').value = birthDateValueFromState();
       document.getElementById('initBirthTime').value = birthTimeValueFromState();
+      document.getElementById('initCalendar').value = state.calendarType === 'lunar' ? (state.isLeapMonth ? 'lunarLeap' : 'lunar') : 'solar';
+      document.getElementById('initDayBoundary').value = state.dayBoundary || 'midnight';
       updateGenderUI();
     }
 
@@ -2403,8 +2425,9 @@
         realDate.getUTCMonth() === month - 1 &&
         realDate.getUTCDate() === day;
 
-      if (!validDate) {
-        return fail('실제로 존재하는 생년월일을 입력해 주세요.');
+      const calendarSelection = document.getElementById('initCalendar').value;
+      if ((calendarSelection === 'solar' && !validDate) || (calendarSelection !== 'solar' && day > 30)) {
+        return fail('선택한 달력에 맞는 생년월일을 입력해 주세요.');
       }
 
       if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
@@ -2419,6 +2442,9 @@
         return fail('성별을 선택해 주세요.');
       }
 
+      state.calendarType = calendarSelection === 'solar' ? 'solar' : 'lunar';
+      state.isLeapMonth = calendarSelection === 'lunarLeap';
+      state.dayBoundary = document.getElementById('initDayBoundary').value;
       state.year = year;
       state.month = month;
       state.day = day;
@@ -2429,6 +2455,15 @@
       saveCachedState();
       return true;
     }
+
+    ['initCalendar', 'initDayBoundary'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+      const value = document.getElementById('initCalendar').value;
+      state.calendarType = value === 'solar' ? 'solar' : 'lunar';
+      state.isLeapMonth = value === 'lunarLeap';
+      state.dayBoundary = document.getElementById('initDayBoundary').value;
+      setOnboardingInputError('');
+      saveCachedState();
+    }));
 
     document.getElementById('initName').addEventListener('input', (e) => {
       state.name = e.target.value.trim();
@@ -2487,7 +2522,9 @@
         hour: state.hour,
         minute: state.minute,
         gender: state.gender,
-        calendarType: 'solar',
+        calendarType: state.calendarType || 'solar',
+        isLeapMonth: state.isLeapMonth === true,
+        dayBoundary: state.dayBoundary || 'midnight',
         timezone: 'Asia/Seoul'
       };
 
@@ -2525,7 +2562,11 @@
           payload.hour,
           payload.minute,
           payload.gender,
-          payload.timezone
+          payload.timezone,
+          payload.calendarType,
+          payload.isLeapMonth,
+          payload.dayBoundary,
+          json.data.engineFacts?.engineVersion
         ].join(':');
         if (counselingSession.profileKey !== profileKey) {
           resetCounselingSession({ render: true, profileKey });
@@ -2545,6 +2586,10 @@
         // 대시보드 진입 즉시 현재 대운 구간 기준 5대 운 전략 프리페치
         prefetchCycleStrategies(currentCycle);
       } catch (error) {
+        if (error.sajuInfo?.httpStatus === 400) {
+          setOnboardingInputError(error.message);
+          return;
+        }
         handleFrontendFailure('사주 분석 실패', error, {
           code: 'SG-NETWORK-ANALYZE-001',
           stage: 'ANALYZE_FETCH',

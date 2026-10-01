@@ -1496,6 +1496,8 @@ function buildEngineFactPacket(
         .engineVersion ??
       null,
 
+    calculation: engineFacts.calculation ?? null,
+    factKinds: engineFacts.factKinds ?? null,
     input: {
       name:
         engineFacts

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "P01",
+    "title": "기존 기준 프로필",
+    "input": {
+      "year": 1985,
+      "month": 10,
+      "day": 24,
+      "hour": 11,
+      "minute": 45,
+      "gender": 1,
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "dayBoundary": "midnight"
+    }
+  },
+  {
+    "id": "P02",
+    "title": "음력 윤달",
+    "input": {
+      "year": 2017,
+      "month": 5,
+      "day": 1,
+      "hour": 8,
+      "minute": 30,
+      "gender": 2,
+      "calendarType": "lunar",
+      "isLeapMonth": true,
+      "dayBoundary": "midnight"
+    }
+  },
+  {
+    "id": "P03",
+    "title": "역사적 표준시",
+    "input": {
+      "year": 1956,
+      "month": 1,
+      "day": 21,
+      "hour": 11,
+      "minute": 45,
+      "gender": 1,
+      "calendarType": "lunar",
+      "isLeapMonth": false,
+      "dayBoundary": "midnight"
+    }
+  },
+  {
+    "id": "P04",
+    "title": "자시 00시 변경",
+    "input": {
+      "year": 1990,
+      "month": 5,
+      "day": 10,
+      "hour": 23,
+      "minute": 30,
+      "gender": 2,
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "dayBoundary": "midnight"
+    }
+  },
+  {
+    "id": "P05",
+    "title": "자시 23시 변경",
+    "input": {
+      "year": 1990,
+      "month": 5,
+      "day": 10,
+      "hour": 23,
+      "minute": 30,
+      "gender": 2,
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "dayBoundary": "zi"
+    }
+  },
+  {
+    "id": "P06",
+    "title": "입춘 직전",
+    "input": {
+      "year": 2024,
+      "month": 2,
+      "day": 4,
+      "hour": 17,
+      "minute": 26,
+      "gender": 1,
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "dayBoundary": "midnight"
+    }
+  },
+  {
+    "id": "P07",
+    "title": "입춘 직후",
+    "input": {
+      "year": 2024,
+      "month": 2,
+      "day": 4,
+      "hour": 17,
+      "minute": 28,
+      "gender": 1,
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "dayBoundary": "midnight"
+    }
+  },
+  {
+    "id": "P08",
+    "title": "서머타임 출생",
+    "input": {
+      "year": 1988,
+      "month": 7,
+      "day": 1,
+      "hour": 11,
+      "minute": 45,
+      "gender": 2,
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "dayBoundary": "midnight"
+    }
+  }
+]

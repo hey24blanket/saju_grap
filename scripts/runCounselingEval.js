@@ -3,12 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const profiles = JSON.parse(await fs.readFile(path.join(ROOT, 'eval', 'counseling-profiles.json'), 'utf8'));
 const scenarios = JSON.parse(
   await fs.readFile(path.join(ROOT, 'eval', 'counseling-scenarios.json'), 'utf8')
 );
 
 function readArgs(argv) {
   const result = {
+    profileId: 'P01',
     baseUrl: '',
     provider: 'gemini',
     ragMode: 'off',
@@ -20,6 +22,7 @@ function readArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--confirm-live') result.confirmLive = true;
+    else if (arg === '--profile') result.profileId = argv[++index] || '';
     else if (arg === '--base-url') result.baseUrl = argv[++index] || '';
     else if (arg === '--provider') result.provider = argv[++index] || 'gemini';
     else if (arg === '--rag-mode') result.ragMode = argv[++index] || 'off';
@@ -50,6 +53,8 @@ async function postJson(url, body) {
 }
 
 const options = readArgs(process.argv.slice(2));
+const profile = profiles.find(p => p.id === options.profileId);
+if (!profile) throw new Error(`Unknown profile: ${options.profileId}`);
 const selected = options.scenarioIds.length
   ? scenarios.filter((scenario) => options.scenarioIds.includes(scenario.id))
   : scenarios;
@@ -57,6 +62,8 @@ const plannedCalls = selected.reduce((total, scenario) => total + scenario.turns
 const needsNextYearTimeline = selected.some((scenario) => scenario.id === 'E07');
 
 const plan = {
+  profileId: profile.id,
+  profileTitle: profile.title,
   provider: options.provider,
   ragMode: options.ragMode,
   scenarioIds: selected.map((scenario) => scenario.id),
@@ -75,17 +82,7 @@ if (!Number.isInteger(options.maxCalls) || options.maxCalls < plannedCalls) {
 }
 
 const baseUrl = options.baseUrl.replace(/\/$/, '');
-const evaluationProfile = {
-  name: '합성 평가 사용자',
-  year: 1985,
-  month: 10,
-  day: 24,
-  hour: 11,
-  minute: 45,
-  gender: 1,
-  calendarType: 'solar',
-  timezone: 'Asia/Seoul'
-};
+const evaluationProfile = { ...profile.input, name: '합성 평가 사용자', timezone: 'Asia/Seoul' };
 const analysis = await postJson(`${baseUrl}/api/analyze`, evaluationProfile);
 const engineData = analysis.json.data;
 const referenceYear = Number(engineData.engineFacts?.cycles?.reference?.year);
@@ -168,7 +165,10 @@ for (const scenario of selected) {
 }
 
 const output = {
-  schemaVersion: 'sajugrap_counseling_eval_v1',
+  schemaVersion: 'sajugrap_counseling_eval_v2',
+  calculation: engineData.engineFacts?.calculation,
+  natal: engineData.engineFacts?.natal,
+  reviewStatus: 'requires_human_grounding_and_usefulness_review',
   createdAt: new Date().toISOString(),
   baseUrl,
   ...plan,

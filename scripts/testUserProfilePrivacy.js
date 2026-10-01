@@ -13,7 +13,10 @@ function run() {
     day: null,
     hour: null,
     minute: null,
-    gender: null
+    gender: null,
+    calendarType: 'solar',
+    isLeapMonth: false,
+    dayBoundary: 'midnight'
   });
 
   assert.equal(isValidGender(null), false);
