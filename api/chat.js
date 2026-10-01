@@ -1,3 +1,4 @@
+import { buildCounselingSafetyReply } from '../lib/counselingSafety.js';
 // api/chat.js
 // SajuGrap Engine Facts v1 - LLM Orchestration Layer
 // -----------------------------------------------------------------------------
@@ -4160,7 +4161,6 @@ export default async function handler(
                 scopeDecision,
 
               rag: {
-                errorCode: ragRuntime.errorCode || null,
                 status:
                   'skipped_scope_guard',
 
@@ -4187,6 +4187,20 @@ export default async function handler(
           })
       );
     }
+  }
+
+  if (normalized.mode === 'chat') {
+    const safetyReply = buildCounselingSafetyReply(normalized);
+    if (safetyReply) return res.status(200).json({
+      success: true, reply: safetyReply,
+      counselingState: normalized.counselingState || null,
+      trainingTrace: null,
+      diagnostic: { status: 'SAFETY_SUPPORT', stage: 'COMPLETE', requestId,
+        apiVersion: API_VERSION, promptVersion: COUNSELING_PROMPT_VERSION,
+        provider: null, model: null, fallbackUsed: false,
+        safety: { route: 'interpersonal_violence_v1' },
+        rag: { status: 'skipped_safety_support', mode: ragMode }, timestamp: nowIso() }
+    });
   }
 
   let engineFactPacket;
@@ -5021,6 +5035,8 @@ export default async function handler(
 
               rag: {
                 errorCode: ragRuntime.errorCode || null,
+                causeCode: ragRuntime.causeCode || null,
+                failureKind: ragRuntime.failureKind || null,
                 status:
                   ragRuntime.status,
 
@@ -5233,6 +5249,8 @@ export default async function handler(
 
               rag: {
                 errorCode: ragRuntime.errorCode || null,
+                causeCode: ragRuntime.causeCode || null,
+                failureKind: ragRuntime.failureKind || null,
                 status:
                   ragRuntime
                     .status,
