@@ -8,6 +8,8 @@ const scenarios = JSON.parse(
   await fs.readFile(path.join(ROOT, 'eval', 'counseling-scenarios.json'), 'utf8')
 );
 
+if (process.argv.includes('--holdout')) scenarios.splice(0, scenarios.length, ...JSON.parse(await fs.readFile(path.join(ROOT, 'eval', 'counseling-holdout.json'), 'utf8')));
+
 function readArgs(argv) {
   const result = {
     profileId: 'P01',
@@ -19,11 +21,14 @@ function readArgs(argv) {
     maxCalls: 0,
     confirmLive: false,
     resume: false,
+    deploymentCommit: '',
     referenceDateTime: '2026-10-02T08:00:00+09:00'
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--resume') result.resume = true;
+    if (arg === '--holdout') continue;
+    else if (arg === '--resume') result.resume = true;
+    else if (arg === '--deployment-commit') result.deploymentCommit = argv[++index] || '';
     else if (arg === '--reference-date') result.referenceDateTime = argv[++index];
     else if (arg === '--confirm-live') result.confirmLive = true;
     else if (arg === '--profile') result.profileId = argv[++index] || '';
@@ -68,6 +73,7 @@ const plannedCalls = selected.reduce((total, scenario) => total + scenario.turns
 const needsNextYearTimeline = selected.some((scenario) => scenario.id === 'E07');
 
 const plan = {
+  deploymentCommit: options.deploymentCommit,
   referenceDateTime: options.referenceDateTime,
   profileId: profile.id,
   profileTitle: profile.title,
@@ -83,6 +89,7 @@ if (!options.confirmLive) {
   console.log(JSON.stringify({ dryRun: true, ...plan }, null, 2));
   process.exit(0);
 }
+if (!options.output) throw new Error('--output is required to retain live checkpoints.');
 if (!options.baseUrl) throw new Error('--base-url is required for live evaluation.');
 if (!Number.isInteger(options.maxCalls) || options.maxCalls < plannedCalls) {
   throw new Error(`--max-calls must be an integer >= planned calls (${plannedCalls}).`);
@@ -129,7 +136,7 @@ const currentDaewoonIndex = Math.max(0, engineData.engineFacts?.cycles?.daewoon?
 ) ?? 0);
 
 const checkpoint = options.resume && options.output ? JSON.parse(await fs.readFile(options.output, 'utf8')) : null;
-if (checkpoint && (checkpoint.profileId !== profile.id || checkpoint.ragMode !== options.ragMode || checkpoint.referenceDateTime !== options.referenceDateTime || checkpoint.provider !== options.provider || JSON.stringify(checkpoint.scenarioIds) !== JSON.stringify(plan.scenarioIds))) throw new Error('Resume configuration mismatch');
+if (checkpoint && (checkpoint.baseUrl !== options.baseUrl.replace(/\/$/, '') || checkpoint.deploymentCommit !== options.deploymentCommit || checkpoint.profileId !== profile.id || checkpoint.ragMode !== options.ragMode || checkpoint.referenceDateTime !== options.referenceDateTime || checkpoint.provider !== options.provider || JSON.stringify(checkpoint.scenarioIds) !== JSON.stringify(plan.scenarioIds))) throw new Error('Resume configuration mismatch');
 const results = checkpoint?.results || [];
 async function saveCheckpoint() {
   if (!options.output) return;

@@ -4160,6 +4160,7 @@ export default async function handler(
                 scopeDecision,
 
               rag: {
+                errorCode: ragRuntime.errorCode || null,
                 status:
                   'skipped_scope_guard',
 
@@ -4975,6 +4976,9 @@ export default async function handler(
                   .fallbackUsed ===
                 true,
 
+              fallbackProviderStatus: providerResult.fallbackError?.providerStatus ?? null,
+              fallbackProviderCode: providerResult.fallbackError?.providerCode ?? null,
+
               engineFactsStatus:
                 engineFactPacket
                   .availability,
@@ -5016,6 +5020,7 @@ export default async function handler(
               },
 
               rag: {
+                errorCode: ragRuntime.errorCode || null,
                 status:
                   ragRuntime.status,
 
@@ -5219,11 +5224,15 @@ export default async function handler(
                   .fallbackUsed ===
                 true,
 
+              fallbackProviderStatus: providerResult.fallbackError?.providerStatus ?? null,
+              fallbackProviderCode: providerResult.fallbackError?.providerCode ?? null,
+
               engineFactsStatus:
                 engineFactPacket
                   .availability,
 
               rag: {
+                errorCode: ragRuntime.errorCode || null,
                 status:
                   ragRuntime
                     .status,
