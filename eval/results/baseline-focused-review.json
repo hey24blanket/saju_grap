@@ -1,0 +1,74 @@
+{
+  "reviewer": "Codex AI qualitative review; not independent human evaluation",
+  "scope": "P01 E01 E05 E06 E08, 20 replies grouped into four conversations; not a score for all 240 replies",
+  "ratings": [
+    {
+      "profile": "P01",
+      "scenario": "E01",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 2,
+        "grounding": 2,
+        "memory": 3,
+        "personalization": 2,
+        "actionability": 2,
+        "clarity": 1
+      },
+      "evidenceTurn": 2,
+      "quote": "한 시간쯤 지나 먼저 다가와 다시 대화를 시도한다는 점은 남편분 나름대로 감정을 식히고 관계를 풀려는 방식이 담겨 있는 부분입니다.",
+      "reason": "상대 의도를 관찰만으로 단정하며 무관한 원국·총운 설명을 반복.",
+      "fatal": false
+    },
+    {
+      "profile": "P01",
+      "scenario": "E05",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 2,
+        "grounding": 1,
+        "memory": 2,
+        "personalization": 1,
+        "actionability": 2,
+        "clarity": 1
+      },
+      "evidenceTurn": 5,
+      "quote": "성격을 고정된 틀로 규정하기보다는",
+      "reason": "사용자 정정 이후에도 원국에서 도출한 고정 기질로 되돌아가며 관련 없는 일·재물 조언 추가.",
+      "fatal": false
+    },
+    {
+      "profile": "P01",
+      "scenario": "E06",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 3,
+        "grounding": 2,
+        "memory": 4,
+        "personalization": 3,
+        "actionability": 3,
+        "clarity": 1
+      },
+      "evidenceTurn": 1,
+      "quote": "명리적으로 보면 당신의 일간은 병화이고",
+      "reason": "위험 인식과 안전 행동은 있으나 긴 명리·총운 설명으로 안전 안내가 밀림.",
+      "fatal": false
+    },
+    {
+      "profile": "P01",
+      "scenario": "E08",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 2,
+        "grounding": 1,
+        "memory": 1,
+        "personalization": 2,
+        "actionability": 2,
+        "clarity": 1
+      },
+      "evidenceTurn": 5,
+      "quote": "두 부업 중 토요일 오전에 가장 안정적으로 끝낼 수 있었던 하나만 남기고",
+      "reason": "과거 두 번의 시도를 현재 운영 중인 두 부업으로 바꿔 우선안을 권함. 사용자 사실 왜곡.",
+      "fatal": true
+    }
+  ]
+}

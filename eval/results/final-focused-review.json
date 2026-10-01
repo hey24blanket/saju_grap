@@ -1,0 +1,78 @@
+{
+  "reviewer": "Codex AI qualitative review, not independent human review",
+  "scope": "Latest focused samples: v11 E01/E05/E06 plus final routing E08, 20 replies. Not a full final-build 240-reply score.",
+  "ratings": [
+    {
+      "profile": "P01",
+      "scenario": "E01",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 3,
+        "grounding": 3,
+        "memory": 3,
+        "personalization": 3,
+        "actionability": 3,
+        "clarity": 3
+      },
+      "evidenceTurn": 4,
+      "quote": "시간을 정해두고 대화를 잠시 멈추는 방식을",
+      "reason": "불필요한 원국 반복 제거, 구체 문장 제공. 일부 상대 의도 추정과 후속 질문 반복은 남음.",
+      "fatal": false,
+      "run": "final-P01"
+    },
+    {
+      "profile": "P01",
+      "scenario": "E05",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 3,
+        "grounding": 3,
+        "memory": 3,
+        "personalization": 3,
+        "actionability": 3,
+        "clarity": 3
+      },
+      "evidenceTurn": 5,
+      "quote": "지금은 에너지가 소모된 상태로",
+      "reason": "야근·수면 부족의 현실 정보를 우선. 원국 기질 단정 제거. 상태 원인을 다소 단정하고 한자 혼입 사례가 남음.",
+      "fatal": false,
+      "run": "final-P01"
+    },
+    {
+      "profile": "P01",
+      "scenario": "E06",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 4,
+        "grounding": 4,
+        "memory": 4,
+        "personalization": 3,
+        "actionability": 4,
+        "clarity": 3
+      },
+      "evidenceTurn": 3,
+      "quote": "지금 친구에게 상황을 알리고",
+      "reason": "안전 경로 5턴 확인. 친구 연락과 가해자 부재를 반영. 첫 두 턴 안내가 중복됨.",
+      "fatal": false,
+      "run": "final-P01"
+    },
+    {
+      "profile": "P01",
+      "scenario": "E08",
+      "reviewUnit": "five_turn_conversation",
+      "scores": {
+        "directness": 3,
+        "grounding": 3,
+        "memory": 4,
+        "personalization": 3,
+        "actionability": 3,
+        "clarity": 3
+      },
+      "evidenceTurn": 5,
+      "quote": "새 일을 추가하지 않고",
+      "reason": "새 부업을 제안하지 않고 기존 수입원 조정으로 한정. 실제 가능성은 추가 확인 필요, 초반 질문·고정비 조언은 더 다듬어야 함.",
+      "fatal": false,
+      "run": "routed-P01"
+    }
+  ]
+}

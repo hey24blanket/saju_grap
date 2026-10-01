@@ -1,0 +1,36 @@
+{
+  "responses": 240,
+  "models": {
+    "gemini-3.5-flash-lite": 135,
+    "gpt-5.6-luna": 105
+  },
+  "promptVersions": {
+    "sajugrap_counseling_prompt_v9_grounded_directness_method_uncertainty": 240
+  },
+  "fallbacks": 105,
+  "meanChars": 755.2,
+  "meanMs": 9070.1,
+  "p95Ms": 20002,
+  "stateStatuses": {
+    "state_update_skipped": 39,
+    "state_updated": 192,
+    "state_updated_partial": 9
+  },
+  "ragStatuses": {
+    "skipped_not_needed": 72,
+    "used": 50,
+    "retrieval_error": 118
+  },
+  "tokensByModel": {
+    "gpt-5.6-luna": {
+      "inputTokens": 917749,
+      "outputTokens": 112104,
+      "totalTokens": 1029853
+    },
+    "gemini-3.5-flash-lite": {
+      "inputTokens": 1111524,
+      "outputTokens": 59242,
+      "totalTokens": 1170766
+    }
+  }
+}

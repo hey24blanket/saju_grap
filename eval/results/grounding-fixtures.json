@@ -1,0 +1,2369 @@
+{
+  "P01": {
+    "engineVersion": "1.1.0",
+    "calculation": {
+      "inputDate": "1985-10-24",
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "solarDate": "1985-10-24",
+      "birthTime": "11:45",
+      "timezone": "Asia/Seoul",
+      "utcInstant": "1985-10-24T02:45:00.000Z",
+      "dayBoundary": "midnight",
+      "hourStemBasis": "selected_day_stem",
+      "timeBasis": "recorded_civil_time",
+      "longitudeCorrection": false,
+      "lunarConverter": null,
+      "solarTermBasis": "instant_in_UTC+08",
+      "interpretationPolicy": "strength_useful_god_and_wave_scores_are_heuristics"
+    },
+    "natal": {
+      "year": {
+        "stem": "乙",
+        "branch": "丑",
+        "ganzhi": "乙丑",
+        "stemKo": "을",
+        "branchKo": "축"
+      },
+      "month": {
+        "stem": "丙",
+        "branch": "戌",
+        "ganzhi": "丙戌",
+        "stemKo": "병",
+        "branchKo": "술"
+      },
+      "day": {
+        "stem": "丙",
+        "branch": "申",
+        "ganzhi": "丙申",
+        "stemKo": "병",
+        "branchKo": "신"
+      },
+      "hour": {
+        "stem": "甲",
+        "branch": "午",
+        "ganzhi": "甲午",
+        "stemKo": "갑",
+        "branchKo": "오"
+      },
+      "dayMaster": {
+        "stem": "丙",
+        "element": "fire",
+        "yinYang": "yang"
+      },
+      "methodId": "lunar_javascript_eightchar_v1",
+      "methodVersion": "1.0.0"
+    },
+    "strength": {
+      "status": "weak",
+      "band": "weak",
+      "score": 42,
+      "factors": {
+        "season": {
+          "score": 8,
+          "maxScore": 30,
+          "supportRatio": 0.25
+        },
+        "root": {
+          "score": 0,
+          "maxScore": 20,
+          "dayMasterRootCount": 4
+        },
+        "support": {
+          "score": 34,
+          "maxScore": 50
+        },
+        "drain": {
+          "pressure": "normal",
+          "tenGodGroups": {
+            "output": "moderate",
+            "wealth": "weak"
+          }
+        },
+        "control": {
+          "pressure": "normal",
+          "tenGodGroup": "weak"
+        }
+      },
+      "specialStructureCandidate": {
+        "detected": false,
+        "type": null,
+        "confidence": 0.12,
+        "evidence": []
+      },
+      "methodId": "sajugrap_strength_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "type": "seasonal_support",
+          "value": 8
+        },
+        {
+          "type": "root",
+          "value": 0
+        },
+        {
+          "type": "support",
+          "value": 34
+        },
+        {
+          "type": "drain_pressure",
+          "value": "normal"
+        },
+        {
+          "type": "control_pressure",
+          "value": "normal"
+        }
+      ]
+    },
+    "tenGodProfile": {
+      "visible": [
+        {
+          "position": "year_stem",
+          "stem": "乙",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_stem",
+          "stem": "丙",
+          "tenGod": "比肩",
+          "tenGodKo": "비견",
+          "group": "peer",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_stem",
+          "stem": "甲",
+          "tenGod": "偏印",
+          "tenGodKo": "편인",
+          "group": "resource",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "hidden": [
+        {
+          "position": "year_branch_hidden",
+          "branch": "丑",
+          "stem": "癸",
+          "tenGod": "正官",
+          "tenGodKo": "정관",
+          "group": "officer",
+          "visible": false,
+          "weight": 0.25,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "丑",
+          "stem": "辛",
+          "tenGod": "正財",
+          "tenGodKo": "정재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "丑",
+          "stem": "己",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.55,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "戌",
+          "stem": "辛",
+          "tenGod": "正財",
+          "tenGodKo": "정재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "戌",
+          "stem": "丁",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "戌",
+          "stem": "戊",
+          "tenGod": "食神",
+          "tenGodKo": "식신",
+          "group": "output",
+          "visible": false,
+          "weight": 0.5,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "申",
+          "stem": "戊",
+          "tenGod": "食神",
+          "tenGodKo": "식신",
+          "group": "output",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "申",
+          "stem": "壬",
+          "tenGod": "偏官",
+          "tenGodKo": "편관",
+          "group": "officer",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "申",
+          "stem": "庚",
+          "tenGod": "偏財",
+          "tenGodKo": "편재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "丙",
+          "tenGod": "比肩",
+          "tenGodKo": "비견",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "己",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "丁",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.5,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "groups": {
+        "peer": {
+          "strengthBand": "very_strong",
+          "visibleCount": 1,
+          "hiddenCount": 3,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 2.6,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "output": {
+          "strengthBand": "moderate",
+          "visibleCount": 0,
+          "hiddenCount": 4,
+          "rooted": true,
+          "monthCommandSupport": true,
+          "relativeScore": 1.267,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "wealth": {
+          "strengthBand": "weak",
+          "visibleCount": 0,
+          "hiddenCount": 3,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.867,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "officer": {
+          "strengthBand": "weak",
+          "visibleCount": 0,
+          "hiddenCount": 2,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.417,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "resource": {
+          "strengthBand": "strong",
+          "visibleCount": 2,
+          "hiddenCount": 0,
+          "rooted": false,
+          "monthCommandSupport": false,
+          "relativeScore": 2,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        }
+      }
+    },
+    "usefulGodProfile": {
+      "dominantImbalance": {
+        "type": "peer_concentration_excess",
+        "severity": "moderate",
+        "sourceGroup": "peer",
+        "methodId": "sajugrap_dominant_imbalance_v1",
+        "methodVersion": "1.0.0"
+      },
+      "climate": {
+        "coldHeat": "balanced",
+        "dryWet": "dry",
+        "methodId": "sajugrap_climate_heuristic_v1",
+        "methodVersion": "1.0.0"
+      },
+      "candidates": [
+        {
+          "element": "wood",
+          "tenGodGroup": "resource",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "score": 89,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "wood",
+              "value": "moderate"
+            }
+          ]
+        },
+        {
+          "element": "fire",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "high",
+          "score": 74,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "fire",
+              "value": "very_strong"
+            }
+          ]
+        },
+        {
+          "element": "water",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "climate"
+          ],
+          "need": "low",
+          "currentAvailability": "low",
+          "score": 26,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "water",
+              "value": "very_weak"
+            }
+          ]
+        },
+        {
+          "element": "earth",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "score": 25,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "earth",
+              "value": "strong"
+            }
+          ]
+        },
+        {
+          "element": "metal",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "moderate",
+          "score": 23,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "metal",
+              "value": "moderate"
+            }
+          ]
+        }
+      ],
+      "yongsin": {
+        "element": "wood",
+        "tenGodGroup": "resource",
+        "mechanisms": [
+          "regulation"
+        ],
+        "need": "high",
+        "currentAvailability": "moderate",
+        "confidence": 0.76
+      },
+      "heesin": [
+        {
+          "element": "fire",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "gisin": [
+        {
+          "element": "metal",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "moderate",
+          "confidence": 0.76
+        }
+      ],
+      "gusin": [
+        {
+          "element": "earth",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "hansin": [
+        {
+          "element": "water",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "climate"
+          ],
+          "need": "low",
+          "currentAvailability": "low",
+          "confidence": 0.76
+        }
+      ],
+      "methodId": "sajugrap_integrated_yongshin_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.76,
+      "evidence": [
+        {
+          "type": "strength",
+          "value": "weak"
+        },
+        {
+          "type": "dominant_imbalance",
+          "value": "peer_concentration_excess"
+        },
+        {
+          "type": "climate",
+          "coldHeat": "balanced",
+          "dryWet": "dry"
+        }
+      ]
+    }
+  },
+  "P03": {
+    "engineVersion": "1.1.0",
+    "calculation": {
+      "inputDate": "1956-01-21",
+      "calendarType": "lunar",
+      "isLeapMonth": false,
+      "solarDate": "1956-03-03",
+      "birthTime": "11:45",
+      "timezone": "Asia/Seoul",
+      "utcInstant": "1956-03-03T03:15:00.000Z",
+      "dayBoundary": "midnight",
+      "hourStemBasis": "selected_day_stem",
+      "timeBasis": "recorded_civil_time",
+      "longitudeCorrection": false,
+      "lunarConverter": "korean-lunar-calendar@0.4.0",
+      "solarTermBasis": "instant_in_UTC+08",
+      "interpretationPolicy": "strength_useful_god_and_wave_scores_are_heuristics"
+    },
+    "natal": {
+      "year": {
+        "stem": "丙",
+        "branch": "申",
+        "ganzhi": "丙申",
+        "stemKo": "병",
+        "branchKo": "신"
+      },
+      "month": {
+        "stem": "庚",
+        "branch": "寅",
+        "ganzhi": "庚寅",
+        "stemKo": "경",
+        "branchKo": "인"
+      },
+      "day": {
+        "stem": "己",
+        "branch": "巳",
+        "ganzhi": "己巳",
+        "stemKo": "기",
+        "branchKo": "사"
+      },
+      "hour": {
+        "stem": "庚",
+        "branch": "午",
+        "ganzhi": "庚午",
+        "stemKo": "경",
+        "branchKo": "오"
+      },
+      "dayMaster": {
+        "stem": "己",
+        "element": "earth",
+        "yinYang": "yin"
+      },
+      "methodId": "lunar_javascript_eightchar_v1",
+      "methodVersion": "1.0.0"
+    },
+    "strength": {
+      "status": "strong",
+      "band": "strong",
+      "score": 54,
+      "factors": {
+        "season": {
+          "score": 14,
+          "maxScore": 30,
+          "supportRatio": 0.48
+        },
+        "root": {
+          "score": 11,
+          "maxScore": 20,
+          "dayMasterRootCount": 4
+        },
+        "support": {
+          "score": 29,
+          "maxScore": 50
+        },
+        "drain": {
+          "pressure": "high",
+          "tenGodGroups": {
+            "output": "very_strong",
+            "wealth": "very_weak"
+          }
+        },
+        "control": {
+          "pressure": "normal",
+          "tenGodGroup": "weak"
+        }
+      },
+      "specialStructureCandidate": {
+        "detected": false,
+        "type": null,
+        "confidence": 0.12,
+        "evidence": []
+      },
+      "methodId": "sajugrap_strength_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "type": "seasonal_support",
+          "value": 14
+        },
+        {
+          "type": "root",
+          "value": 11
+        },
+        {
+          "type": "support",
+          "value": 29
+        },
+        {
+          "type": "drain_pressure",
+          "value": "high"
+        },
+        {
+          "type": "control_pressure",
+          "value": "normal"
+        }
+      ]
+    },
+    "tenGodProfile": {
+      "visible": [
+        {
+          "position": "year_stem",
+          "stem": "丙",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_stem",
+          "stem": "庚",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_stem",
+          "stem": "庚",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "hidden": [
+        {
+          "position": "year_branch_hidden",
+          "branch": "申",
+          "stem": "戊",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "申",
+          "stem": "壬",
+          "tenGod": "正財",
+          "tenGodKo": "정재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "申",
+          "stem": "庚",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "寅",
+          "stem": "戊",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "寅",
+          "stem": "丙",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "寅",
+          "stem": "甲",
+          "tenGod": "正官",
+          "tenGodKo": "정관",
+          "group": "officer",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "巳",
+          "stem": "戊",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "巳",
+          "stem": "庚",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "巳",
+          "stem": "丙",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "丙",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "己",
+          "tenGod": "比肩",
+          "tenGodKo": "비견",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "丁",
+          "tenGod": "偏印",
+          "tenGodKo": "편인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.5,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "groups": {
+        "peer": {
+          "strengthBand": "moderate",
+          "visibleCount": 0,
+          "hiddenCount": 4,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 1.532,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "output": {
+          "strengthBand": "very_strong",
+          "visibleCount": 2,
+          "hiddenCount": 2,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 2.646,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "wealth": {
+          "strengthBand": "very_weak",
+          "visibleCount": 0,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.204,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "officer": {
+          "strengthBand": "weak",
+          "visibleCount": 0,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": true,
+          "relativeScore": 0.442,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "resource": {
+          "strengthBand": "very_strong",
+          "visibleCount": 1,
+          "hiddenCount": 4,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 2.326,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        }
+      }
+    },
+    "usefulGodProfile": {
+      "dominantImbalance": {
+        "type": "output_expression_excess",
+        "severity": "moderate",
+        "sourceGroup": "output",
+        "methodId": "sajugrap_dominant_imbalance_v1",
+        "methodVersion": "1.0.0"
+      },
+      "climate": {
+        "coldHeat": "balanced",
+        "dryWet": "balanced",
+        "methodId": "sajugrap_climate_heuristic_v1",
+        "methodVersion": "1.0.0"
+      },
+      "candidates": [
+        {
+          "element": "water",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "low",
+          "score": 84,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "balanced"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "water",
+              "value": "very_weak"
+            }
+          ]
+        },
+        {
+          "element": "metal",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "high",
+          "score": 80,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "balanced"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "metal",
+              "value": "strong"
+            }
+          ]
+        },
+        {
+          "element": "wood",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "score": 71,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "balanced"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "wood",
+              "value": "moderate"
+            }
+          ]
+        },
+        {
+          "element": "earth",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "score": 15,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "balanced"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "earth",
+              "value": "strong"
+            }
+          ]
+        },
+        {
+          "element": "fire",
+          "tenGodGroup": "resource",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "score": 8,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "balanced"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "balanced"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "fire",
+              "value": "very_strong"
+            }
+          ]
+        }
+      ],
+      "yongsin": {
+        "element": "water",
+        "tenGodGroup": "wealth",
+        "mechanisms": [
+          "regulation"
+        ],
+        "need": "high",
+        "currentAvailability": "low",
+        "confidence": 0.76
+      },
+      "heesin": [
+        {
+          "element": "metal",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "gisin": [
+        {
+          "element": "fire",
+          "tenGodGroup": "resource",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "gusin": [
+        {
+          "element": "earth",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "hansin": [
+        {
+          "element": "wood",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "confidence": 0.76
+        }
+      ],
+      "methodId": "sajugrap_integrated_yongshin_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.76,
+      "evidence": [
+        {
+          "type": "strength",
+          "value": "strong"
+        },
+        {
+          "type": "dominant_imbalance",
+          "value": "output_expression_excess"
+        },
+        {
+          "type": "climate",
+          "coldHeat": "balanced",
+          "dryWet": "balanced"
+        }
+      ]
+    }
+  },
+  "P04": {
+    "engineVersion": "1.1.0",
+    "calculation": {
+      "inputDate": "1990-05-10",
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "solarDate": "1990-05-10",
+      "birthTime": "23:30",
+      "timezone": "Asia/Seoul",
+      "utcInstant": "1990-05-10T14:30:00.000Z",
+      "dayBoundary": "midnight",
+      "hourStemBasis": "selected_day_stem",
+      "timeBasis": "recorded_civil_time",
+      "longitudeCorrection": false,
+      "lunarConverter": null,
+      "solarTermBasis": "instant_in_UTC+08",
+      "interpretationPolicy": "strength_useful_god_and_wave_scores_are_heuristics"
+    },
+    "natal": {
+      "year": {
+        "stem": "庚",
+        "branch": "午",
+        "ganzhi": "庚午",
+        "stemKo": "경",
+        "branchKo": "오"
+      },
+      "month": {
+        "stem": "辛",
+        "branch": "巳",
+        "ganzhi": "辛巳",
+        "stemKo": "신",
+        "branchKo": "사"
+      },
+      "day": {
+        "stem": "乙",
+        "branch": "亥",
+        "ganzhi": "乙亥",
+        "stemKo": "을",
+        "branchKo": "해"
+      },
+      "hour": {
+        "stem": "丙",
+        "branch": "子",
+        "ganzhi": "丙子",
+        "stemKo": "병",
+        "branchKo": "자"
+      },
+      "dayMaster": {
+        "stem": "乙",
+        "element": "wood",
+        "yinYang": "yin"
+      },
+      "methodId": "lunar_javascript_eightchar_v1",
+      "methodVersion": "1.0.0"
+    },
+    "strength": {
+      "status": "very_weak",
+      "band": "very_weak",
+      "score": 31,
+      "factors": {
+        "season": {
+          "score": 0,
+          "maxScore": 30,
+          "supportRatio": 0
+        },
+        "root": {
+          "score": 11,
+          "maxScore": 20,
+          "dayMasterRootCount": 1
+        },
+        "support": {
+          "score": 20,
+          "maxScore": 50
+        },
+        "drain": {
+          "pressure": "high",
+          "tenGodGroups": {
+            "output": "very_strong",
+            "wealth": "weak"
+          }
+        },
+        "control": {
+          "pressure": "high",
+          "tenGodGroup": "very_strong"
+        }
+      },
+      "specialStructureCandidate": {
+        "detected": false,
+        "type": null,
+        "confidence": 0.12,
+        "evidence": []
+      },
+      "methodId": "sajugrap_strength_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "type": "seasonal_support",
+          "value": 0
+        },
+        {
+          "type": "root",
+          "value": 11
+        },
+        {
+          "type": "support",
+          "value": 20
+        },
+        {
+          "type": "drain_pressure",
+          "value": "high"
+        },
+        {
+          "type": "control_pressure",
+          "value": "high"
+        }
+      ]
+    },
+    "tenGodProfile": {
+      "visible": [
+        {
+          "position": "year_stem",
+          "stem": "庚",
+          "tenGod": "正官",
+          "tenGodKo": "정관",
+          "group": "officer",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_stem",
+          "stem": "辛",
+          "tenGod": "偏官",
+          "tenGodKo": "편관",
+          "group": "officer",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_stem",
+          "stem": "丙",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "hidden": [
+        {
+          "position": "year_branch_hidden",
+          "branch": "午",
+          "stem": "丙",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "午",
+          "stem": "己",
+          "tenGod": "偏財",
+          "tenGodKo": "편재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "午",
+          "stem": "丁",
+          "tenGod": "食神",
+          "tenGodKo": "식신",
+          "group": "output",
+          "visible": false,
+          "weight": 0.5,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "巳",
+          "stem": "戊",
+          "tenGod": "正財",
+          "tenGodKo": "정재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "巳",
+          "stem": "庚",
+          "tenGod": "正官",
+          "tenGodKo": "정관",
+          "group": "officer",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "巳",
+          "stem": "丙",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "亥",
+          "stem": "戊",
+          "tenGod": "正財",
+          "tenGodKo": "정재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "亥",
+          "stem": "甲",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "亥",
+          "stem": "壬",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "子",
+          "stem": "壬",
+          "tenGod": "正印",
+          "tenGodKo": "정인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "子",
+          "stem": "癸",
+          "tenGod": "偏印",
+          "tenGodKo": "편인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.7,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "groups": {
+        "peer": {
+          "strengthBand": "moderate",
+          "visibleCount": 0,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.954,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "output": {
+          "strengthBand": "very_strong",
+          "visibleCount": 1,
+          "hiddenCount": 3,
+          "rooted": true,
+          "monthCommandSupport": true,
+          "relativeScore": 2.122,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "wealth": {
+          "strengthBand": "weak",
+          "visibleCount": 0,
+          "hiddenCount": 3,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.578,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "officer": {
+          "strengthBand": "very_strong",
+          "visibleCount": 2,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 2.204,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "resource": {
+          "strengthBand": "moderate",
+          "visibleCount": 0,
+          "hiddenCount": 3,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 1.292,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        }
+      }
+    },
+    "usefulGodProfile": {
+      "dominantImbalance": {
+        "type": "balanced_or_mixed_distribution",
+        "severity": "low",
+        "methodId": "sajugrap_dominant_imbalance_v1",
+        "methodVersion": "1.0.0"
+      },
+      "climate": {
+        "coldHeat": "hot",
+        "dryWet": "very_dry",
+        "methodId": "sajugrap_climate_heuristic_v1",
+        "methodVersion": "1.0.0"
+      },
+      "candidates": [
+        {
+          "element": "water",
+          "tenGodGroup": "resource",
+          "mechanisms": [
+            "regulation",
+            "climate"
+          ],
+          "need": "high",
+          "currentAvailability": "high",
+          "score": 100,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "water",
+              "value": "very_strong"
+            }
+          ]
+        },
+        {
+          "element": "wood",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "score": 81,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "wood",
+              "value": "moderate"
+            }
+          ]
+        },
+        {
+          "element": "fire",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "score": 25,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "fire",
+              "value": "very_strong"
+            }
+          ]
+        },
+        {
+          "element": "earth",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "moderate",
+          "score": 23,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "earth",
+              "value": "moderate"
+            }
+          ]
+        },
+        {
+          "element": "metal",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "score": 6,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_weak"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "metal",
+              "value": "strong"
+            }
+          ]
+        }
+      ],
+      "yongsin": {
+        "element": "water",
+        "tenGodGroup": "resource",
+        "mechanisms": [
+          "regulation",
+          "climate"
+        ],
+        "need": "high",
+        "currentAvailability": "high",
+        "confidence": 0.76
+      },
+      "heesin": [
+        {
+          "element": "wood",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "confidence": 0.76
+        }
+      ],
+      "gisin": [
+        {
+          "element": "metal",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "gusin": [
+        {
+          "element": "earth",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "moderate",
+          "confidence": 0.76
+        }
+      ],
+      "hansin": [
+        {
+          "element": "fire",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "methodId": "sajugrap_integrated_yongshin_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.76,
+      "evidence": [
+        {
+          "type": "strength",
+          "value": "very_weak"
+        },
+        {
+          "type": "dominant_imbalance",
+          "value": "balanced_or_mixed_distribution"
+        },
+        {
+          "type": "climate",
+          "coldHeat": "hot",
+          "dryWet": "very_dry"
+        }
+      ]
+    }
+  },
+  "P08": {
+    "engineVersion": "1.1.0",
+    "calculation": {
+      "inputDate": "1988-07-01",
+      "calendarType": "solar",
+      "isLeapMonth": false,
+      "solarDate": "1988-07-01",
+      "birthTime": "11:45",
+      "timezone": "Asia/Seoul",
+      "utcInstant": "1988-07-01T01:45:00.000Z",
+      "dayBoundary": "midnight",
+      "hourStemBasis": "selected_day_stem",
+      "timeBasis": "recorded_civil_time",
+      "longitudeCorrection": false,
+      "lunarConverter": null,
+      "solarTermBasis": "instant_in_UTC+08",
+      "interpretationPolicy": "strength_useful_god_and_wave_scores_are_heuristics"
+    },
+    "natal": {
+      "year": {
+        "stem": "戊",
+        "branch": "辰",
+        "ganzhi": "戊辰",
+        "stemKo": "무",
+        "branchKo": "진"
+      },
+      "month": {
+        "stem": "戊",
+        "branch": "午",
+        "ganzhi": "戊午",
+        "stemKo": "무",
+        "branchKo": "오"
+      },
+      "day": {
+        "stem": "丁",
+        "branch": "巳",
+        "ganzhi": "丁巳",
+        "stemKo": "정",
+        "branchKo": "사"
+      },
+      "hour": {
+        "stem": "丙",
+        "branch": "午",
+        "ganzhi": "丙午",
+        "stemKo": "병",
+        "branchKo": "오"
+      },
+      "dayMaster": {
+        "stem": "丁",
+        "element": "fire",
+        "yinYang": "yin"
+      },
+      "methodId": "lunar_javascript_eightchar_v1",
+      "methodVersion": "1.0.0"
+    },
+    "strength": {
+      "status": "very_strong",
+      "band": "very_strong",
+      "score": 65,
+      "factors": {
+        "season": {
+          "score": 24,
+          "maxScore": 30,
+          "supportRatio": 0.8
+        },
+        "root": {
+          "score": 13,
+          "maxScore": 20,
+          "dayMasterRootCount": 3
+        },
+        "support": {
+          "score": 28,
+          "maxScore": 50
+        },
+        "drain": {
+          "pressure": "high",
+          "tenGodGroups": {
+            "output": "very_strong",
+            "wealth": "very_weak"
+          }
+        },
+        "control": {
+          "pressure": "normal",
+          "tenGodGroup": "very_weak"
+        }
+      },
+      "specialStructureCandidate": {
+        "detected": false,
+        "type": null,
+        "confidence": 0.12,
+        "evidence": []
+      },
+      "methodId": "sajugrap_strength_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "type": "seasonal_support",
+          "value": 24
+        },
+        {
+          "type": "root",
+          "value": 13
+        },
+        {
+          "type": "support",
+          "value": 28
+        },
+        {
+          "type": "drain_pressure",
+          "value": "high"
+        },
+        {
+          "type": "control_pressure",
+          "value": "normal"
+        }
+      ]
+    },
+    "tenGodProfile": {
+      "visible": [
+        {
+          "position": "year_stem",
+          "stem": "戊",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_stem",
+          "stem": "戊",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_stem",
+          "stem": "丙",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": true,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "hidden": [
+        {
+          "position": "year_branch_hidden",
+          "branch": "辰",
+          "stem": "乙",
+          "tenGod": "偏印",
+          "tenGodKo": "편인",
+          "group": "resource",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "辰",
+          "stem": "癸",
+          "tenGod": "偏官",
+          "tenGodKo": "편관",
+          "group": "officer",
+          "visible": false,
+          "weight": 0.1,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "year_branch_hidden",
+          "branch": "辰",
+          "stem": "戊",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.6,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "午",
+          "stem": "丙",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "午",
+          "stem": "己",
+          "tenGod": "食神",
+          "tenGodKo": "식신",
+          "group": "output",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "month_branch_hidden",
+          "branch": "午",
+          "stem": "丁",
+          "tenGod": "比肩",
+          "tenGodKo": "비견",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.5,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "巳",
+          "stem": "戊",
+          "tenGod": "傷官",
+          "tenGodKo": "상관",
+          "group": "output",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "巳",
+          "stem": "庚",
+          "tenGod": "正財",
+          "tenGodKo": "정재",
+          "group": "wealth",
+          "visible": false,
+          "weight": 0.24,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "day_branch_hidden",
+          "branch": "巳",
+          "stem": "丙",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.52,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "丙",
+          "tenGod": "劫財",
+          "tenGodKo": "겁재",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.3,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "己",
+          "tenGod": "食神",
+          "tenGodKo": "식신",
+          "group": "output",
+          "visible": false,
+          "weight": 0.2,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        },
+        {
+          "position": "hour_branch_hidden",
+          "branch": "午",
+          "stem": "丁",
+          "tenGod": "比肩",
+          "tenGodKo": "비견",
+          "group": "peer",
+          "visible": false,
+          "weight": 0.5,
+          "methodId": "sajugrap_tengod_daymaster_relation_v1",
+          "methodVersion": "1.0.0"
+        }
+      ],
+      "groups": {
+        "peer": {
+          "strengthBand": "very_strong",
+          "visibleCount": 1,
+          "hiddenCount": 5,
+          "rooted": true,
+          "monthCommandSupport": true,
+          "relativeScore": 3.552,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "output": {
+          "strengthBand": "very_strong",
+          "visibleCount": 2,
+          "hiddenCount": 4,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 3.054,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "wealth": {
+          "strengthBand": "very_weak",
+          "visibleCount": 0,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.204,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "officer": {
+          "strengthBand": "very_weak",
+          "visibleCount": 0,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.085,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        },
+        "resource": {
+          "strengthBand": "very_weak",
+          "visibleCount": 0,
+          "hiddenCount": 1,
+          "rooted": true,
+          "monthCommandSupport": false,
+          "relativeScore": 0.255,
+          "methodId": "sajugrap_tengod_group_strength_v1",
+          "methodVersion": "1.0.0"
+        }
+      }
+    },
+    "usefulGodProfile": {
+      "dominantImbalance": {
+        "type": "peer_concentration_excess",
+        "severity": "moderate",
+        "sourceGroup": "peer",
+        "methodId": "sajugrap_dominant_imbalance_v1",
+        "methodVersion": "1.0.0"
+      },
+      "climate": {
+        "coldHeat": "very_hot",
+        "dryWet": "very_dry",
+        "methodId": "sajugrap_climate_heuristic_v1",
+        "methodVersion": "1.0.0"
+      },
+      "candidates": [
+        {
+          "element": "water",
+          "tenGodGroup": "officer",
+          "mechanisms": [
+            "regulation",
+            "climate"
+          ],
+          "need": "high",
+          "currentAvailability": "low",
+          "score": 100,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "very_hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "water",
+              "value": "very_weak"
+            }
+          ]
+        },
+        {
+          "element": "earth",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "score": 87,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "very_hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "earth",
+              "value": "moderate"
+            }
+          ]
+        },
+        {
+          "element": "metal",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "low",
+          "score": 84,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "very_hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "metal",
+              "value": "very_weak"
+            }
+          ]
+        },
+        {
+          "element": "wood",
+          "tenGodGroup": "resource",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "low",
+          "score": 18,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "very_hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "wood",
+              "value": "very_weak"
+            }
+          ]
+        },
+        {
+          "element": "fire",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "score": 15,
+          "confidence": 0.76,
+          "evidence": [
+            {
+              "type": "strength_band",
+              "value": "very_strong"
+            },
+            {
+              "type": "climate_cold_heat",
+              "value": "very_hot"
+            },
+            {
+              "type": "climate_dry_wet",
+              "value": "very_dry"
+            },
+            {
+              "type": "element_effective_strength",
+              "element": "fire",
+              "value": "very_strong"
+            }
+          ]
+        }
+      ],
+      "yongsin": {
+        "element": "water",
+        "tenGodGroup": "officer",
+        "mechanisms": [
+          "regulation",
+          "climate"
+        ],
+        "need": "high",
+        "currentAvailability": "low",
+        "confidence": 0.76
+      },
+      "heesin": [
+        {
+          "element": "earth",
+          "tenGodGroup": "output",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "moderate",
+          "confidence": 0.76
+        }
+      ],
+      "gisin": [
+        {
+          "element": "fire",
+          "tenGodGroup": "peer",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "high",
+          "confidence": 0.76
+        }
+      ],
+      "gusin": [
+        {
+          "element": "wood",
+          "tenGodGroup": "resource",
+          "mechanisms": [
+            "mixed"
+          ],
+          "need": "low",
+          "currentAvailability": "low",
+          "confidence": 0.76
+        }
+      ],
+      "hansin": [
+        {
+          "element": "metal",
+          "tenGodGroup": "wealth",
+          "mechanisms": [
+            "regulation"
+          ],
+          "need": "high",
+          "currentAvailability": "low",
+          "confidence": 0.76
+        }
+      ],
+      "methodId": "sajugrap_integrated_yongshin_v1",
+      "methodVersion": "1.0.0",
+      "confidence": 0.76,
+      "evidence": [
+        {
+          "type": "strength",
+          "value": "very_strong"
+        },
+        {
+          "type": "dominant_imbalance",
+          "value": "peer_concentration_excess"
+        },
+        {
+          "type": "climate",
+          "coldHeat": "very_hot",
+          "dryWet": "very_dry"
+        }
+      ]
+    }
+  }
+}
