@@ -1,0 +1,29 @@
+{
+  "responses": 20,
+  "models": {
+    "gemini-3.5-flash-lite": 20
+  },
+  "promptVersions": {
+    "sajugrap_counseling_prompt_v9_grounded_directness_method_uncertainty": 20
+  },
+  "fallbacks": 0,
+  "meanChars": 483.7,
+  "meanMs": 4368.6,
+  "p95Ms": 5847,
+  "stateStatuses": {
+    "state_updated_partial": 2,
+    "state_update_skipped": 8,
+    "state_updated": 10
+  },
+  "ragStatuses": {
+    "skipped_not_needed": 6,
+    "used": 14
+  },
+  "tokensByModel": {
+    "gemini-3.5-flash-lite": {
+      "inputTokens": 187262,
+      "outputTokens": 8089,
+      "totalTokens": 195351
+    }
+  }
+}

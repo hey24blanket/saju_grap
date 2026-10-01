@@ -1,0 +1,35 @@
+{
+  "responses": 20,
+  "models": {
+    "gemini-3.5-flash-lite": 15,
+    "null": 5
+  },
+  "promptVersions": {
+    "sajugrap_counseling_prompt_v11_grounded_directness_reality_boundary": 20
+  },
+  "fallbacks": 0,
+  "meanChars": 199,
+  "meanMs": 1787.5,
+  "p95Ms": 3361,
+  "stateStatuses": {
+    "state_updated": 15,
+    "null": 5
+  },
+  "ragStatuses": {
+    "skipped_not_needed": 8,
+    "retrieval_error": 7,
+    "skipped_safety_support": 5
+  },
+  "tokensByModel": {
+    "gemini-3.5-flash-lite": {
+      "inputTokens": 112590,
+      "outputTokens": 3008,
+      "totalTokens": 115598
+    },
+    "null": {
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "totalTokens": 0
+    }
+  }
+}

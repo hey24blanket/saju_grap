@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-02 Asia/Seoul",
+  "referenceDateTime": "2026-10-02T08:00:00+09:00",
+  "baselineCounselingCommit": "ee0f194f123e6e311b5c975528ce4271050253e2",
+  "baselineAliasAlsoReceivedUnrelatedTarotCommit": "db8ffc7877a0836ffd359b4cba4402a647755182",
+  "baselinePromptVersion": "sajugrap_counseling_prompt_v9_grounded_directness_method_uncertainty",
+  "candidateCommit": "c00274bafd86ca51e5a2c1452b524d4df27e9781",
+  "profiles": [
+    "P01",
+    "P03",
+    "P04",
+    "P08"
+  ],
+  "scenarios": "E01–E12, five turns each",
+  "parallelSessions": 4,
+  "requests": {
+    "provider": "omitted, matches UI",
+    "ragMode": "optional, matches UI"
+  },
+  "limitations": [
+    "RAG active version was not frozen and was inaccessible on many requests. This run measures current service behavior, not isolated model quality.",
+    "Production alias changed during baseline for unrelated tarot-only files; counseling prompt remained v9 in all 240 responses.",
+    "Mixed Gemini and OpenAI fallback outputs; no causal claim that prompt changes alone explain differences.",
+    "AI qualitative review is not independent human or myeongri expert certification."
+  ],
+  "revisions": {
+    "v10": "c00274bafd86ca51e5a2c1452b524d4df27e9781",
+    "v11": "daa2be88e0f0847347aa80062a8441dbbe52b620",
+    "v12": "4c49a43b69a27895932f064673b28648b62a6d2d",
+    "routing": "77713e6a2c550bb2140e0146535fa0c9d74672af"
+  },
+  "confirmedRagFailure": {
+    "code": "SG-RAG-RETRIEVER-VERSION-001",
+    "causeCode": "8",
+    "failureKind": "quota"
+  },
+  "confirmedPrimaryProviderFailure": {
+    "status": 503,
+    "code": "UNAVAILABLE"
+  }
+}
