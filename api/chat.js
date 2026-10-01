@@ -1,3 +1,4 @@
+import { selectCounselingProvider } from '../lib/chatProviderPolicy.js';
 import { buildCounselingSafetyReply } from '../lib/counselingSafety.js';
 // api/chat.js
 // SajuGrap Engine Facts v1 - LLM Orchestration Layer
@@ -852,6 +853,7 @@ function normalizeRequest(
   return {
     mode,
     provider,
+    providerExplicit: Boolean(body.provider),
 
     role:
       cleanText(
@@ -4708,13 +4710,14 @@ export default async function handler(
     );
   }
 
+  const effectiveProvider = selectCounselingProvider(normalized);
   let providerResult;
   let providerElapsedMs =
     null;
 
   try {
     stage =
-      normalized.provider ===
+      effectiveProvider ===
         'openai'
         ? STAGE
             .OPENAI_REQUEST
@@ -4727,7 +4730,7 @@ export default async function handler(
     providerResult =
       await invokeProviderWithPriority({
         requestedProvider:
-          normalized.provider,
+          effectiveProvider,
 
         injectedCallProvider:
           runtimeOptions.callProvider,
@@ -4983,6 +4986,7 @@ export default async function handler(
                   .usage ||
                 null,
 
+              providerRouting: effectiveProvider !== normalized.provider ? 'constraint_decision' : 'default_or_explicit',
               providerElapsedMs,
 
               fallbackUsed:
