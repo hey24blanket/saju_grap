@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { detectResponseMode, buildAnswerContract, buildEvidenceUsePlan } from '../lib/counselingInterpretationPolicy.js';
+import { buildCounselingInterpretationBrief } from '../lib/counselingInterpretationBrief.js';
+for(const text of ['내 원국의 일간을 설명해줘','강약과 용신이 궁금해','신약이면 나쁜 팔자야?']) assert.equal(detectResponseMode(text), 'reading');
+assert.equal(detectResponseMode('이번에는 사주 설명 말고 내가 이미 말한 조건으로 선택을 정리해줘'), 'counseling');
+const brief = buildCounselingInterpretationBrief({ userMessage:'남편이 말다툼만 하면 자리를 떠나', focus:{domain:'all',task:'general'} });
+assert.equal(brief.coverageIntent, null);
+assert.equal(brief.answerContract.overallSweep, false);
+assert.equal(buildAnswerContract({coverageIntent:'overall'}).overallSweep,true);
+assert.equal(buildEvidenceUsePlan({responseMode:'counseling'}).minUseCount,0);
+console.log('Counseling eval regressions passed');
