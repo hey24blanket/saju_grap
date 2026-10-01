@@ -12,16 +12,20 @@ function readArgs(argv) {
   const result = {
     profileId: 'P01',
     baseUrl: '',
-    provider: 'gemini',
-    ragMode: 'off',
+    provider: '',
+    ragMode: 'optional',
     scenarioIds: [],
     output: '',
     maxCalls: 0,
-    confirmLive: false
+    confirmLive: false,
+    resume: false,
+    referenceDateTime: '2026-10-02T08:00:00+09:00'
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--confirm-live') result.confirmLive = true;
+    if (arg === '--resume') result.resume = true;
+    else if (arg === '--reference-date') result.referenceDateTime = argv[++index];
+    else if (arg === '--confirm-live') result.confirmLive = true;
     else if (arg === '--profile') result.profileId = argv[++index] || '';
     else if (arg === '--base-url') result.baseUrl = argv[++index] || '';
     else if (arg === '--provider') result.provider = argv[++index] || 'gemini';
@@ -43,7 +47,8 @@ async function postJson(url, body) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(60000)
   });
   const json = await response.json().catch(() => null);
   if (!response.ok || !json?.success) {
@@ -58,10 +63,12 @@ if (!profile) throw new Error(`Unknown profile: ${options.profileId}`);
 const selected = options.scenarioIds.length
   ? scenarios.filter((scenario) => options.scenarioIds.includes(scenario.id))
   : scenarios;
+for (const id of options.scenarioIds) if (!scenarios.some(s => s.id === id)) throw new Error(`Unknown scenario: ${id}`);
 const plannedCalls = selected.reduce((total, scenario) => total + scenario.turns.length, 0);
 const needsNextYearTimeline = selected.some((scenario) => scenario.id === 'E07');
 
 const plan = {
+  referenceDateTime: options.referenceDateTime,
   profileId: profile.id,
   profileTitle: profile.title,
   provider: options.provider,
@@ -82,7 +89,7 @@ if (!Number.isInteger(options.maxCalls) || options.maxCalls < plannedCalls) {
 }
 
 const baseUrl = options.baseUrl.replace(/\/$/, '');
-const evaluationProfile = { ...profile.input, name: '합성 평가 사용자', timezone: 'Asia/Seoul' };
+const evaluationProfile = { ...profile.input, name: '합성 평가 사용자', timezone: 'Asia/Seoul', referenceDateTime: options.referenceDateTime };
 const analysis = await postJson(`${baseUrl}/api/analyze`, evaluationProfile);
 const engineData = analysis.json.data;
 const referenceYear = Number(engineData.engineFacts?.cycles?.reference?.year);
@@ -121,19 +128,32 @@ const currentDaewoonIndex = Math.max(0, engineData.engineFacts?.cycles?.daewoon?
   Number(cycle?.startYear) <= referenceYear && Number(cycle?.endYear) >= referenceYear
 ) ?? 0);
 
-const results = [];
-for (const scenario of selected) {
-  const sessionId = makeId(`eval-${scenario.id}`);
-  let state = null;
-  let history = [];
-  const turns = [];
+const checkpoint = options.resume && options.output ? JSON.parse(await fs.readFile(options.output, 'utf8')) : null;
+if (checkpoint && (checkpoint.profileId !== profile.id || checkpoint.ragMode !== options.ragMode || checkpoint.referenceDateTime !== options.referenceDateTime || checkpoint.provider !== options.provider || JSON.stringify(checkpoint.scenarioIds) !== JSON.stringify(plan.scenarioIds))) throw new Error('Resume configuration mismatch');
+const results = checkpoint?.results || [];
+async function saveCheckpoint() {
+  if (!options.output) return;
+  const destination = path.resolve(options.output);
+  await fs.mkdir(path.dirname(destination), { recursive: true });
+  await fs.writeFile(destination + '.tmp', JSON.stringify({schemaVersion: 'sajugrap_counseling_eval_v3', createdAt: checkpoint?.createdAt || new Date().toISOString(), baseUrl, ...plan, engineFacts: engineData.engineFacts, results}, null, 2) + '\n');
+  await fs.rename(destination + '.tmp', destination);
+}
 
-  for (let index = 0; index < scenario.turns.length; index += 1) {
+for (const scenario of selected) {
+  const existing = results.find(r => r.id === scenario.id);
+  const sessionId = existing?.sessionId || makeId(`eval-${scenario.id}`);
+  let state = existing?.finalState || null;
+  let history = existing?.history || [];
+  const turns = existing?.turns || [];
+  const result = existing || { id: scenario.id, title: scenario.title, sessionId, turns };
+  if (!existing) results.push(result);
+
+  for (let index = turns.length; index < scenario.turns.length; index += 1) {
     const userMessage = scenario.turns[index];
     const messageId = `${scenario.id}-u${index + 1}`;
     const response = await postJson(`${baseUrl}/api/chat`, {
       mode: 'chat',
-      provider: options.provider,
+      ...(options.provider ? { provider: options.provider } : {}),
       ragMode: options.ragMode,
       cycle: '대운',
       cycleIndex: currentDaewoonIndex,
@@ -160,12 +180,16 @@ for (const scenario of selected) {
       elapsedMs: response.elapsedMs,
       diagnostic: response.json.diagnostic
     });
+    result.finalState = state;
+    result.history = history;
+    await saveCheckpoint();
+    console.log(`${profile.id}/${scenario.id}/${index + 1}: ${response.elapsedMs}ms`);
   }
-  results.push({ id: scenario.id, title: scenario.title, turns, finalState: state });
 }
 
 const output = {
-  schemaVersion: 'sajugrap_counseling_eval_v2',
+  schemaVersion: 'sajugrap_counseling_eval_v3',
+  engineFacts: engineData.engineFacts,
   calculation: engineData.engineFacts?.calculation,
   natal: engineData.engineFacts?.natal,
   reviewStatus: 'requires_human_grounding_and_usefulness_review',

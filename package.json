@@ -4,7 +4,7 @@
   "type": "module",
   "description": "SajuGrap Core Computation Engine API",
   "scripts": {
-    "test": "npm run test:birth-calendar && npm run test:counseling && npm run test:counseling-orchestrator && npm run test:interpretation-brief && npm run test:grounded-directness && npm run test:scope && npm run test:counseling-recovery && npm run test:chunking-review && npm run test:chat-provider-policy && npm run test:graph-display-curve && npm run test:user-profile-privacy && npm run test:reading-quality",
+    "test": "npm run test:birth-calendar && npm run test:counseling && npm run test:counseling-orchestrator && npm run test:interpretation-brief && npm run test:grounded-directness && npm run test:scope && npm run test:counseling-recovery && npm run test:chunking-review && npm run test:chat-provider-policy && npm run test:graph-display-curve && npm run test:user-profile-privacy && npm run test:reading-quality && npm run test:counseling-eval",
     "test:graph-display-curve": "node scripts/testGraphDisplayCurve.js",
     "test:user-profile-privacy": "node scripts/testUserProfilePrivacy.js",
     "test:reading-quality": "node scripts/testCounselingReadingQuality.js",
@@ -18,7 +18,8 @@
     "test:chunking-express": "node scripts/testChunkingExpressImport.js",
     "test:chunking-review": "node --test scripts/testChunkingReviewRequest.js",
     "test:chat-provider-policy": "node --test scripts/testChatProviderPolicy.js",
-    "test:birth-calendar": "node scripts/testBirthCalendar.js"
+    "test:birth-calendar": "node scripts/testBirthCalendar.js",
+    "test:counseling-eval": "node scripts/testCounselingEvalRegressions.js"
   },
   "dependencies": {
     "@google-cloud/firestore": "9.0.0",
