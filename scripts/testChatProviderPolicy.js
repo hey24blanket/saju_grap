@@ -137,3 +137,12 @@ test('both providers failing surfaces the OpenAI error and keeps the Gemini caus
     }
   );
 });
+
+const {selectCounselingProvider} = await import('../lib/chatProviderPolicy.js');
+test('constraint-based decisions use OpenAI while explicit provider requests stay fixed',()=>{
+ const request = {mode:'chat',provider:'gemini',userMessage:'이미 말한 조건으로 선택을 정리해줘',counselingState:{constraints:[{text:'부업 추가 안 함',status:'current'}]}};
+ assert.equal(selectCounselingProvider(request),'openai');
+ assert.equal(selectCounselingProvider({...request,providerExplicit:true}),'gemini');
+ assert.equal(selectCounselingProvider({...request,userMessage:'내 원국을 설명해줘'}),'gemini');
+ assert.equal(selectCounselingProvider({...request,counselingState:{constraints:[{text:'부업 추가 안 함',status:'retracted'}]}}),'gemini');
+});
