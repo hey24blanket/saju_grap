@@ -8,11 +8,12 @@
 // -----------------------------------------------------------------------------
 
 import lunarJavascript from 'lunar-javascript';
+import { normalizeBirthCalendar, resolveSeoulInstant } from '../../lib/birthCalendar.js';
 
 const { Solar, Lunar } = lunarJavascript;
 
 export const SCHEMA_VERSION = 'engine_facts_v1';
-export const ENGINE_VERSION = '1.0.0';
+export const ENGINE_VERSION = '1.1.0';
 export const METHOD_VERSION = '1.0.0';
 
 export const METHODS = Object.freeze({
@@ -533,7 +534,7 @@ function parseBirthDateTimeString(value) {
     year: Number(m[1]),
     month: Number(m[2]),
     day: Number(m[3]),
-    hour: Number(m[4] ?? 12),
+    hour: m[4] == null ? null : Number(m[4]),
     minute: Number(m[5] ?? 0),
     second: Number(m[6] ?? 0)
   };
@@ -609,110 +610,43 @@ function validateDateParts({
 }
 
 function normalizeInput(input = {}) {
-  const parsed = parseBirthDateTimeString(
-    input.birthDateTime
-  );
-
-  const parts = {
-    year: Number(
-      input.year ?? parsed?.year
-    ),
-    month: Number(
-      input.month ?? parsed?.month
-    ),
-    day: Number(
-      input.day ?? parsed?.day
-    ),
-    hour: Number(
-      input.hour ?? parsed?.hour ?? 12
-    ),
-    minute: Number(
-      input.minute ?? parsed?.minute ?? 0
-    ),
-    second: Number(
-      input.second ?? parsed?.second ?? 0
-    )
-  };
-
-  validateDateParts(parts);
-
-  const gender = normalizeGender(
-    input.gender
-  );
-
-  const calendarType =
-    input.calendarType === 'lunar'
-      ? 'lunar'
-      : 'solar';
-
-  const timezone =
-    input.timezone ||
-    'Asia/Seoul';
-
-  const name =
-    typeof input.name === 'string' &&
-    input.name.trim()
-      ? input.name.trim()
-      : '사용자';
-
-  const offset =
-    timezone === 'Asia/Seoul'
-      ? '+09:00'
-      : '';
-
+  const parsed = parseBirthDateTimeString(input.birthDateTime);
+  const calendar = normalizeBirthCalendar({ ...parsed, ...input });
   return {
-    ...parts,
-    name,
-    gender,
-    calendarType,
-    timezone,
-
-    birthDateTime:
-      `${parts.year}-` +
-      `${pad2(parts.month)}-` +
-      `${pad2(parts.day)}T` +
-      `${pad2(parts.hour)}:` +
-      `${pad2(parts.minute)}:` +
-      `${pad2(parts.second)}` +
-      offset,
-
-    referenceDateTime:
-      input.referenceDateTime || null
+    ...input, ...calendar.wall,
+    name: typeof input.name === 'string' && input.name.trim() ? input.name.trim() : '사용자',
+    gender: normalizeGender(input.gender),
+    calendarType: calendar.calendarType,
+    timezone: calendar.timezone,
+    dayBoundary: calendar.dayBoundary,
+    calculation: calendar.receipt,
+    birthDateTime: `${calendar.receipt.solarDate}T${calendar.receipt.birthTime}:${pad2(calendar.wall.second)}`,
+    referenceDateTime: input.referenceDateTime || null
   };
 }
 
-function createCalendarObjects(input) {
-  if (input.calendarType === 'lunar') {
-    const lunar = Lunar.fromYmdHms(
-      input.year,
-      input.month,
-      input.day,
-      input.hour,
-      input.minute,
-      input.second
-    );
-
-    return {
-      lunar,
-      solar: lunar.getSolar()
-    };
-  }
-
-  const solar = Solar.fromYmdHms(
-    input.year,
-    input.month,
-    input.day,
-    input.hour,
-    input.minute,
-    input.second
-  );
-
-  return {
-    solar,
-    lunar: solar.getLunar()
-  };
+function calendarEightChar(input) {
+  const solar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, input.second ?? 0);
+  const local = solar.getLunar().getEightChar();
+  local.setSect(input.dayBoundary === 'zi' ? 1 : 2);
+  const hourBranch = local.getTime().charAt(1);
+  // The upstream library always uses tomorrow's stem at 23:00, even in
+  // midnight mode. Keep the hour stem consistent with our selected day.
+  const stems = '甲乙丙丁戊己庚辛壬癸';
+  const branches = '子丑寅卯辰巳午未申酉戌亥';
+  local.getTime = () => stems[(stems.indexOf(local.getDay().charAt(0)) % 5 * 2 + branches.indexOf(hourBranch)) % 10] + hourBranch;
+  const instant = input.calculation?.utcInstant
+    ? Date.parse(input.calculation.utcInstant)
+    : resolveSeoulInstant(input);
+  const termDate = new Date(instant + 8 * 3600000);
+  const terms = Solar.fromYmdHms(termDate.getUTCFullYear(), termDate.getUTCMonth() + 1, termDate.getUTCDate(), termDate.getUTCHours(), termDate.getUTCMinutes(), termDate.getUTCSeconds()).getLunar().getEightChar();
+  // Only year/month and Yun use astronomical term instants. Day/hour stay
+  // on the explicitly selected recorded Korean civil clock.
+  local.getYear = () => terms.getYear();
+  local.getMonth = () => terms.getMonth();
+  local.getYun = (...args) => terms.getYun(...args);
+  return { solar, eightChar: local };
 }
-
 
 // ============================================================================
 // Ten Gods
@@ -4345,20 +4279,7 @@ function solarEightCharAt(
   hour = 12,
   minute = 0
 ) {
-  const solar =
-    Solar.fromYmdHms(
-      year,
-      month,
-      day,
-      hour,
-      minute,
-      0
-    );
-
-  const eightChar =
-    solar
-      .getLunar()
-      .getEightChar();
+  const { solar, eightChar } = calendarEightChar({ year, month, day, hour, minute, second: 0 });
 
   return {
     solar,
@@ -5506,15 +5427,7 @@ export function calculateSajuGrap(
       rawInput
     );
 
-  const {
-    lunar
-  } =
-    createCalendarObjects(
-      input
-    );
-
-  const eightChar =
-    lunar.getEightChar();
+  const { eightChar } = calendarEightChar(input);
 
   const natal =
     buildNatal(
@@ -5589,6 +5502,8 @@ export function calculateSajuGrap(
         input.timezone
     },
 
+    calculation: input.calculation,
+    factKinds: { natal: 'calendar_calculation', strength: 'method_estimate', usefulGodProfile: 'method_estimate', waves: 'heuristic_score' },
     natal,
     composition,
     strength,

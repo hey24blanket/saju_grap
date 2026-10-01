@@ -1,3 +1,4 @@
+import { normalizeBirthCalendar, BirthInputError } from '../lib/birthCalendar.js';
 // api/analyze.js
 // SajuGrap Engine Facts v1 API Orchestration Layer
 // -----------------------------------------------------------------------------
@@ -188,11 +189,7 @@ function parseInteger(
     max
   }
 ) {
-  const parsed =
-    Number.parseInt(
-      value,
-      10
-    );
+  const parsed = typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value)) ? Number(value) : NaN;
 
   if (
     !Number.isInteger(parsed) ||
@@ -306,7 +303,7 @@ function validateAndNormalizeRequest(
 
   const hour =
     parseInteger(
-      body.hour ?? 12,
+      body.hour,
       'hour',
       {
         min: 0,
@@ -316,7 +313,7 @@ function validateAndNormalizeRequest(
 
   const minute =
     parseInteger(
-      body.minute ?? 0,
+      body.minute,
       'minute',
       {
         min: 0,
@@ -324,11 +321,7 @@ function validateAndNormalizeRequest(
       }
     );
 
-  validateRealDate(
-    year,
-    month,
-    day
-  );
+  normalizeBirthCalendar({ ...body, year, month, day, hour, minute });
 
   const gender =
     normalizeGender(
@@ -364,6 +357,8 @@ function validateAndNormalizeRequest(
     second: 0,
     gender,
     calendarType,
+    isLeapMonth: body.isLeapMonth,
+    dayBoundary: body.dayBoundary ?? 'midnight',
     timezone,
 
     referenceDateTime:
@@ -606,7 +601,7 @@ export default async function handler(
   } catch (error) {
     const code =
       error instanceof
-      InputValidationError
+      InputValidationError || error instanceof BirthInputError
         ? ERROR_CODE.INVALID_INPUT
         : ERROR_CODE.INVALID_JSON;
 
@@ -619,7 +614,7 @@ export default async function handler(
         stage,
 
         message:
-          '입력값을 확인해 주세요.',
+          error instanceof InputValidationError || error instanceof BirthInputError ? error.message : '입력값을 확인해 주세요.',
 
         detail:
           safeErrorDetail(error),
