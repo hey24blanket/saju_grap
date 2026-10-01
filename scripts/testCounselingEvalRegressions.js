@@ -25,3 +25,7 @@ assert.equal(status,200);assert.equal(response.diagnostic.status,'SCOPE_REDIRECT
 await chat({method:'POST',body:{mode:'chat',userMessage:report},headers:{}},{setHeader(){},status(n){status=n;return this},json(j){response=j;return this}});
 assert.equal(response.diagnostic.status,'SAFETY_SUPPORT');
 assert.match(response.reply,/사주나 성격 탓이 아닙니다/);
+
+const {buildCounselingTurnPrompt} = await import('../lib/counselingPrompt.js');
+const contract = buildCounselingTurnPrompt({userMessage:'토요일 오전에 할 선택을 정리해줘',messageId:'u3',counselingState:{attempts:[{text:'부업은 두 번 해봤고 더 늘리지 않을 것임'}]}});
+assert.match(contract,/토요일 등 새로 확보된 시간이 있어도 이 금지는 해제되지 않습니다/);
