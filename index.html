@@ -1022,7 +1022,7 @@
               maxlength="8"
               autocomplete="bday"
               enterkeyhint="next"
-              placeholder="예: 19851024"
+              placeholder="예: 20000101"
               aria-label="생년월일 8자리"
               class="w-full bg-transparent outline-none text-center text-lg font-black tracking-[0.12em] text-stone-900 placeholder:text-stone-300 placeholder:tracking-normal placeholder:text-sm"
             />
@@ -1039,7 +1039,7 @@
               maxlength="4"
               autocomplete="off"
               enterkeyhint="done"
-              placeholder="예: 1145"
+              placeholder="예: 0930"
               aria-label="태어난 시간 4자리"
               class="w-full bg-transparent outline-none text-center text-lg font-black tracking-[0.16em] text-stone-900 placeholder:text-stone-300 placeholder:tracking-normal placeholder:text-sm"
             />
@@ -2394,11 +2394,11 @@
       };
 
       if (dateDigits.length !== 8) {
-        return fail('생년월일을 숫자 8자리로 입력해 주세요. 예: 19851024');
+        return fail('생년월일을 숫자 8자리로 입력해 주세요. 예: 20000101');
       }
 
       if (timeDigits.length !== 4) {
-        return fail('태어난 시간을 숫자 4자리로 입력해 주세요. 예: 오전 11시 45분 → 1145');
+        return fail('태어난 시간을 숫자 4자리로 입력해 주세요. 예: 오전 9시 30분 → 0930');
       }
 
       const year = Number(dateDigits.slice(0, 4));
