@@ -26,17 +26,18 @@ function run() {
   const empty = normalizeCachedProfile(null);
   assert.deepEqual(empty, EMPTY_PROFILE_STATE);
 
-  const legacyTestDefault = normalizeCachedProfile({
+  const savedProfile = normalizeCachedProfile({
     name: '',
-    year: 1985,
-    month: 10,
-    day: 24,
-    hour: 11,
-    minute: 45,
+    year: 2000,
+    month: 1,
+    day: 1,
+    hour: 9,
+    minute: 30,
     gender: 1
   });
-  assert.equal(legacyTestDefault.year, 1985);
-  assert.equal(legacyTestDefault.gender, 1);
+  assert.equal(savedProfile.year, 2000);
+  assert.equal(savedProfile.hour, 9);
+  assert.equal(savedProfile.gender, 1);
 
   const profileA = normalizeCachedProfile({
     name: 'A',
