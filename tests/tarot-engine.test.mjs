@@ -50,3 +50,12 @@ test('followup context stays user-owned and visible first answer is the only con
  const reader=parseReader(draft(references.art),input(cases.find(c=>c.id==='art')));
  assert.equal(reader.message,reader.summary[0].body);
 });
+test('interpretation and writing use different approved models within one shared deadline',async()=>{
+ let clock=0;const calls=[];
+ const r=await generateTarot(i,{results:[]},{now:()=>clock,complete:async args=>{
+  calls.push(args);if(args.stage==='interpretation'){clock=65000;return {text:JSON.stringify(plan),metrics:{model:args.modelOverride}};}
+  return {text:JSON.stringify(draft(references.reunion)),metrics:{model:args.modelOverride}};
+ }});
+ assert.deepEqual(calls.map(c=>c.modelOverride),['gpt-6.1-sol','gpt-6-astra']);
+ assert.equal(calls[1].timeoutMs,13000);assert.equal(r.telemetry.calls[1].stage,'writing');
+});
