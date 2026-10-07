@@ -1,1 +1,1 @@
-{"phase":"holdout","selected":{"id":"single-sol-low-final","strategy":"single","provider":"openai","model":"gpt-6.1-sol","reasoningEffort":"low"}}
+{"phase":"capability","concurrency":2,"variants":[{"id":"hybrid-sol-astra","strategy":"staged","provider":"openai","model":"gpt-6.1-sol","writerModel":"gpt-6-astra","reasoningEffort":"low"}]}

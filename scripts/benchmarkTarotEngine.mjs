@@ -20,12 +20,12 @@ async function worker(){while(next<jobs.length){const {c,variant}=jobs[next++];
  const input=validateTarot({action:'reading',visualMode:'callout-v2',question:c.question,rounds:c.rounds,messages:[],context:{}}),start=Date.now();
  const row={id:c.id,variant:variant.id,version:ENGINE_VERSION,createdAt:new Date().toISOString()};
  try{
-  row.response=await generateReading(input,{results:[]},{...variant,complete:args=>completeTarot({...args,modelOverride:variant.model,reasoningEffort:variant.reasoningEffort,timeoutMs:75000})});row.contractPassed=true;
+  row.response=await generateReading(input,{results:[]},{...variant,complete:args=>completeTarot({...args,modelOverride:args.stage==='writing'?(variant.writerModel||variant.model):variant.model,reasoningEffort:variant.reasoningEffort,timeoutMs:Math.max(1,Math.min(75000,78000-(Date.now()-start)))})});row.contractPassed=true;
  }catch(e){row.error=String(e.message).slice(0,100);row.contractPassed=false;}
  row.elapsedMs=Date.now()-start;
  await fs.writeFile(new URL(`${c.id}--${variant.id}.json`,dir),JSON.stringify(row,null,2));
  results.push({id:row.id,variant:row.variant,contractPassed:row.contractPassed,error:row.error,elapsedMs:row.elapsedMs,telemetry:row.response?.telemetry});
  console.log(JSON.stringify(results.at(-1)));
 }}
-await Promise.all(Array.from({length:config.phase==='holdout'?2:1},()=>worker()));
+await Promise.all(Array.from({length:config.concurrency|| (config.phase==='holdout'?2:1)},()=>worker()));
 await fs.writeFile(new URL('index.json',dir),JSON.stringify({config,results},null,2));
