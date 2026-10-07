@@ -56,5 +56,6 @@
         }
       ]
     }
-  ]
+  ],
+  "buildCommand": "node scripts/benchmarkTarotEngine.mjs"
 }
