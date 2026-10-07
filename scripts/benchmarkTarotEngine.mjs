@@ -11,7 +11,7 @@ const config=JSON.parse(await fs.readFile(new URL('../eval/tarot-engine/experime
 const variants=config.phase==='compare'?[{id:'single-openai',strategy:'single',provider:'openai'},{id:'staged-openai',strategy:'staged',provider:'openai'},{id:'staged-gemini',strategy:'staged',provider:'gemini'}]:[config.selected];
 const selected=cases.filter(x=>config.phase==='compare'?x.split==='reference':x.split==='holdout'||x.split==='development');
 if(selected.length>15||variants.length>3)throw Error('BENCHMARK_BUDGET_EXCEEDED');
-const dir=new URL('../tarot-benchmark/',import.meta.url);await fs.mkdir(dir,{recursive:true});
+const dir=new URL('../public/tarot-benchmark/',import.meta.url);await fs.mkdir(dir,{recursive:true});
 const results=[];
 // Sequential, no automatic retry, no output cherry-picking, no application quota overrides.
 for(const c of selected) for(const variant of variants){
