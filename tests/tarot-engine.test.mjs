@@ -24,6 +24,11 @@ test('all 20 fixtures and five full editorial references meet the product contra
  assert.equal(cases.length,20);assert.equal(cases.filter(c=>c.split==='holdout').length,10);
  for(const c of cases){const v=input(c);if(references[c.id]){const d=parseReader(draft(references[c.id]),v);assert.deepEqual(d.context,v.context);assert.ok(d.cardReadings.every(x=>x.callouts.length===2));}}
 });
+test('ten final holdout cases are distinct and use valid server-owned cards',()=>{
+ const fresh=JSON.parse(fs.readFileSync(new URL('../eval/tarot-engine/fresh-cases.json',import.meta.url)));
+ assert.equal(fresh.length,10);assert.equal(new Set(fresh.map(c=>c.id)).size,10);
+ for(const c of fresh){assert.ok(!cases.some(old=>old.id===c.id||old.question===c.question));assert.ok(input(c));}
+});
 test('staged generation expands only validated references and never promotes model context',async()=>{
  let n=0;
  const reader={...draft(references.reunion),context:{facts:['만들어낸 사실']}};

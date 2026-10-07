@@ -1,0 +1,386 @@
+{
+  "deployment": "dpl_GaD3Rkx4r6WDQgxdRwjRUgqn8WyP",
+  "note": "All 15 generations succeeded. Deployment failed because output directory was missing; response texts were never retrieved. Re-run fixes output directory only.",
+  "results": [
+    {
+      "id": "reunion",
+      "variant": "single-openai",
+      "contractPassed": true,
+      "elapsedMs": 15008,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "single",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 15007,
+            "inputTokens": 1579,
+            "outputTokens": 1306,
+            "totalTokens": 2885
+          }
+        ]
+      }
+    },
+    {
+      "id": "reunion",
+      "variant": "staged-openai",
+      "contractPassed": true,
+      "elapsedMs": 14914,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 8864,
+            "inputTokens": 1338,
+            "outputTokens": 760,
+            "totalTokens": 2098
+          },
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 6050,
+            "inputTokens": 1827,
+            "outputTokens": 631,
+            "totalTokens": 2458
+          }
+        ]
+      }
+    },
+    {
+      "id": "reunion",
+      "variant": "staged-gemini",
+      "contractPassed": true,
+      "elapsedMs": 3376,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 1552,
+            "inputTokens": 1306,
+            "outputTokens": 387,
+            "totalTokens": 1693
+          },
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 1823,
+            "inputTokens": 1508,
+            "outputTokens": 526,
+            "totalTokens": 2034
+          }
+        ]
+      }
+    },
+    {
+      "id": "job",
+      "variant": "single-openai",
+      "contractPassed": true,
+      "elapsedMs": 16462,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "single",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 16462,
+            "inputTokens": 1597,
+            "outputTokens": 1455,
+            "totalTokens": 3052
+          }
+        ]
+      }
+    },
+    {
+      "id": "job",
+      "variant": "staged-openai",
+      "contractPassed": true,
+      "elapsedMs": 15466,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 8543,
+            "inputTokens": 1356,
+            "outputTokens": 758,
+            "totalTokens": 2114
+          },
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 6922,
+            "inputTokens": 1890,
+            "outputTokens": 738,
+            "totalTokens": 2628
+          }
+        ]
+      }
+    },
+    {
+      "id": "job",
+      "variant": "staged-gemini",
+      "contractPassed": true,
+      "elapsedMs": 4546,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 2105,
+            "inputTokens": 1309,
+            "outputTokens": 505,
+            "totalTokens": 1814
+          },
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 2441,
+            "inputTokens": 1688,
+            "outputTokens": 609,
+            "totalTokens": 2297
+          }
+        ]
+      }
+    },
+    {
+      "id": "friend",
+      "variant": "single-openai",
+      "contractPassed": true,
+      "elapsedMs": 14197,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "single",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 14196,
+            "inputTokens": 1613,
+            "outputTokens": 1302,
+            "totalTokens": 2915
+          }
+        ]
+      }
+    },
+    {
+      "id": "friend",
+      "variant": "staged-openai",
+      "contractPassed": true,
+      "elapsedMs": 14864,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 8237,
+            "inputTokens": 1372,
+            "outputTokens": 672,
+            "totalTokens": 2044
+          },
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 6626,
+            "inputTokens": 1936,
+            "outputTokens": 728,
+            "totalTokens": 2664
+          }
+        ]
+      }
+    },
+    {
+      "id": "friend",
+      "variant": "staged-gemini",
+      "contractPassed": true,
+      "elapsedMs": 4156,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 1849,
+            "inputTokens": 1321,
+            "outputTokens": 414,
+            "totalTokens": 1735
+          },
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 2306,
+            "inputTokens": 1613,
+            "outputTokens": 560,
+            "totalTokens": 2173
+          }
+        ]
+      }
+    },
+    {
+      "id": "art",
+      "variant": "single-openai",
+      "contractPassed": true,
+      "elapsedMs": 16249,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "single",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 16249,
+            "inputTokens": 1616,
+            "outputTokens": 1554,
+            "totalTokens": 3170
+          }
+        ]
+      }
+    },
+    {
+      "id": "art",
+      "variant": "staged-openai",
+      "contractPassed": true,
+      "elapsedMs": 14235,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 8133,
+            "inputTokens": 1375,
+            "outputTokens": 641,
+            "totalTokens": 2016
+          },
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 6102,
+            "inputTokens": 1916,
+            "outputTokens": 724,
+            "totalTokens": 2640
+          }
+        ]
+      }
+    },
+    {
+      "id": "art",
+      "variant": "staged-gemini",
+      "contractPassed": true,
+      "elapsedMs": 4051,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 2019,
+            "inputTokens": 1322,
+            "outputTokens": 481,
+            "totalTokens": 1803
+          },
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 2032,
+            "inputTokens": 1611,
+            "outputTokens": 536,
+            "totalTokens": 2147
+          }
+        ]
+      }
+    },
+    {
+      "id": "abroad",
+      "variant": "single-openai",
+      "contractPassed": true,
+      "elapsedMs": 15149,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "single",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 15149,
+            "inputTokens": 1619,
+            "outputTokens": 1364,
+            "totalTokens": 2983
+          }
+        ]
+      }
+    },
+    {
+      "id": "abroad",
+      "variant": "staged-openai",
+      "contractPassed": true,
+      "elapsedMs": 16803,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 10952,
+            "inputTokens": 1378,
+            "outputTokens": 892,
+            "totalTokens": 2270
+          },
+          {
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "elapsedMs": 5849,
+            "inputTokens": 1920,
+            "outputTokens": 632,
+            "totalTokens": 2552
+          }
+        ]
+      }
+    },
+    {
+      "id": "abroad",
+      "variant": "staged-gemini",
+      "contractPassed": true,
+      "elapsedMs": 3850,
+      "telemetry": {
+        "version": "tarot-v13-evidence-and-reader",
+        "strategy": "staged",
+        "calls": [
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 1895,
+            "inputTokens": 1324,
+            "outputTokens": 463,
+            "totalTokens": 1787
+          },
+          {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "elapsedMs": 1955,
+            "inputTokens": 1588,
+            "outputTokens": 542,
+            "totalTokens": 2130
+          }
+        ]
+      }
+    }
+  ]
+}
