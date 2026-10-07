@@ -2,7 +2,7 @@
 
 ## 2026-10-07: 한 번 읽으면 뜻이 잡히는 답변
 
-현재 생성 버전은 `tarot-depth-v11-plain-language`다. 문체 규칙과 수정 예시의 원본은 `lib/tarotPlainLanguage.js`이며 전체 풀이, 카드 해설, 말풍선, 후속 답변에 공통 적용한다. 카드 원문과 숨겨진 grounding 인용은 유지한다. 문체 교정을 위한 추가 모델 호출은 없다.
+현재 생성 버전은 `tarot-depth-v12-plain-language`다. 문체 규칙과 수정 예시의 원본은 `lib/tarotPlainLanguage.js`이며 전체 풀이, 카드 해설, 말풍선, 후속 답변에 공통 적용한다. 카드 원문과 숨겨진 grounding 인용은 유지한다. 문체 교정을 위한 추가 모델 호출은 없다.
 
 아래 과거 평가표의 합산 점수보다 다음 세 항목을 우선한다.
 
