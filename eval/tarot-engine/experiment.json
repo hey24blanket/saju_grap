@@ -1,0 +1,1 @@
+{"phase":"final","concurrency":2,"selected":{"id":"hybrid-final","strategy":"staged","provider":"openai","model":"gpt-6.1-sol","writerModel":"gpt-6-astra","reasoningEffort":"low"}}

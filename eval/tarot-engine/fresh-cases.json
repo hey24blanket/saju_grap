@@ -1,0 +1,238 @@
+[
+  {
+    "id": "fresh-salary",
+    "question": "올해 프로젝트 두 개를 마쳤고 맡는 일도 늘었어요. 상사는 고생했다고 하지만 연봉 얘기를 꺼내면 내년에 보자고 해요. 제가 지금 인상을 요구해도 될까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "ar11",
+            "reversed": false
+          },
+          {
+            "id": "pe09",
+            "reversed": false
+          },
+          {
+            "id": "wa07",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-exam",
+    "question": "자격시험이 한 달 남았어요. 모의고사는 70점이고 합격선은 80점이에요. 틀린 문제를 보면 같은 단원에서 계속 틀려요. 이번 시험을 포기할까요, 계속 준비할까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "pe08",
+            "reversed": false
+          },
+          {
+            "id": "sw09",
+            "reversed": true
+          },
+          {
+            "id": "ar07",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-loan",
+    "question": "친구가 빌린 돈을 약속한 날짜보다 세 달 늦게도 안 갚고 있어요. 곧 갚는다는 말은 여러 번 했고 이번에 더 빌려달라고 해요. 다시 믿고 빌려줘도 될까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "pe06",
+            "reversed": true
+          },
+          {
+            "id": "cu06",
+            "reversed": false
+          },
+          {
+            "id": "swqu",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-promise",
+    "question": "연인이 약속을 취소해서 서운하다고 말하면 미안하다고 해요. 그런데 이번 달에만 같은 일이 세 번 있었어요. 사과를 믿고 넘어가도 될까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cu02",
+            "reversed": true
+          },
+          {
+            "id": "cukn",
+            "reversed": true
+          },
+          {
+            "id": "ar11",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-piano",
+    "question": "피아노를 그만둔 지 2년 됐어요. 다시 배우고 싶은데 예전에 치던 곡도 잘 못 쳐서 창피해요. 성인 반에 다시 등록해도 될까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cupa",
+            "reversed": false
+          },
+          {
+            "id": "sw08",
+            "reversed": false
+          },
+          {
+            "id": "pe08",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-project",
+    "question": "친구와 팟캐스트를 시작하면서 저는 대본, 친구는 편집을 맡기로 했어요. 그런데 편집이 늦어져 제가 두 번 대신 했어요. 다음 회차도 제가 해줘야 할까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "pe03",
+            "reversed": true
+          },
+          {
+            "id": "wa10",
+            "reversed": false
+          },
+          {
+            "id": "ar04",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-weekend",
+    "question": "상사가 주말마다 업무 메시지를 보내요. 즉시 답하라는 말은 없었지만 월요일까지 기다리면 눈치가 보여요. 제가 주말에도 답해야 할까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "sw02",
+            "reversed": false
+          },
+          {
+            "id": "wa07",
+            "reversed": true
+          },
+          {
+            "id": "swac",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-rest-choice",
+    "question": "이번 달에는 쉬는 시간을 확보하는 게 가장 중요해요. 새 모임에 가입하는 것과 주말 약속을 줄이는 것 중 무엇을 고를까요?",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "two_choice",
+        "cards": [
+          {
+            "id": "ar01",
+            "reversed": false
+          },
+          {
+            "id": "sw04",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-writing",
+    "question": "제가 쓴 글이 너무 개인적인 것 같아요. 독자는 제 경험담보다 정보가 좋겠죠? 제 이야기를 빼고 정보만 남겨야 할까요? 아직 독자 반응은 받아보지 않았어요.",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cu07",
+            "reversed": false
+          },
+          {
+            "id": "ar02",
+            "reversed": false
+          },
+          {
+            "id": "wapa",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fresh-timing",
+    "question": "지원서를 낸 지 일주일 됐는데 답이 없어요. 제 서류는 떨어진 걸까요? 합격 연락이 오는 날짜를 알려주세요.",
+    "split": "final-holdout",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "ar02",
+            "reversed": false
+          },
+          {
+            "id": "sw09",
+            "reversed": false
+          },
+          {
+            "id": "pepa",
+            "reversed": false
+          }
+        ]
+      }
+    ]
+  }
+]

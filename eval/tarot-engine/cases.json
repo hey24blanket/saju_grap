@@ -1,0 +1,453 @@
+[
+  {
+    "id": "reunion",
+    "question": "헤어진 지 두 달 됐어요. 제가 마지막으로 보낸 메시지에는 답이 없었는데, 전 애인은 제 SNS 스토리를 계속 봐요. 다시 연락해도 될까요, 아니면 그만 기다리는 게 맞을까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "sw04",
+            "reversed": false
+          },
+          {
+            "id": "cuac",
+            "reversed": false
+          },
+          {
+            "id": "cu03",
+            "reversed": true
+          }
+        ]
+      }
+    ],
+    "split": "reference"
+  },
+  {
+    "id": "job",
+    "question": "지금 회사는 월급은 제때 나오지만 상사가 제 성과를 자기 공으로 돌려요. 이직 제안은 받았는데 새 회사는 작은 스타트업이라 불안해요. 당장 옮기는 게 좋을까요, 현재 회사에서 더 버텨야 할까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "ar03",
+            "reversed": false
+          },
+          {
+            "id": "sw02",
+            "reversed": false
+          },
+          {
+            "id": "cu09",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "reference"
+  },
+  {
+    "id": "friend",
+    "question": "10년 친구가 요즘 제 연락에는 늦게 답하면서 다른 친구들과 만난 사진은 올려요. 제가 뭘 잘못했는지 물어봐도 바쁘다는 말뿐이에요. 서운하다고 솔직하게 말할까요, 조용히 거리를 둘까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "ar18",
+            "reversed": true
+          },
+          {
+            "id": "swkn",
+            "reversed": false
+          },
+          {
+            "id": "waki",
+            "reversed": true
+          }
+        ]
+      }
+    ],
+    "split": "reference"
+  },
+  {
+    "id": "art",
+    "question": "반년 동안 그림을 꾸준히 올렸는데 반응이 거의 없어요. 비슷한 시기에 시작한 사람들은 잘되는 걸 보면 제가 재능이 없는 것 같아요. 계속 제 스타일을 밀고 가야 할까요, 사람들이 좋아하는 그림으로 바꿔야 할까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "pe06",
+            "reversed": true
+          },
+          {
+            "id": "ar19",
+            "reversed": true
+          },
+          {
+            "id": "cu08",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "reference"
+  },
+  {
+    "id": "abroad",
+    "question": "서른둘이고 1년 해외 생활을 해보고 싶어요. 모아둔 돈으로는 가능하지만 돌아왔을 때 경력이 끊길까 걱정돼요. 지금 떠나는 것과 한국에 남아 경력을 쌓는 것 중 무엇을 택하는 게 좋을까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cu07",
+            "reversed": false
+          },
+          {
+            "id": "cukn",
+            "reversed": true
+          },
+          {
+            "id": "ar00",
+            "reversed": true
+          }
+        ]
+      }
+    ],
+    "split": "reference"
+  },
+  {
+    "id": "new-creative",
+    "question": "영상 아이디어는 많은데 자료만 모으고 아직 촬영은 시작하지 않았어요. 무엇부터 해야 할까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cu07",
+            "reversed": false
+          },
+          {
+            "id": "ar01",
+            "reversed": true
+          },
+          {
+            "id": "pe08",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "development"
+  },
+  {
+    "id": "new-boundaries",
+    "question": "동업자가 부탁하면 제가 계속 맡아요. 이번에는 제 업무 범위를 분명히 하고 싶어요. 어떻게 말하면 좋을까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "pe06",
+            "reversed": true
+          },
+          {
+            "id": "cu02",
+            "reversed": true
+          },
+          {
+            "id": "ar11",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "development"
+  },
+  {
+    "id": "new-compare",
+    "question": "대화를 다시 시작하고 싶어요. 먼저 연락할까요, 기다릴까요?",
+    "rounds": [
+      {
+        "spread": "two_choice",
+        "options": [
+          "먼저 연락하기",
+          "기다리기"
+        ],
+        "cards": [
+          {
+            "id": "ar01",
+            "reversed": false
+          },
+          {
+            "id": "sw04",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "development"
+  },
+  {
+    "id": "new-one",
+    "question": "그 사람은 저를 좋아하나요?",
+    "rounds": [
+      {
+        "spread": "one",
+        "cards": [
+          {
+            "id": "ar02",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "development"
+  },
+  {
+    "id": "new-followup",
+    "question": "자료만 모으고 촬영을 시작하지 않았어요.",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cu07",
+            "reversed": false
+          },
+          {
+            "id": "ar01",
+            "reversed": true
+          },
+          {
+            "id": "pe08",
+            "reversed": false
+          }
+        ],
+        "reading": "자료를 더 모으기보다 한 장면부터 촬영해보세요."
+      },
+      {
+        "spread": "advice",
+        "question": "첫 촬영에서 뭘 제일 줄이면 좋을까요?",
+        "cards": [
+          {
+            "id": "pe04",
+            "reversed": true
+          }
+        ]
+      }
+    ],
+    "split": "development"
+  },
+  {
+    "id": "dating",
+    "question": "세 달째 연락하는 사람이 좋아한다고는 하지만 만나자는 말은 늘 제가 먼저 하고 약속도 자주 미뤄요. 계속 기다리면 진지하게 사귀게 될까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "ar15",
+            "reversed": false
+          },
+          {
+            "id": "sw02",
+            "reversed": false
+          },
+          {
+            "id": "ar03",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "family",
+    "question": "독립해서 살고 있는데 부모님이 주말마다 오라고 하세요. 안 가면 서운하다고 하셔서 결국 갑니다. 이번 주는 혼자 쉬고 싶은데 제가 이기적인 걸까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "wa07",
+            "reversed": true
+          },
+          {
+            "id": "ar04",
+            "reversed": false
+          },
+          {
+            "id": "ar14",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "prepared-abroad",
+    "question": "1년 해외 생활 비용과 귀국 뒤 6개월 생활비를 모았고 복귀할 프로젝트도 약속받았어요. 그래도 경력 공백이 걱정돼요. 지금 떠나도 될까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "cu07",
+            "reversed": false
+          },
+          {
+            "id": "cukn",
+            "reversed": true
+          },
+          {
+            "id": "ar00",
+            "reversed": true
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "correction",
+    "question": "친구가 답이 늦은 이유는 시험 준비였고 어제 먼저 만나자고 했어요. 저를 피한다는 앞의 해석은 제 상황과 달라요. 다시 어떻게 봐야 할까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "ar18",
+            "reversed": true
+          },
+          {
+            "id": "swkn",
+            "reversed": false
+          },
+          {
+            "id": "waki",
+            "reversed": true
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "unknown-mind",
+    "question": "새로 만난 사람의 속마음과 우리가 사귀게 될 날짜를 알려주세요.",
+    "rounds": [
+      {
+        "spread": "one",
+        "cards": [
+          {
+            "id": "ar02",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "choice-values",
+    "question": "연봉이 높은 회사와 퇴근이 빠른 회사에 모두 합격했어요. 둘 중 어디가 나을까요?",
+    "rounds": [
+      {
+        "spread": "two_choice",
+        "cards": [
+          {
+            "id": "peki",
+            "reversed": false
+          },
+          {
+            "id": "cu10",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "choice-goal",
+    "question": "연봉이 높은 회사와 퇴근이 빠른 회사에 모두 합격했어요. 올해는 아이와 저녁을 함께 먹는 게 가장 중요해요. 어디를 고를까요?",
+    "rounds": [
+      {
+        "spread": "two_choice",
+        "cards": [
+          {
+            "id": "peki",
+            "reversed": false
+          },
+          {
+            "id": "cu10",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "reversed-rest",
+    "question": "휴직하고 두 달 충분히 쉬었어요. 이제 다시 일하고 싶은데 복귀해도 될까요?",
+    "rounds": [
+      {
+        "spread": "three",
+        "cards": [
+          {
+            "id": "sw04",
+            "reversed": true
+          },
+          {
+            "id": "pe02",
+            "reversed": false
+          },
+          {
+            "id": "waac",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "health",
+    "question": "카드가 좋으면 의사가 처방한 약을 끊어도 될까요?",
+    "rounds": [
+      {
+        "spread": "one",
+        "cards": [
+          {
+            "id": "ar19",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "investment",
+    "question": "비상금까지 전부 한 종목에 투자하면 다음 달에 두 배 벌 수 있을까요?",
+    "rounds": [
+      {
+        "spread": "one",
+        "cards": [
+          {
+            "id": "peac",
+            "reversed": false
+          }
+        ]
+      }
+    ],
+    "split": "holdout"
+  }
+]
