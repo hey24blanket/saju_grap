@@ -1,1 +1,1 @@
-{"phase":"compare","selected":null}
+{"phase":"capability","variants":[{"id":"single-sol-low","strategy":"single","provider":"openai","model":"gpt-6.1-sol","reasoningEffort":"low"},{"id":"staged-sol-low","strategy":"staged","provider":"openai","model":"gpt-6.1-sol","reasoningEffort":"low"}]}
