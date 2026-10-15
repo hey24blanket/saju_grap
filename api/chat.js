@@ -1,4 +1,4 @@
-import { isReadingOverviewQuestion, buildReadingOverviewPrompt } from '../lib/readingOverview.js';
+import { isReadingOverviewQuestion, buildReadingOverviewPrompt, reanchorOverviewReply } from '../lib/readingOverview.js';
 import { selectCounselingProvider } from '../lib/chatProviderPolicy.js';
 import { buildCounselingSafetyReply } from '../lib/counselingSafety.js';
 // api/chat.js
@@ -4898,6 +4898,8 @@ export async function runChat(
           normalized.history,
           normalized.userMessage
         );
+
+      if (focusedOverview) visibleReply = reanchorOverviewReply(visibleReply, runtimeOptions.readingContext);
 
       const stateUpdate =
         applyCounselingStateDelta({

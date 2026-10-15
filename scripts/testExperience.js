@@ -110,3 +110,11 @@ test('first overview skips retrieval and uses the short provider prompt in the r
   });
   assert.equal(r.code, 200); assert.equal(JSON.parse(observed.userPrompt).reading.selectedDate, '2026-10-18'); assert.ok(observed.userPrompt.length < 1500); assert.ok(observed.systemInstruction.length < 1500);
 });
+
+
+test('overview action stays anchored to a selected future date, not today', async () => {
+  const { reanchorOverviewReply } = await import('../lib/readingOverview.js');
+  const context = { selected: { type: 'day', date: '2026-10-18' }, referenceDate: '2026-10-15' };
+  assert.equal(reanchorOverviewReply('오늘 하루는 한 가지만 정리해보세요.', context), '그날은 한 가지만 정리해보세요.');
+  assert.equal(reanchorOverviewReply('오늘은 한 가지만.', { ...context, referenceDate: '2026-10-18' }), '오늘은 한 가지만.');
+});
