@@ -1,3 +1,4 @@
+import { isReadingOverviewQuestion, buildReadingOverviewPrompt, reanchorOverviewReply } from '../lib/readingOverview.js';
 import { selectCounselingProvider } from '../lib/chatProviderPolicy.js';
 import { buildCounselingSafetyReply } from '../lib/counselingSafety.js';
 // api/chat.js
@@ -2791,17 +2792,10 @@ async function fetchWithTimeout(
     );
 
   try {
-    return (
-      await fetch(
-        url,
-        {
-          ...options,
-
-          signal:
-            controller.signal
-        }
-      )
-    );
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    // Keep the deadline active until the entire provider body has arrived.
+    const body = await response.text();
+    return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
   } catch (
     error
   ) {
@@ -2909,6 +2903,7 @@ async function callGemini({
       .generationConfig
       .responseMimeType =
       'application/json';
+    requestBody.generationConfig.responseJsonSchema = buildOpenAIJsonFormat(normalized).schema;
   }
 
   let response;
@@ -3935,7 +3930,7 @@ function parseCounselingReply(
   };
 }
 
-export default async function handler(
+export async function runChat(
   req,
   res,
   runtimeOptions = {}
@@ -4205,6 +4200,7 @@ export default async function handler(
     });
   }
 
+  const focusedOverview = Boolean(runtimeOptions.readingContext && normalized.history.length === 0 && isReadingOverviewQuestion(normalized.userMessage));
   let engineFactPacket;
   let promptContext;
   let systemInstruction;
@@ -4345,7 +4341,7 @@ export default async function handler(
           ragMode,
 
         needed:
-          normalized.mode !==
+          focusedOverview ? false : normalized.mode !==
             'chat' ||
           (
             counselingPrototypeEnabled &&
@@ -4445,7 +4441,7 @@ export default async function handler(
       exampleRagRuntime =
         await executeCounselingExampleRag({
           needed:
-            counselingOrchestration
+            focusedOverview ? false : counselingOrchestration
               ? shouldRetrieveExampleStrategyForFocus(
                   {
                     focus:
@@ -4496,12 +4492,7 @@ export default async function handler(
     systemInstruction =
       buildSystemInstruction(
         engineFactPacket,
-        normalized.mode ===
-          'chat'
-          && counselingPrototypeEnabled
-          ? ''
-          : ragRuntime
-              .contextText,
+        ragRuntime.contextText,
         counselingPrototypeEnabled
           ? 'chat'
           : normalized.mode ===
@@ -4724,8 +4715,18 @@ export default async function handler(
         : STAGE
             .GEMINI_REQUEST;
 
-    const providerStartedAt =
-      Date.now();
+    if (runtimeOptions.readingContext) {
+      systemInstruction += '\n\n[사용자가 실제로 보고 있는 해설 — 서버 검증]\n'
+        + JSON.stringify(runtimeOptions.readingContext)
+        + '\n기준일과 선택일을 구분하세요. 이 선택 구간을 먼저 설명하고 연도나 대운으로 임의 교체하지 마세요. 모으기/펼치기는 동등한 활용 방식이며 길흉·성공 확률·에너지 점수가 아닙니다. 실제 사건은 단정하지 마세요. 처음에는 쉬운 말로 핵심, 이유, 오늘 해볼 한 가지를 짧게 전달하세요. 추가 질문은 꼭 필요한 경우 하나만 하세요.\n이 화면에서 답변하는 순서는 앞선 초면 상담 형식이나 근거 개수 요구보다 우선합니다. 첫 답변은 쉬운 말로 3~5문장, 선택 구간의 근거 하나와 작은 실천 하나로 충분합니다. 한자와 명리 용어를 나열하지 마세요. 상세한 근거를 요청받으면 용어를 한 번에 하나씩 풀이하세요. 파동의 단계는 해당 구간의 십이운성에 따른 표현이며, 원국·연운·월운 전체의 우열을 뜻하지 않습니다. 이 단계가 연운과 월운 때문에 생겼다고 근거 없이 인과를 만들어 연결하지 마세요.';
+    }
+    if (focusedOverview) {
+      const overview = buildReadingOverviewPrompt(runtimeOptions.readingContext, normalized.userMessage);
+      systemInstruction = overview.systemInstruction;
+      task.userPrompt = overview.userPrompt;
+      task.maxOutputTokens = 800;
+    }
+    const providerStartedAt = Date.now();
 
     providerResult =
       await invokeProviderWithPriority({
@@ -4737,6 +4738,9 @@ export default async function handler(
 
         callGemini,
         callOpenAI,
+        validateResult: (result) => {
+          if (task.responseKind === 'counseling') parseCounselingReply(result.text);
+        },
 
         options: {
           normalized,
@@ -4894,6 +4898,8 @@ export default async function handler(
           normalized.history,
           normalized.userMessage
         );
+
+      if (focusedOverview) visibleReply = reanchorOverviewReply(visibleReply, runtimeOptions.readingContext);
 
       const stateUpdate =
         applyCounselingStateDelta({
@@ -5480,4 +5486,11 @@ export default async function handler(
       )
     );
   }
+}
+
+// Network callers must use server-owned analysis and conversation state.
+// runChat remains an internal testable orchestration function, never an HTTP bypass.
+export default async function handler(req, res) {
+  const { default: experience } = await import('./experience.js');
+  return experience(req, res, { forcedAction: 'chat' });
 }

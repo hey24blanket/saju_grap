@@ -9,6 +9,15 @@
     },
     "api/tarot.js": {
       "maxDuration": 120
+    },
+    "api/chat.js": {
+      "maxDuration": 180
+    },
+    "api/experience.js": {
+      "maxDuration": 180
+    },
+    "api/cleanup-experience.js": {
+      "maxDuration": 180
     }
   },
   "rewrites": [
@@ -55,6 +64,21 @@
           "value": "no-referrer"
         }
       ]
+    },
+    {
+      "source": "/(index.html|app.js|styles/app.css|sw.js)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cleanup-experience",
+      "schedule": "10 13 * * *"
     }
   ],
   "outputDirectory": "."
