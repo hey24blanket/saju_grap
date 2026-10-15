@@ -6,11 +6,13 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;
 const CURRENT_KEY = 'sajugrap_experience_v2';
 const ARCHIVE_KEY = 'sajugrap_archive_v2';
 const CHAT_KEY = 'sajugrap_chat_v2';
+const CLOUD_CHAT_KEY = 'sajugrap_account_chat_v1';
 const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
 const store = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { toast('저장 공간이 부족하거나 저장이 차단되어 있어요. 내보내기를 이용해 주세요.'); return false; } };
 const today = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
 const uuid = () => crypto.randomUUID();
 let accountUser = null, authUser = null, accountLoading = false, accountError = '', syncing = false, authWatch = false, identityEpoch = 0, identityInitialized = false;
+let accountGeneration = null;
 const ACCOUNT_MARKER = 'sajugrap_signed_in_v1';
 let current = read(CURRENT_KEY, null);
 if (!current?.reading?.timelines || !current?.profile || !current.analysisId) current = null;
@@ -95,7 +97,7 @@ function renderToday() {
   const point = reading.today;
   if (!point) { $('#main').innerHTML = '<div class="card empty"><h2>오늘의 흐름을 찾지 못했어요.</h2><button class="primary" data-action="refresh">다시 계산하기</button></div>'; return; }
   selectedId = point.id; period = 'day'; domain = 'all';
-  $('#main').innerHTML = `${heading('A MOMENT FOR YOURSELF', `${esc(current.profile.name || '나')}의 흐름을 읽는 시간`, esc(reading.referenceDate.replaceAll('-', '. ')))}${archivedBanner()}<div class="grid">${readingCard(point, true)}<div class="stack"><section class="card action-card"><span class="eyebrow">오늘의 작은 실천</span><h3>거창하지 않아도 괜찮아요.</h3><p class="action-text">${PHASES[point.mode].action}</p><div class="actions"><button class="secondary" data-action="save">이 해설 저장 ＋</button></div></section><section class="card"><span class="eyebrow">나를 읽는 바탕</span>${pillars(reading, true)}<button class="quiet full" data-action="profile">내 사주 자세히 보기 →</button></section></div></div><div class="section-title"><h3>어떤 흐름이 궁금하세요?</h3><span class="muted">천천히 살펴보세요</span></div><div class="explore-grid"><button class="explore-card" data-action="flow"><span class="symbol">≈</span><h3>앞으로의 흐름</h3><p>날짜와 시기별로 살펴보기 →</p></button><button class="explore-card" data-action="chat"><span class="symbol">◌</span><h3>이 해설이 궁금하다면</h3><p>지금 본 흐름에서 상담 이어가기 →</p></button><button class="explore-card" data-action="archive"><span class="symbol">▤</span><h3>다시 읽는 나의 기록</h3><p>저장한 해설과 대화 돌아보기 →</p></button></div><p class="note">사주 그랩의 파동은 사주를 바탕으로 제안하는 생활의 관점이에요. 미래의 사건이나 성공 가능성을 예측하는 점수가 아니에요.</p>`;
+  $('#main').innerHTML = `${heading('A MOMENT FOR YOURSELF', `${esc(current.profile.name || '나')}의 흐름을 읽는 시간`, esc(reading.referenceDate.replaceAll('-', '. ')))}${archivedBanner()}${resumeBanner()}<div class="grid">${readingCard(point, true)}<div class="stack"><section class="card action-card"><span class="eyebrow">오늘의 작은 실천</span><h3>거창하지 않아도 괜찮아요.</h3><p class="action-text">${PHASES[point.mode].action}</p><div class="actions"><button class="secondary" data-action="save">이 해설 저장 ＋</button></div></section><section class="card"><span class="eyebrow">나를 읽는 바탕</span>${pillars(reading, true)}<button class="quiet full" data-action="profile">내 사주 자세히 보기 →</button></section></div></div><div class="section-title"><h3>어떤 흐름이 궁금하세요?</h3><span class="muted">천천히 살펴보세요</span></div><div class="explore-grid"><button class="explore-card" data-action="flow"><span class="symbol">≈</span><h3>앞으로의 흐름</h3><p>날짜와 시기별로 살펴보기 →</p></button><button class="explore-card" data-action="chat"><span class="symbol">◌</span><h3>이 해설이 궁금하다면</h3><p>지금 본 흐름에서 상담 이어가기 →</p></button><button class="explore-card" data-action="archive"><span class="symbol">▤</span><h3>다시 읽는 나의 기록</h3><p>저장한 해설과 대화 돌아보기 →</p></button></div><p class="note">사주 그랩의 파동은 사주를 바탕으로 제안하는 생활의 관점이에요. 미래의 사건이나 성공 가능성을 예측하는 점수가 아니에요.</p>`;
 }
 function renderFlow() {
   if (current.reading.limited) { $('#main').innerHTML = `${heading('MY FLOW', '시간을 알면 더 자세히 볼 수 있어요')}<section class="card empty"><p>${current.reading.message}</p><button class="primary" data-action="edit">태어난 시간 입력</button></section>`; return; }
@@ -140,7 +142,7 @@ function renderOnboarding(profile = null) {
 async function analyzeProfile(profile, referenceDate = null) {
   const json = await api({ action: 'analyze', profile, ...(referenceDate ? { referenceDate } : {}) }, 40000);
   current = { analysisId: json.analysisId, reading: json.reading, profile: json.profile, sessionExpiresAt: json.sessionExpiresAt };
-  snapshot = Boolean(referenceDate && referenceDate !== today()); selectedId = json.reading.today?.id; chat = null; if (!accountUser) localStorage.removeItem(CHAT_KEY);
+  snapshot = Boolean(referenceDate && referenceDate !== today()); selectedId = json.reading.today?.id; clearConversationDraft();
   if (!accountUser) store(CURRENT_KEY, current); navigate(json.reading.limited ? 'profile' : 'today');
 }
 async function saveReading() {
@@ -179,6 +181,11 @@ function bindActions() { $$('[data-action]').forEach(b => b.onclick = async () =
   if (action === 'edit') return renderOnboarding(current.profile);
   if (action === 'save') return saveReading();
   if (action === 'chat') return openChat();
+  if (action === 'resume') {
+    if (!chat || busy) return;
+    current = structuredClone(chat.experience); selectedId = chat.pointId; domain = chat.domain; period = selected()?.type || 'day'; snapshot = current.reading.referenceDate !== today();
+    view = 'flow'; render(); openChat(true); return;
+  }
   if (action === 'refresh') { b.disabled = true; try { await analyzeProfile(current.profile); } catch (e) { toast(e.message); b.disabled = false; } return; }
   if (action === 'export') return exportRecords();
   if (action === 'account') return openAccount();
@@ -188,7 +195,7 @@ function bindActions() { $$('[data-action]').forEach(b => b.onclick = async () =
     if (busy || syncing) throw new Error('진행 중인 저장이나 답변을 받은 뒤 삭제해 주세요.');
     if (accountUser) { const { sdk } = await ensureAuth(); try { await sdk.reauthenticateWithCredential(accountUser, sdk.EmailAuthProvider.credential(accountUser.email, $('#clearPassword').value)); } catch (e) { throw new Error(authMessage(e)); } }
     try { await api({ action: 'delete' }, 60000); } catch (e) { if (accountUser || e.status !== 401) throw e; }
-    if (accountUser) { current = null; archive = []; chat = null; await api({ action: 'account' }, 20000); snapshot = false; view = 'today'; render(); toast('계정의 정보와 기록을 삭제했어요.'); return; }
+    if (accountUser) { current = null; archive = []; clearConversationDraft(); const empty = await api({ action: 'account' }, 20000); accountGeneration = empty.generation; snapshot = false; view = 'today'; render(); toast('계정의 정보와 기록을 삭제했어요.'); return; }
     for (const storage of [localStorage, sessionStorage]) for (const key of Object.keys(storage)) if (/^(sajugrap_|saju_grap_|sg_pending_counseling_turns_v1:|sg_counseling)/.test(key)) storage.removeItem(key);
     current = null; archive = []; chat = null; snapshot = false; view = 'today'; render(); toast('입력 정보와 기록을 삭제했어요.');
   });
@@ -251,7 +258,7 @@ $('#saveChat').onclick = () => saveConversation();
 $('#finishChat').onclick = async () => {
   if (chat?.readOnly) { const saved = chat.experience, pointId = chat.pointId, savedDomain = chat.domain; try { await analyzeProfile(saved.profile, saved.reading.referenceDate); selectedId = pointId; period = selected()?.type || 'day'; domain = savedDomain; openChat(); } catch (e) { toast(e.message); } return; }
   if (!chat?.messages.some(m => m.role === 'assistant')) { $('#chatDialog').close(); return; }
-  confirmDialog('오늘, 가져갈 한 가지', `<p class="muted">대화를 마치며 기억하고 싶은 내용을 직접 남겨보세요. 대화 전문과 함께 보관해 둘게요.</p><label class="field" style="margin-top:18px">나의 메모<textarea id="closingNote" rows="3" maxlength="500">${esc(chat.action)}</textarea></label><p class="note">다음에 보관함에서 다시 읽거나 상담을 이어갈 수 있어요.</p>`, '저장하고 마치기', async () => { if (await saveConversation($('#closingNote').value.trim())) $('#chatDialog').close(); else throw new Error('저장하지 못했어요.'); });
+  confirmDialog('오늘, 가져갈 한 가지', `<p class="muted">대화를 마치며 기억하고 싶은 내용을 직접 남겨보세요. 대화 전문과 함께 보관해 둘게요.</p><label class="field" style="margin-top:18px">나의 메모<textarea id="closingNote" rows="3" maxlength="500">${esc(chat.action)}</textarea></label><p class="note">다음에 보관함에서 다시 읽거나 상담을 이어갈 수 있어요.</p>`, '저장하고 마치기', async () => { if (await saveConversation($('#closingNote').value.trim())) { $('#chatDialog').close(); clearConversationDraft(); render(); } else throw new Error('저장하지 못했어요.'); });
 };
 $('#closeChat').onclick = () => $('#chatDialog').close();
 $('#closeConfirm').onclick = $('#cancelConfirm').onclick = () => { if (!$('#acceptConfirm').disabled) $('#confirmDialog').close(); };
@@ -262,9 +269,20 @@ window.addEventListener('offline', () => toast(accountUser ? '인터넷 연결�
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 render();
 
-// Account records stay in memory. Signing out clears them instead of turning
-// somebody else's cloud records into this browser's anonymous archive.
-function persistChat() { if (!accountUser) store(CHAT_KEY, chat); }
+// Cloud archive stays in memory. Only the current conversation uses tab-scoped
+// recovery, bound to both the verified UID and the server account generation.
+function persistChat() {
+  if (!accountUser) { store(CHAT_KEY, chat); return; }
+  try { sessionStorage.setItem(CLOUD_CHAT_KEY, JSON.stringify({ uid: accountUser.uid, generation: accountGeneration, chat })); }
+  catch { toast('진행 중 상담을 이 탭에 임시 저장하지 못했어요. 받은 답변은 보관함에 저장해 주세요.'); }
+}
+function clearConversationDraft() {
+  chat = null;
+  if (accountUser) sessionStorage.removeItem(CLOUD_CHAT_KEY); else localStorage.removeItem(CHAT_KEY);
+}
+function resumeBanner() {
+  return chat?.messages?.length && !chat.readOnly ? '<div class="archive-notice">이전에 보던 상담이 있어요. <button class="quiet" data-action="resume">이어서 보기 →</button></div>' : '';
+}
 function deviceCount() { return read(ARCHIVE_KEY, []).length; }
 function accountPanel() {
   if (!accountUser) return `<div class="account-panel"><div><strong>나의 기록, 기기가 바뀌어도</strong><p class="muted">로그인 후 이 기기의 기록을 계정으로 옮길 수 있어요.</p></div><button class="secondary" data-action="account">로그인</button></div>`;
@@ -273,14 +291,26 @@ function accountPanel() {
 async function refreshAccount({ replaceCurrent = false } = {}) {
   if (!accountUser) return;
   const data = await api({ action: 'account' }, 25000);
+  const generationChanged = accountGeneration && accountGeneration !== data.generation;
+  if (generationChanged) { chat = null; sessionStorage.removeItem(CLOUD_CHAT_KEY); $('#chatDialog').close(); }
+  accountGeneration = data.generation;
   archive = data.archive;
-  if (replaceCurrent || !current) { current = data.current; selectedId = current?.reading.today?.id; snapshot = false; }
+  if (replaceCurrent || !current || generationChanged) { current = data.current; selectedId = current?.reading.today?.id; snapshot = false; }
+  if (!chat) {
+    try {
+      const draft = JSON.parse(sessionStorage.getItem(CLOUD_CHAT_KEY));
+      if (draft?.uid === accountUser.uid && draft.generation === accountGeneration) chat = draft.chat;
+      else sessionStorage.removeItem(CLOUD_CHAT_KEY);
+    } catch { sessionStorage.removeItem(CLOUD_CHAT_KEY); }
+  }
   accountError = ''; render();
 }
 async function identityChanged(user) {
   const verified = user?.emailVerified ? user : null;
   if (identityInitialized && authUser?.uid === user?.uid && accountUser?.uid === verified?.uid) return;
   identityInitialized = true;
+  if (!verified || (accountUser && accountUser.uid !== verified.uid)) sessionStorage.removeItem(CLOUD_CHAT_KEY);
+  accountGeneration = null;
   identityEpoch++;
   const epoch = identityEpoch;
   authUser = user; accountUser = verified; accountError = '';
@@ -322,19 +352,20 @@ function renderAccountDialog(signup = false) {
     $('#checkVerified').onclick = () => accountTask(async () => { const { sdk } = await ensureAuth(); await sdk.reload(authUser); await authUser.getIdToken(true); if (!authUser.emailVerified) throw new Error('메일의 인증 링크를 누른 뒤 다시 확인해 주세요.'); await identityChanged(authUser); });
     $('#resendVerification').onclick = () => accountTask(async () => { const { sdk } = await ensureAuth(); await sdk.sendEmailVerification(authUser); $('#authStatus').textContent = '인증 메일을 보냈어요. 스팸함도 확인해 주세요.'; });
   } else if (accountUser) {
-    body.innerHTML = `<span class="eyebrow">MY ACCOUNT</span><h3 style="margin-top:14px">${esc(accountUser.email)}</h3><p class="note">저장한 기록은 같은 계정으로 로그인한 기기에서 이어 볼 수 있어요. 이 기기에 남은 비회원 기록은 직접 옮길 수 있어요.</p>${accountError ? `<p class="error" role="alert">${esc(accountError)}</p>` : ''}<div class="actions"><button id="accountRefresh" class="primary">계정 기록 열기</button>${deviceCount() || read(CURRENT_KEY, null) ? '<button id="accountImport" class="secondary">이 기기 기록 옮기기</button>' : ''}<button id="logout" class="quiet">로그아웃</button></div><p class="note">로그아웃하면 이 화면에서 계정 기록을 지워요. 서버의 보관함은 그대로 남아요.</p><details><summary>계정과 기록 삭제</summary><p>계정 탈퇴는 모든 계정 기록과 로그인 계정을 삭제해요. 복구할 수 없으니 필요한 기록은 먼저 내보내세요.</p><button id="leaveAccount" class="quiet danger">계정 탈퇴</button></details><p id="authStatus" role="status" class="note"></p>`;
+    body.innerHTML = `<span class="eyebrow">MY ACCOUNT</span><h3 style="margin-top:14px">${esc(accountUser.email)}</h3><p class="note">저장한 기록은 같은 계정으로 로그인한 기기에서 이어 볼 수 있어요. 이 기기에 남은 비회원 기록은 직접 옮길 수 있어요.</p>${accountError ? `<p class="error" role="alert">${esc(accountError)}</p>` : ''}<div class="actions"><button id="accountRefresh" class="primary">계정 기록 열기</button>${deviceCount() || read(CURRENT_KEY, null) ? '<button id="accountImport" class="secondary">이 기기 기록 옮기기</button>' : ''}<button id="logout" class="quiet">로그아웃</button></div><p class="note">로그아웃하면 이 화면에서 계정 기록을 지워요. 서버의 보관함은 그대로 남아요.</p><details><summary>계정과 기록 삭제</summary><p>사주 그랩의 계정 기록을 모두 지우고 로그아웃해요. 필요한 기록은 먼저 내보내세요.</p><button id="leaveAccount" class="quiet danger">기록 지우고 로그아웃</button></details><p id="authStatus" role="status" class="note"></p>`;
     $('#accountRefresh').onclick = () => accountTask(async () => { await refreshAccount({ replaceCurrent: true }); $('#accountDialog').close(); navigate('archive'); });
     if ($('#accountImport')) $('#accountImport').onclick = () => { $('#accountDialog').close(); importDeviceRecords(); };
     $('#leaveAccount').onclick = () => {
       $('#accountDialog').close();
-      confirmDialog('계정과 기록을 모두 삭제할까요?', '<p>로그인 계정과 계정에 저장한 모든 사주·해설·대화를 삭제해요. 옮기지 않은 비회원 기기 기록은 남아 있어요.</p><label class="field" style="margin-top:18px">본인 확인을 위한 비밀번호<input id="deletePassword" type="password" autocomplete="current-password" required></label>', '계정 탈퇴', async () => {
+      confirmDialog('계정 기록을 지우고 로그아웃할까요?', '<p>사주 그랩 계정에 저장한 모든 사주·해설·대화를 삭제해요. 옮기지 않은 비회원 기기 기록은 남아 있어요.</p><label class="field" style="margin-top:18px">본인 확인을 위한 비밀번호<input id="deletePassword" type="password" autocomplete="current-password" required></label>', '기록 삭제 후 로그아웃', async () => {
         const { sdk } = await ensureAuth();
         try { await sdk.reauthenticateWithCredential(accountUser, sdk.EmailAuthProvider.credential(accountUser.email, $('#deletePassword').value)); }
         catch (e) { throw new Error(authMessage(e)); }
         await api({ action: 'delete' }, 60000);
-        current = null; archive = []; chat = null;
-        try { await sdk.deleteUser(accountUser); } catch { throw new Error('계정 기록은 삭제했어요. 로그인 계정을 지우려면 다시 시도해 주세요.'); }
-        await identityChanged(null); toast('계정과 계정 기록을 삭제했어요.');
+        current = null; archive = []; clearConversationDraft();
+        // Firebase identity is shared with Tarot. Delete only this app's data.
+        await sdk.signOut((await ensureAuth()).auth);
+        await identityChanged(null); toast('사주 그랩의 계정 기록을 삭제하고 로그아웃했어요.');
       });
     };
   } else {
