@@ -21,7 +21,7 @@ svg { display:block}
 .brand { text-decoration:none; display:flex; align-items:center; gap:7px; font-size:22px; letter-spacing:-1px}
 .brand b { font-weight:600}
 .brand svg { width:34px; height:34px; margin-right:4px; stroke:var(--brand); fill:none; stroke-width:1.3}
-.brand span { font-size:10px; color:var(--muted); letter-spacing:1.6px; margin-left:12px}
+.brand span { font-size:12px; color:var(--muted); letter-spacing:1.6px; margin-left:12px}
 .app-shell { max-width:1400px; margin:auto; display:flex; min-height:calc(100vh - 86px)}
 nav { width:174px; flex-shrink:0; padding:40px 16px 0 0; border-right:1px solid var(--line)}
 nav button { display:flex; align-items:center; gap:13px; width:100%; padding:15px 18px; border-radius:12px; margin-bottom:10px; font-size:15px; text-align:left}
@@ -93,7 +93,7 @@ main { flex:1; min-width:0; padding:44px 40px 70px}
 .domain-list button[aria-pressed=true] { background:var(--brand); color:var(--color-experience-paper); border-color:var(--brand)}
 .timeline { display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px; margin:22px 0}
 .timeline button { min-height:63px; background:var(--bg); border:1px solid transparent; border-radius:12px; padding:8px 4px; font-size:13px}
-.timeline button small { display:block; font-size:10px; margin-top:5px; color:var(--muted)}
+.timeline button small { display:block; font-size:12px; margin-top:5px; color:var(--muted)}
 .timeline button[aria-pressed=true] { border-color:var(--brand); background:var(--color-experience-selection); color:var(--brand); font-weight:600}
 .legend { display:flex; gap:20px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:16px}
 .legend span:before { content:''; display:inline-block; width:8px; height:8px; background:var(--dot); border-radius:50%; margin-right:6px}
@@ -129,7 +129,7 @@ dialog::backdrop { background:var(--color-experience-backdrop); backdrop-filter:
 #chatForm textarea { resize:none; max-height:120px; font-size:14px}
 #chatForm button { height:68px; white-space:nowrap}
 .chat-footer { display:flex; align-items:center; gap:2px; flex-wrap:wrap; margin-top:8px}
-.chat-footer span { font-size:11px; color:var(--muted); margin-left:auto}
+.chat-footer span { font-size:12px; color:var(--muted); margin-left:auto}
 .prompt-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px}
 .prompt-list button { background:var(--sage); border-radius:20px; padding:8px 12px; font-size:12px; min-height:38px}
 #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:20; max-width:90vw; width:max-content; border-radius:14px; padding:0; background:var(--color-experience-toast); color:var(--color-experience-paper); font-size:14px; box-shadow:0 8px 28px var(--color-experience-shadow)}
@@ -158,7 +158,7 @@ main { padding:28px 20px 110px}
 .grid { grid-template-columns:1fr}
 .stack { display:grid; grid-template-columns:1fr 1fr; gap:14px}
 nav { position:fixed; bottom:0; left:0; right:0; width:100%; display:flex; padding:8px 12px calc(8px + env(safe-area-inset-bottom)); border-right:0; border-top:1px solid var(--line); background:var(--color-experience-nav); backdrop-filter:blur(12px); z-index:10; justify-content:space-around}
-nav button { flex-direction:column; margin:0; padding:6px 14px; gap:4px; font-size:11px; border-radius:12px; width:22%}
+nav button { flex-direction:column; margin:0; padding:6px 14px; gap:4px; font-size:12px; border-radius:12px; width:22%}
 nav svg { width:21px; height:21px}
 .page-heading { margin-bottom:24px; align-items:start}
 .page-heading h1 { font-size:28px}
@@ -175,7 +175,7 @@ nav svg { width:21px; height:21px}
 .onboarding-intro .wave-caption { display:none}
 .onboarding-intro .note { display:none}
 .form-card { padding:24px}
-.onboarding .eyebrow { font-size:11px}
+.onboarding .eyebrow { font-size:12px}
 .archive-grid { gap:14px}
 #toast { bottom:100px}
 .segmented { max-width:100%; overflow-x:auto}
@@ -189,19 +189,19 @@ nav svg { width:21px; height:21px}
 .explore-card p { margin-top:4px}
 .archive-grid { grid-template-columns:1fr}
 .page-heading { gap:8px}
-.date-label { font-size:11px}
+.date-label { font-size:12px}
 .card { padding:22px}
 .hero-card { padding:25px}
 .hero-card h2 { font-size:25px}
 .timeline { grid-template-columns:repeat(7,1fr); gap:5px}
 .timeline button { font-size:12px}
-.timeline button small { font-size:9px}
+.timeline button small { font-size:12px}
 .segmented { width:100%}
 .segmented button { padding:8px 12px; flex:1}
 .brand span { display:none}
 dialog { padding:20px}
 .chat-footer .quiet { font-size:12px}
-.chat-footer span { font-size:10px}
+.chat-footer span { font-size:12px}
 #chatForm { gap:6px}
 .message { font-size:14px}
 .pillars { gap:6px}

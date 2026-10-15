@@ -4695,7 +4695,7 @@ function buildCycles(
 
         parentCycles: [
           parentDaewoon,
-          selectedYear
+          point.year
         ].filter(Boolean),
 
         stem:
@@ -4778,8 +4778,8 @@ function buildCycles(
 
           parentCycles: [
             parentDaewoon,
-            selectedYear,
-            monthCycles.find((cycle) => cycle.ganzhi === point.month.ganzhi) || selectedMonth
+            point.year,
+            point.month
           ].filter(Boolean),
 
           stem:

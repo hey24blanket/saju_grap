@@ -25,11 +25,12 @@ export default async function experience(req, res, runtime = {}) {
       const profile = cleanProfile(body.profile);
       let referenceDateTime = new Date().toISOString();
       if (body.referenceDate !== undefined) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(body.referenceDate) || new Date(body.referenceDate).toISOString().slice(0, 10) !== body.referenceDate) throw new ExperienceError(400, '해설 기준일을 확인해 주세요.');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(body.referenceDate) || !Number.isFinite(Date.parse(body.referenceDate)) || new Date(body.referenceDate).toISOString().slice(0, 10) !== body.referenceDate) throw new ExperienceError(400, '해설 기준일을 확인해 주세요.');
         referenceDateTime = `${body.referenceDate}T12:00:00+09:00`;
       }
       let calculated;
       try { calculated = computeExperience(profile, referenceDateTime); } catch (error) { throw new ExperienceError(400, '생년월일과 태어난 시간을 다시 확인해 주세요. 음력이라면 윤달 여부도 확인해 주세요.'); }
+      if (session.fresh) await session.ref.set(session.value);
       const id = randomUUID();
       await session.ref.collection('analyses').doc(id).set({ profile, referenceDateTime, createdAt: Date.now(), engineVersion: calculated.data?.engineFacts?.engineVersion || 'limited' });
       return res.status(200).json({ success: true, analysisId: id, reading: calculated.reading, profile, sessionExpiresAt: session.value.expiresAt });
@@ -74,6 +75,7 @@ export default async function experience(req, res, runtime = {}) {
       userMessage: text, sajuContext: selected.data, includeTrainingTrace: false
     } }, mockRes, { readingContext: selected.context });
     if (status !== 200 || !result?.success || !result.reply) throw new ExperienceError(502, '답변을 끝까지 준비하지 못했어요. 같은 질문으로 다시 시도할 수 있어요.');
+    console.info('[SajuGrap experience]', { requestId, provider: result.diagnostic?.provider, model: result.diagnostic?.model, usage: result.diagnostic?.usage, fallbackUsed: result.diagnostic?.fallbackUsed });
     const response = { success: true, reply: result.reply, conversationId, requestId, context: selected.context, diagnostic: { requestId: result.diagnostic?.requestId || requestId, provider: result.diagnostic?.provider || null } };
     const state = groundMemory(result.counselingState, messages);
     await db.runTransaction(async tx => {
