@@ -15,6 +15,9 @@
     },
     "api/experience.js": {
       "maxDuration": 180
+    },
+    "api/cleanup-experience.js": {
+      "maxDuration": 180
     }
   },
   "rewrites": [
@@ -71,5 +74,12 @@
         }
       ]
     }
-  ]
+  ],
+  "crons": [
+    {
+      "path": "/api/cleanup-experience",
+      "schedule": "10 13 * * *"
+    }
+  ],
+  "outputDirectory": "."
 }

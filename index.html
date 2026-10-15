@@ -4,16 +4,17 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f7f6f2"><meta name="description" content="운을 모으는 때, 펼치는 때. 나의 흐름을 편안하게 읽는 사주 그랩.">
   <title>사주 그랩 — 나의 흐름을 읽는 시간</title>
-  <link rel="icon" href="/icons/sajugrap.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/styles/app.css?v=20261015">
-  <script type="module" src="/app.js?v=20261015"></script>
+  <link rel="icon" href="/icons/sajugrap.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/styles/app.css?v=20261015b">
+  <script type="module" src="/app.js?v=20261015b"></script>
 </head>
 <body>
   <a class="skip" href="#main">본문으로 건너뛰기</a>
-  <header class="topbar"><a class="brand" href="/" aria-label="사주 그랩 홈"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 16c5-18 21-18 26 0M3 16c5 18 21 18 26 0M3 16c8-7 18-7 26 0M3 16c8 7 18 7 26 0"/></svg>사주 <b>그랩</b><span>SAJU GRAP</span></a><button id="profileShortcut" class="quiet">내 정보</button></header>
+  <header class="topbar"><a class="brand" href="/" aria-label="사주 그랩 홈"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 16c5-18 21-18 26 0M3 16c5 18 21 18 26 0M3 16c8-7 18-7 26 0M3 16c8 7 18 7 26 0"/></svg>사주 <b>그랩</b><span>SAJU GRAP</span></a><div class="header-actions"><button id="accountShortcut" class="quiet">로그인</button><button id="profileShortcut" class="quiet">내 정보</button></div></header>
   <div class="app-shell"><nav id="navigation" aria-label="주 메뉴" hidden></nav><main id="main" tabindex="-1"><div class="initial-loading">나의 흐름을 준비하고 있어요.</div></main></div>
   <div id="toast" role="status" aria-live="polite"></div>
   <dialog id="chatDialog" aria-labelledby="chatTitle"><div class="dialog-header"><div><span class="eyebrow">해설에서 이어지는 상담</span><h2 id="chatTitle">이 흐름, 더 알아보기</h2><p id="chatContext" class="muted"></p></div><button id="closeChat" class="icon-button" aria-label="상담 닫기">×</button></div><div id="chatMessages" role="log" aria-live="polite"></div><div id="chatError" class="error" role="alert" hidden></div><div id="chatPrompts" class="prompt-list"></div><form id="chatForm"><label class="sr-only" for="chatInput">궁금한 점</label><textarea id="chatInput" maxlength="1500" rows="2" placeholder="지금 이 흐름을 어떻게 쓰면 좋을까요?" required></textarea><button id="sendChat" class="primary" type="submit">보내기 ↗</button></form><div class="chat-footer"><button id="saveChat" class="quiet">대화 저장</button><button id="finishChat" class="quiet">오늘은 여기까지</button><span>AI 해설은 틀릴 수 있어요.</span></div></dialog>
   <dialog id="confirmDialog" aria-labelledby="confirmTitle"><div class="dialog-header"><h2 id="confirmTitle"></h2><button id="closeConfirm" class="icon-button" aria-label="닫기">×</button></div><div id="confirmBody"></div><div class="actions"><button id="cancelConfirm" class="secondary">돌아가기</button><button id="acceptConfirm" class="primary">확인</button></div></dialog>
+  <dialog id="accountDialog" aria-labelledby="accountTitle"><div class="dialog-header"><h2 id="accountTitle">다른 기기에서도 이어 보기</h2><button id="closeAccount" class="icon-button" aria-label="계정 창 닫기">×</button></div><div id="accountBody"></div></dialog>
   <noscript>사주 그랩을 사용하려면 브라우저의 JavaScript를 켜주세요.</noscript>
 </body>
 </html>

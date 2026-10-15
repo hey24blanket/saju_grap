@@ -6,24 +6,7 @@ import experience from '../api/experience.js';
 import publicChat from '../api/chat.js';
 import { invokeProviderWithPriority } from '../lib/chatProviderPolicy.js';
 const profile = { year: 1990, month: 1, day: 15, hour: 14, minute: 0, gender: 1, calendarType: 'solar', isLeapMonth: false, dayBoundary: 'midnight' };
-class MemoryDB {
-  rows = new Map(); chain = Promise.resolve();
-  collection(name) { return { doc: id => this.ref(`${name}/${id}`) }; }
-  ref(path) {
-    return { path, id: path.split('/').at(-1), firestore: this, collection: name => ({ doc: id => this.ref(`${path}/${name}/${id}`) }),
-      get: async () => this.snap(path), set: async value => { this.rows.set(path, structuredClone(value)); } };
-  }
-  snap(path) { const v = this.rows.get(path); return { exists: Boolean(v), data: () => v ? structuredClone(v) : undefined }; }
-  runTransaction(fn) {
-    const result = this.chain.then(async () => {
-      const writes = []; const tx = { get: async ref => this.snap(ref.path), set: (ref, value) => writes.push(() => this.rows.set(ref.path, structuredClone(value))), update: (ref, value) => writes.push(() => this.rows.set(ref.path, { ...this.rows.get(ref.path), ...structuredClone(value) })) };
-      const r = await fn(tx); writes.forEach(write => write()); return r;
-    }); this.chain = result.catch(() => {}); return result;
-  }
-  async recursiveDelete(ref) { for (const key of this.rows.keys()) if (key === ref.path || key.startsWith(`${ref.path}/`)) this.rows.delete(key); }
-}
-function response() { return { headers: {}, code: 0, setHeader(k, v) { this.headers[k] = v; }, status(n) { this.code = n; return this; }, json(v) { this.body = v; return this; } }; }
-function request(body, cookie = '') { return { method: 'POST', headers: { 'content-type': 'application/json', host: 'example.test', origin: 'https://example.test', cookie, 'x-vercel-forwarded-for': '192.0.2.1' }, body }; }
+import { MemoryDB, response, request } from './helpers/experienceMemoryDb.js';
 async function setup(db = new MemoryDB()) {
   const r = response(); await experience(request({ action: 'analyze', profile }), r, { db });
   assert.equal(r.code, 200, JSON.stringify(r.body));

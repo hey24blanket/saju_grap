@@ -1,5 +1,5 @@
-const CACHE_NAME = 'sajugrap-shell-v2-20261015';
-const SHELL = ['/', '/index.html', '/app.js?v=20261015', '/styles/app.css?v=20261015', '/lib/waveReading.js', '/styles/tokens.css?v=20261015', '/manifest.webmanifest', '/icons/sajugrap.svg'];
+const CACHE_NAME = 'sajugrap-shell-v3-20261015b';
+const SHELL = ['/', '/index.html', '/app.js?v=20261015b', '/styles/app.css?v=20261015b', '/lib/waveReading.js', '/lib/browserAccount.js', '/lib/firebasePublicConfig.js', '/styles/tokens.css?v=20261015', '/manifest.webmanifest', '/icons/sajugrap.svg'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('sajugrap-shell-') && k !== CACHE_NAME).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {

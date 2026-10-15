@@ -2,9 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { getFirestoreClient } from '../lib/ragRetriever.js';
 import { runChat } from './chat.js';
 import { assertRequest, cleanProfile, computeExperience, getSession, getAnalysis, chatContext, consumeBudget, groundMemory, validateId, hash, ExperienceError } from '../lib/experienceService.js';
+import { accountIdentity } from '../lib/accountIdentity.js';
+import { getAccount, accountSnapshot, putRecord, removeRecord, assertOwnerActive } from '../lib/accountRecords.js';
+import { deleteOwner } from '../lib/experienceCleanup.js';
 
 export default async function experience(req, res, runtime = {}) {
   res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('Access-Control-Allow-Origin', 'https://saju-grap.vercel.app');
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   let requestRef;
   let conversationRef;
   let lease;
@@ -12,12 +18,26 @@ export default async function experience(req, res, runtime = {}) {
     assertRequest(req);
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const action = runtime.forcedAction || body.action;
-    if (!['analyze', 'chat', 'delete'].includes(action)) throw new ExperienceError(400, '지원하지 않는 요청입니다.');
+    const accountActions = ['account', 'record-save', 'record-import', 'record-delete'];
+    if (!['analyze', 'chat', 'delete', ...accountActions].includes(action)) throw new ExperienceError(400, '지원하지 않는 요청입니다.');
     const { db } = runtime.db ? { db: runtime.db } : await getFirestoreClient();
-    const session = await getSession(db, req, res, { create: action === 'analyze' });
+    const authenticated = Boolean(req.headers?.authorization || req.headers?.Authorization);
+    if (accountActions.includes(action) && !authenticated) throw new ExperienceError(401, '로그인한 뒤 보관함을 열어주세요.');
+    const identity = authenticated ? await accountIdentity(req, runtime.verifyIdentity) : null;
+    if (identity && action === 'delete' && (!identity.auth_time || Date.now() / 1000 - identity.auth_time > 300)) throw new ExperienceError(401, '기록을 지우기 전에 비밀번호를 다시 확인해 주세요.');
+    const session = authenticated
+      ? await getAccount(db, identity, { create: action === 'account', allowExpired: action === 'delete' })
+      : await getSession(db, req, res, { create: action === 'analyze', allowExpired: action === 'delete' });
+    if (accountActions.includes(action)) {
+      await consumeBudget(db, session, req, 'archive');
+      if (action === 'account') return res.status(200).json({ success: true, ...(await accountSnapshot(session)) });
+      if (action === 'record-delete') { await removeRecord(db, session, body); return res.status(200).json({ success: true }); }
+      const item = await putRecord(db, session, body, action === 'record-import');
+      return res.status(200).json({ success: true, item });
+    }
     if (action === 'delete') {
-      await db.recursiveDelete(session.ref);
-      res.setHeader('Set-Cookie', 'sg_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0');
+      await deleteOwner(db, session);
+      if (!authenticated) res.setHeader('Set-Cookie', 'sg_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0');
       return res.status(200).json({ success: true });
     }
     if (action === 'analyze') {
@@ -30,9 +50,13 @@ export default async function experience(req, res, runtime = {}) {
       }
       let calculated;
       try { calculated = computeExperience(profile, referenceDateTime); } catch (error) { throw new ExperienceError(400, '생년월일과 태어난 시간을 다시 확인해 주세요. 음력이라면 윤달 여부도 확인해 주세요.'); }
-      if (session.fresh) await session.ref.set(session.value);
       const id = randomUUID();
-      await session.ref.collection('analyses').doc(id).set({ profile, referenceDateTime, createdAt: Date.now(), engineVersion: calculated.data?.engineFacts?.engineVersion || 'limited' });
+      await db.runTransaction(async tx => {
+        if (session.fresh) tx.set(session.ref, session.value);
+        else await assertOwnerActive(tx, session);
+        tx.set(session.ref.collection('analyses').doc(id), { profile, referenceDateTime, reading: calculated.reading, createdAt: Date.now(), engineVersion: calculated.data?.engineFacts?.engineVersion || 'limited' });
+        if (session.account) tx.update(session.ref, { latestAnalysisId: id });
+      });
       return res.status(200).json({ success: true, analysisId: id, reading: calculated.reading, profile, sessionExpiresAt: session.value.expiresAt });
     }
     const analysis = await getAnalysis(session, body.analysisId);
@@ -48,6 +72,7 @@ export default async function experience(req, res, runtime = {}) {
     let previous;
     let conversation;
     await db.runTransaction(async tx => {
+      await assertOwnerActive(tx, session);
       const [r, c] = await Promise.all([tx.get(requestRef), tx.get(conversationRef)]);
       if (r.exists) {
         const old = r.data();
@@ -79,8 +104,9 @@ export default async function experience(req, res, runtime = {}) {
     const response = { success: true, reply: result.reply, conversationId, requestId, context: selected.context, diagnostic: { requestId: result.diagnostic?.requestId || requestId, provider: result.diagnostic?.provider || null } };
     const state = groundMemory(result.counselingState, messages);
     await db.runTransaction(async tx => {
-      const [r, s] = await Promise.all([tx.get(requestRef), tx.get(session.ref)]);
-      if (!s.exists || r.data()?.lease !== lease) throw new ExperienceError(409, '연결이 변경되어 답변을 저장하지 않았어요.');
+      await assertOwnerActive(tx, session);
+      const r = await tx.get(requestRef);
+      if (r.data()?.lease !== lease) throw new ExperienceError(409, '연결이 변경되어 답변을 저장하지 않았어요.');
       tx.set(requestRef, { fingerprint, status: 'complete', response });
       tx.set(conversationRef, { ...conversation, state, messages: [...messages, { id: `${requestId}_reply`, role: 'assistant', text: result.reply }], busyUntil: 0, updatedAt: Date.now() });
     });
