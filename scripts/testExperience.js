@@ -83,3 +83,30 @@ test('provider failures are retryable, but daily quota fails closed', async () =
   const date = new Date().toISOString().slice(0, 10); db.rows.set(`saju_experience_budgets_v1/${hash(cookie.slice(11))}_${date}_chat`, { count: 20 });
   r = response(); await experience(request({ ...body, requestId: 'message_456' }, cookie), r, { db, runChat: () => assert.fail('quota must prevent provider call') }); assert.equal(r.code, 429);
 });
+
+
+test('overview route sends only the selected period and excludes generic natal/year context', async () => {
+  const { isReadingOverviewQuestion, buildReadingOverviewPrompt } = await import('../lib/readingOverview.js');
+  assert.equal(isReadingOverviewQuestion('10월 18일의 흐름을 일상에서 어떻게 쓰면 좋을까요?'), true);
+  assert.equal(isReadingOverviewQuestion('이 흐름을 일상에서 어떻게 쓰면 좋을까요?'), true);
+  assert.equal(isReadingOverviewQuestion('지금 한 가지에 집중한다면 무엇을 살펴볼까요?'), true);
+  assert.equal(isReadingOverviewQuestion('지금 회사를 그만둘까요?'), false);
+  const prompt = buildReadingOverviewPrompt({ selected: { label: '10월 18일', date: '2026-10-18', evidence: { stage: '묘' } }, phase: '모이는 흐름', meaning: '집중', domain: '전체', action: '메모', referenceDate: '2026-10-15', untrustedExtra: 'not included' }, '질문');
+  assert.equal(prompt.userPrompt.includes('not included'), false);
+  assert.ok(prompt.userPrompt.length < 800);
+});
+
+test('first overview skips retrieval and uses the short provider prompt in the real orchestrator', async () => {
+  const { runChat } = await import('../api/chat.js');
+  const { chatContext } = await import('../lib/experienceService.js');
+  const selected = chatContext({ profile, referenceDateTime: '2026-10-15T12:00:00+09:00' }, 'day:17');
+  let observed;
+  const r = response();
+  await runChat({ method: 'POST', headers: {}, body: { mode: 'chat', ragMode: 'optional', userMessage: '10월 18일의 흐름을 일상에서 어떻게 쓰면 좋을까요?', messageId: 'overview_message', sessionId: 'overview_session', cycle: '일운', cycleIndex: 17, history: [], sajuContext: selected.data } }, r, {
+    readingContext: selected.context,
+    retrieveRag: () => assert.fail('overview must not retrieve knowledge'),
+    searchCounselingExamples: () => assert.fail('overview must not retrieve counseling examples'),
+    callProvider: async options => { observed = options; return { provider: 'gemini', model: 'fixture', text: JSON.stringify({ reply: '18일은 마음에 걸리는 일 하나에 집중하는 관점으로 살펴보세요.', stateDelta: Object.fromEntries(['subjects', 'observations', 'goals', 'constraints', 'attempts', 'hypotheses', 'corrections', 'openQuestions'].map(k => [k, []])) }) }; }
+  });
+  assert.equal(r.code, 200); assert.equal(JSON.parse(observed.userPrompt).reading.selectedDate, '2026-10-18'); assert.ok(observed.userPrompt.length < 1500); assert.ok(observed.systemInstruction.length < 1500);
+});
