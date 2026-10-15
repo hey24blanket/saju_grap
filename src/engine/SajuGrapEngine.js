@@ -4746,23 +4746,8 @@ function buildCycles(
       )
     ).getUTCDate();
 
-  const requestedDays =
-    unique([
-      1,
-      5,
-      10,
-      15,
-      20,
-      25,
-      Math.min(
-        30,
-        daysInMonth
-      )
-    ]).filter(
-      (d) =>
-        d <=
-        daysInMonth
-    );
+  // Every civil day is addressable; never substitute a nearby sampled date.
+  const requestedDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const selectedMonth =
     monthCycles[
@@ -4794,7 +4779,7 @@ function buildCycles(
           parentCycles: [
             parentDaewoon,
             selectedYear,
-            selectedMonth
+            monthCycles.find((cycle) => cycle.ganzhi === point.month.ganzhi) || selectedMonth
           ].filter(Boolean),
 
           stem:

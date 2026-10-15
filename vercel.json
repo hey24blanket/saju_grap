@@ -9,6 +9,12 @@
     },
     "api/tarot.js": {
       "maxDuration": 120
+    },
+    "api/chat.js": {
+      "maxDuration": 180
+    },
+    "api/experience.js": {
+      "maxDuration": 180
     }
   },
   "rewrites": [
@@ -53,6 +59,15 @@
         {
           "key": "Referrer-Policy",
           "value": "no-referrer"
+        }
+      ]
+    },
+    {
+      "source": "/(index.html|app.js|styles/app.css|sw.js)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
         }
       ]
     }

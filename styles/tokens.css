@@ -456,3 +456,74 @@ html {
 .z-tooltip { z-index: var(--z-tooltip); }
 .z-toast { z-index: var(--z-toast); }
 .z-modal { z-index: var(--z-modal); }
+
+/* Commercial reading experience: warm neutral palette. */
+:root {
+  --rhythm-canvas: #f7f6f2;
+  --rhythm-ink: #2d3439;
+  --rhythm-muted: #69716f;
+  --rhythm-border: #e3e4dd;
+  --rhythm-brand: #466760;
+  --rhythm-paper: #fffefa;
+  --rhythm-sage: #e9eee7;
+  --rhythm-lilac: #eeeaf2;
+  --rhythm-active: #36574e;
+  --rhythm-hero: #eeeee7;
+  --rhythm-body: #565f5b;
+  --rhythm-badge: #ffffffa8;
+  --rhythm-divider: #d7dcd2;
+  --rhythm-control-border: #d4d9cf;
+  --rhythm-brand-hover: #34564e;
+  --rhythm-hover: #98b0a4;
+  --rhythm-input-border: #d7dbd3;
+  --rhythm-label: #59635d;
+  --rhythm-error-bg: #fff1ec;
+  --rhythm-error-ink: #94462d;
+  --rhythm-segment: #eaece5;
+  --rhythm-subtle-shadow: #33333309;
+  --rhythm-selection: #e6eee7;
+  --rhythm-danger: #945641;
+  --rhythm-dialog-shadow: #172d2430;
+  --rhythm-backdrop: #243c3759;
+  --rhythm-toast: #2d4540;
+  --rhythm-shadow: #0002;
+  --rhythm-nav: #fffefaf5;
+  --rhythm-focus: #9c79b4;
+  --color-experience-canvas: var(--rhythm-canvas);
+  --color-experience-ink: var(--rhythm-ink);
+  --color-experience-muted: var(--rhythm-muted);
+  --color-experience-border: var(--rhythm-border);
+  --color-experience-brand: var(--rhythm-brand);
+  --color-experience-paper: var(--rhythm-paper);
+  --color-experience-sage: var(--rhythm-sage);
+  --color-experience-lilac: var(--rhythm-lilac);
+  --color-experience-active: var(--rhythm-active);
+  --color-experience-hero: var(--rhythm-hero);
+  --color-experience-body: var(--rhythm-body);
+  --color-experience-badge: var(--rhythm-badge);
+  --color-experience-divider: var(--rhythm-divider);
+  --color-experience-control-border: var(--rhythm-control-border);
+  --color-experience-brand-hover: var(--rhythm-brand-hover);
+  --color-experience-hover: var(--rhythm-hover);
+  --color-experience-input-border: var(--rhythm-input-border);
+  --color-experience-label: var(--rhythm-label);
+  --color-experience-error-bg: var(--rhythm-error-bg);
+  --color-experience-error-ink: var(--rhythm-error-ink);
+  --color-experience-segment: var(--rhythm-segment);
+  --color-experience-subtle-shadow: var(--rhythm-subtle-shadow);
+  --color-experience-selection: var(--rhythm-selection);
+  --color-experience-danger: var(--rhythm-danger);
+  --color-experience-dialog-shadow: var(--rhythm-dialog-shadow);
+  --color-experience-backdrop: var(--rhythm-backdrop);
+  --color-experience-toast: var(--rhythm-toast);
+  --color-experience-shadow: var(--rhythm-shadow);
+  --color-experience-nav: var(--rhythm-nav);
+  --color-experience-focus: var(--rhythm-focus);
+  --rhythm-wave-gather: #617e81;
+  --rhythm-wave-unfold: #b18566;
+  --rhythm-wave-transition: #9484a0;
+  --color-wave-gather: var(--rhythm-wave-gather);
+  --color-wave-unfold: var(--rhythm-wave-unfold);
+  --color-wave-transition: var(--rhythm-wave-transition);
+  --color-wave-thread: var(--rhythm-wave-gather);
+}

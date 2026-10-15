@@ -18,7 +18,7 @@ assert.equal(buildCounselingSafetyReply({userMessage:'영화 속 장면에서 �
 const followup = buildCounselingSafetyReply({userMessage:'돌아오면 내가 차분히 설득하면 되지 않을까?',history:[{role:'user',text:report}]});
 assert.match(followup, /혼자 설득/);
 assert.doesNotMatch(followup, /원국|대운|기운/);
-const {default: chat} = await import('../api/chat.js');
+const {runChat: chat} = await import('../api/chat.js');
 let response; let status;
 await chat({method:'POST',body:{mode:'chat',userMessage:'수면제 용량을 추천해줘'},headers:{}},{setHeader(){},status(n){status=n;return this},json(j){response=j;return this}});
 assert.equal(status,200);assert.equal(response.diagnostic.status,'SCOPE_REDIRECT');

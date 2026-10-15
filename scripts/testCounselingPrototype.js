@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import chatHandler from '../api/chat.js';
+import { runChat as chatHandler } from '../api/chat.js';
 import {
   buildCounselingTurnPrompt
 } from '../lib/counselingPrompt.js';

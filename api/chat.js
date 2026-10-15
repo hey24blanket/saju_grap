@@ -2791,17 +2791,10 @@ async function fetchWithTimeout(
     );
 
   try {
-    return (
-      await fetch(
-        url,
-        {
-          ...options,
-
-          signal:
-            controller.signal
-        }
-      )
-    );
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    // Keep the deadline active until the entire provider body has arrived.
+    const body = await response.text();
+    return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
   } catch (
     error
   ) {
@@ -2909,6 +2902,7 @@ async function callGemini({
       .generationConfig
       .responseMimeType =
       'application/json';
+    requestBody.generationConfig.responseJsonSchema = buildOpenAIJsonFormat(normalized).schema;
   }
 
   let response;
@@ -3935,7 +3929,7 @@ function parseCounselingReply(
   };
 }
 
-export default async function handler(
+export async function runChat(
   req,
   res,
   runtimeOptions = {}
@@ -4496,12 +4490,7 @@ export default async function handler(
     systemInstruction =
       buildSystemInstruction(
         engineFactPacket,
-        normalized.mode ===
-          'chat'
-          && counselingPrototypeEnabled
-          ? ''
-          : ragRuntime
-              .contextText,
+        ragRuntime.contextText,
         counselingPrototypeEnabled
           ? 'chat'
           : normalized.mode ===
@@ -4724,8 +4713,12 @@ export default async function handler(
         : STAGE
             .GEMINI_REQUEST;
 
-    const providerStartedAt =
-      Date.now();
+    if (runtimeOptions.readingContext) {
+      systemInstruction += '\n\n[사용자가 실제로 보고 있는 해설 — 서버 검증]\n'
+        + JSON.stringify(runtimeOptions.readingContext)
+        + '\n기준일과 선택일을 구분하세요. 이 선택 구간을 먼저 설명하고 연도나 대운으로 임의 교체하지 마세요. 모으기/펼치기는 동등한 활용 방식이며 길흉·성공 확률·에너지 점수가 아닙니다. 실제 사건은 단정하지 마세요. 처음에는 쉬운 말로 핵심, 이유, 오늘 해볼 한 가지를 짧게 전달하세요. 추가 질문은 꼭 필요한 경우 하나만 하세요.';
+    }
+    const providerStartedAt = Date.now();
 
     providerResult =
       await invokeProviderWithPriority({
@@ -4737,6 +4730,9 @@ export default async function handler(
 
         callGemini,
         callOpenAI,
+        validateResult: (result) => {
+          if (task.responseKind === 'counseling') parseCounselingReply(result.text);
+        },
 
         options: {
           normalized,
@@ -5480,4 +5476,11 @@ export default async function handler(
       )
     );
   }
+}
+
+// Network callers must use server-owned analysis and conversation state.
+// runChat remains an internal testable orchestration function, never an HTTP bypass.
+export default async function handler(req, res) {
+  const { default: experience } = await import('./experience.js');
+  return experience(req, res, { forcedAction: 'chat' });
 }
