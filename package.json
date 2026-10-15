@@ -26,7 +26,7 @@
     "@google-cloud/firestore": "9.0.0",
     "@vercel/blob": "2.7.0",
     "@vercel/functions": "3.9.9",
-    "firebase-admin": "14.5.0",
+    "firebase-admin": "13.6.0",
     "korean-lunar-calendar": "0.4.0",
     "lunar-javascript": "1.7.7"
   }
